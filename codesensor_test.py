@@ -36,7 +36,7 @@ class function:
 
 
 def normalize(string):
-	return ''.join(string.replace('\n', '').replace('\t','').split(' ')).lower()
+	return ''.join(string.replace('\n', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
 
 
 def removeComment(string):
@@ -95,6 +95,7 @@ def abstraction(instance, level):
 
 
 targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
+targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
 command = "java -jar CodeSensor.jar "
 
 srcFileList = load(targetDir)
@@ -117,7 +118,7 @@ for srcFile in srcFileList:
 		print "CodeSensor Error:", e
 		astString = ""
 
-	# print astString
+	print astString
 	astLineList = astString.split('\n')
 	for astLine in astLineList:
 		astLineSplitted = astLine.split('\t')
@@ -164,13 +165,13 @@ for srcFile in srcFileList:
 		print "DTYPE\t", f.dataTypeList
 		print "CALLS\t", f.funcCalleeList
 		print ""
-		print "[ORIGINAL]"
-		print f.getOriginalFunction()
-		print ""
+		# print "[ORIGINAL]"
+		# print f.getOriginalFunction()
+		# print ""
 		# print f.getOriginalFunction()[::-1]
 
-		print "================="
+		# print "================="
 		abstraction(f, 4)
-		print "-----------------"
+		# print "-----------------"
 
 	sys.exit()
