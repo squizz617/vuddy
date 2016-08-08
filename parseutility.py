@@ -172,7 +172,6 @@ def parseFile(srcFileName):
 
 
 
-
 if __name__ == "__main__":
 	# for testing
 	targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
