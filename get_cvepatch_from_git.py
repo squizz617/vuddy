@@ -61,7 +61,8 @@ def init():
 
 def callGitLog():
 	print "Calling git log...",
-	command_log = "git log --all --pretty=fuller --grep='CVE-20'"
+	grepKeyword = r"'CVE-20'"
+	command_log = "git log --all --pretty=fuller --grep=" + grepKeyword
 
 	os.chdir(gitDir)
 	try:
@@ -91,7 +92,7 @@ def filterCommitMessage(commitMessage):
 
 
 def callGitShow(commitHashValue):
-	print "Calling git show...",
+	# print "Calling git show...",
 	command_show = "git show --pretty=fuller " + commitHashValue
 
 	try:
@@ -99,12 +100,12 @@ def callGitShow(commitHashValue):
 	except subprocess.CalledProcessError as e:
 		print "error:", e
 
-	print "Done."
+	# print "Done."
 	return gitShowOutput
 
 
 def updateCveInfo(cveId):
-	print "Updating CVE metadata...",
+	# print "Updating CVE metadata...",
 	global cveDict
 
 	try:
@@ -124,7 +125,7 @@ def updateCveInfo(cveId):
 		cweNum = cwe.split('-')[1].zfill(3)
 		cwe = "CWE-" + str(cweNum)
 
-	print "Done."
+	# print "Done."
 	return cveId + '_' + cvss + '_' +  cwe + '_'
 
 
@@ -147,24 +148,29 @@ def process(gitLogOutput):
 				store the dependency in a file which is named after the repo,
 				(e.g., ~/diff/dependency_ubuntu)
 				and use one CVE that has the smallest ID number for filename.
+				(A sample:
+					CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853	CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
+				)
 			"""
 
-			fp = open(diffDir + "dependency_" + repoName[:-1], "a")
-			cveIdFull = ""
-			minimum = 9999
-			for cveId in cveIdList:
-				idDigits = int(cveId.split('-')[2])
-				cveIdFull += cveId + '_'
-				if minimum > idDigits:
-					minimum = idDigits
-					minCve = cveId + '_'
-
-			fp.write(minCve + '\t' + cveIdFull + '\n')
-			fp.close()
+			if len(cveIdList) > 1:	# do this only if muliple CVEs are assigned to a commit
+				fp = open(diffDir + "dependency_" + repoName[:-1], "a")
+				cveIdFull = ""
+				minimum = 9999
+				for cveId in cveIdList:
+					idDigits = int(cveId.split('-')[2])
+					cveIdFull += cveId + '_'
+					if minimum > idDigits:
+						minimum = idDigits
+						minCve = cveId
+				fp.write(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n')
+				fp.close()
+			else:
+				minCve = cveIdList[0]
 
 			gitShowOutput = callGitShow(commitHashValue)
 
-			finalFileName = updateCveInfo(cveId)
+			finalFileName = updateCveInfo(minCve)
 
 			print "[+] Writing ", finalFileName + commitHashValue + ".diff",
 			try:
@@ -182,5 +188,5 @@ init()
 gitLogOutput = callGitLog()
 process(gitLogOutput)
 
-print "All patches saved in", diffDir + repoName
+print str(len(os.listdir(diffDir))) + " patches saved in", diffDir + repoName
 print "Done. (" + str(time.time()-t1) + " sec)"
