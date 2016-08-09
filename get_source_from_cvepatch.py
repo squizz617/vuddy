@@ -130,6 +130,7 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 							os.remove(originalDir + "/tmp")
 						except:
 							pass
+
 						command_show = 'git show ' + indexHash + ">> " + originalDir + "/tmp"
 						os.system(command_show)
 						if 0:
@@ -145,7 +146,13 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 							# 	fp_Temp.write(gitShowOutput)
 							print indexHash
 							os.chdir(originalDir)
+							
 							functionInstanceList = parseutility.parseFile("tmp")
+
+							# if indexHash == "1e25854":	# for testing
+							# 	functionInstanceList = parseutility.parseFile("tmp2")
+
+							# if indexHash != "1e25854":
 							os.remove("tmp")
 							os.chdir(os.path.join("/home/squizz/devgit/", repoName))
 
@@ -155,13 +162,14 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 
 								chunkSplitted = chunk.split('\n')
 								chunkFirstLine = chunkSplitted[0]
+								chunkLines = chunkSplitted[1:]
+
 								print chunkFirstLine
 								lineNums = pat_linenum.search(chunkFirstLine)
 								oldLines = lineNums.group(1).split(',')
 								newLines = lineNums.group(2).split(',')
 								
 								offset = int(oldLines[0])
-								# print "FROM", offset
 								pmList = []
 								lnList = []
 								for chunkLine in chunkSplitted[1:]:
@@ -192,15 +200,61 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 									elif pm == '-':
 										minusCnt += 1
 
-								boundary = offset + int(oldLines[1]) - 1
-								# print "TO", offset + int(oldLines[1]) + plusCnt - minusCnt - 1
+								bound = offset + int(oldLines[1]) - 1
+								print "FROM", offset
+								print "TO", offset + int(oldLines[1]) - 1
 
+								hitFunctionList = []
 								for f in functionInstanceList:
-									# print f.lines
-									if offset >= f.lines[0] and boundary <= f.lines[1]:
-										print "\t\t\tFOUND:", f.name, f.lines
+									print f.lines[0], f.lines[1]
 
-								# print "--------chunkLine----------"
+									for num in range(f.lines[0], f.lines[1]+1):
+										if num in lnList:
+											print "Hit at", num
+											hitFunctionList.append(f)
+											break	# found the function to be patched
+
+									# if f.lines[0] <= offset <= f.lines[1]:
+									# 	print "\t\t\tOffset HIT!!", f.name
+									# elif f.lines[0] <= bound <= f.lines[1]:
+									# 	print "\t\t\tBound  HIT!!", f.name
+
+								for f in hitFunctionList:
+									print "Verify hitFunction", f.name
+									print "ln",
+									for num in range(f.lines[0], f.lines[1]+1):
+										print num,
+										try:
+											listIndex = lnList.index(num)
+										except ValueError:
+											pass
+										else:
+											print "\nmatch:", num
+											# print "value\t", chunkSplitted[1:][lnList.index(num)]
+											# print "pm   \t", pmList[lnList.index(num)]
+											if pmList[listIndex] == '+' or pmList[listIndex] == '-':
+												print "Maybe meaningful",
+												flag = 0
+												for commentKeyword in ["/*", "*/", "//", "*"]:
+													if chunkLines[listIndex][1:].lstrip().startswith(commentKeyword):
+														flag = 1
+														break
+												if flag:
+													print "but not."
+												else:
+													print "MEANINGFUL!!"
+													break
+											else:
+												print "Not meaningful"
+									print "============\n"
+
+								# if indexHash == "1e25854":
+								# 	sys.exit()
+
+									# if offset >= f.lines[0] and bound <= f.lines[1]:
+									# 	print "\t\t\tFOUND:", f.name, f.lines
+
+0								# print "--------chunkLine----------"
 								# print chunk
 								# print "--------------------------"
 
