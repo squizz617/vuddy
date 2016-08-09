@@ -112,9 +112,11 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 						print "\t[-]", codePath, "(invalid metadata)"	# we are looking for "index"
 					else:
 						print "\t[+]", codePath
-						indexHash = secondLine.split(' ')[1].split('..')[0]
+						# print secondLine
+						indexHashOld = secondLine.split(' ')[1].split('..')[0]
+						indexHashNew = secondLine.split(' ')[1].split('..')[1]
 						# print "CODEPATH:  ", codePath
-						# print "INDEXHASH: ", indexHash
+						# print "INDEXHASH: ", indexHashOld
 
 						chunksList = re.split(pat_chunk, affectedFile)[1:]	# diff file per chunk (in list)
 						# print len(chunksList), 'chunks'
@@ -127,12 +129,16 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 							os.chdir(os.path.join("/home/squizz/devgit/", repoName))	#temporary change!!!! Aug 8
 
 						try:
-							os.remove(originalDir + "/tmp")
+							os.remove(originalDir + "/tmp_old")
+							os.remove(originalDir + "/tmp_new")
 						except:
 							pass
 
-						command_show = 'git show ' + indexHash + ">> " + originalDir + "/tmp"
+						command_show = 'git show ' + indexHashOld + ">> " + originalDir + "/tmp_old"
 						os.system(command_show)
+						command_show = 'git show ' + indexHashNew + ">> " + originalDir + "/tmp_new"
+						os.system(command_show)
+						# ADDING NEW!!
 						if 0:
 							pass
 						else:
@@ -144,16 +150,16 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 							# srclines = gitShowOutput.split('\n')	# original source code (as list constitutes of each line)
 							# with open("tmp", 'w') as fp_Temp:
 							# 	fp_Temp.write(gitShowOutput)
-							print indexHash
+							print indexHashOld
 							os.chdir(originalDir)
 							
-							functionInstanceList = parseutility.parseFile("tmp")
+							functionInstanceList = parseutility.parseFile("tmp_old")
 
-							# if indexHash == "1e25854":	# for testing
+							# if indexHashOld == "1e25854":	# for testing
 							# 	functionInstanceList = parseutility.parseFile("tmp2")
 
-							# if indexHash != "1e25854":
-							os.remove("tmp")
+							# if indexHashOld != "1e25854":
+							os.remove("tmp_old")
 							os.chdir(os.path.join("/home/squizz/devgit/", repoName))
 
 							numChunks = len(chunksList)
@@ -248,7 +254,7 @@ for diffFileName in os.listdir(os.path.join(originalDir, "diff", repoName)):	# d
 												print "Not meaningful"
 									print "============\n"
 
-								# if indexHash == "1e25854":
+								# if indexHashOld == "1e25854":
 								# 	sys.exit()
 
 									# if offset >= f.lines[0] and bound <= f.lines[1]:
