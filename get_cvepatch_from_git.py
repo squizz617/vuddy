@@ -69,6 +69,7 @@ def callGitLog(gitDir):
 	grepKeyword = r"'CVE-20'"
 	command_log = "git log --all --pretty=fuller --grep=" + grepKeyword
 
+	gitLogOutput = ""
 	os.chdir(gitDir)
 	try:
 		try:
