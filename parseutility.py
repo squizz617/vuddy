@@ -3,21 +3,19 @@ import sys
 import subprocess
 import re
 
-# from loader import load
-
 javaCallCommand = "java -jar CodeSensor.jar "
 
 class function:
-	parentFile = None
-	name = None
-	lines = None
-	parameterList = []
-	variableList = []
-	dataTypeList = []
-	funcCalleeList = []
+	parentFile = None 	# Absolute file which has the function
+	name = None 		# Name of the function
+	lines = None 		# Tuple (lineFrom, lineTo) that indicates the LoC of function
+	funcId = None 		# n, indicating n-th function in the file
+	parameterList = []	# list of parameter variables
+	variableList = []	# list of local variables
+	dataTypeList = []	# list of data types, including user-defined types
+	funcCalleeList = []	# list of called functions' names
 
 	def __init__(self, fileName):
-		# print "INIT"
 		self.parentFile = fileName
 		self.parameterList = []
 		self.variableList = []
@@ -69,9 +67,7 @@ def abstract(instance, level):
 	originalFunction = removeComment(originalFunction)
 
 	if int(level) >= 0:
-		# print "[L0]\t", originalFunction
 		originalFunctionBody = getBody(originalFunction)
-		# print "[L0N]\t", normalize(removeComment(originalFunctionBody)), "\n"
 		abstractBody = originalFunctionBody
 
 	if int(level) >= 1:	#PARAM
@@ -79,37 +75,24 @@ def abstract(instance, level):
 		for param in parameterList:
 			paramPattern = re.compile("(^|\W)" + param + "(\W)")
 			abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", originalFunctionBody)
-		# print "[L1]\t", originalFunction
-
-		# originalFunctionBody = getBody(originalFunction)
-		# print "[L1N]\t", normalize(removeComment(originalFunctionBody)), "\n"
 
 	if int(level) >= 2:	#DTYPE
 		dataTypeList = instance.dataTypeList
 		for dtype in dataTypeList:
 			dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
 			abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
-		# print "[L2]\t", originalFunction
-		# originalFunctionBody = getBody(originalFunction)
-		# print "[L2N]\t", normalize(removeComment(originalFunctionBody)), "\n"
 
 	if int(level) >= 3:	#LVAR
 		variableList = instance.variableList
 		for lvar in variableList:
 			lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
 			abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
-		# print "[L3]\t", originalFunction
-		# originalFunctionBody = getBody(originalFunction)
-		# print "[L3N]\t", normalize(removeComment(originalFunctionBody)), "\n"
 
 	if int(level) >= 4:	#FUNCCALL
 		funcCalleeList = instance.funcCalleeList
 		for fcall in funcCalleeList:
 			fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
 			abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
-		# print "[L4]\t", originalFunction
-		# originalFunctionBody = getBody(originalFunction)
-		# print "[L4N]\t", normalize(removeComment(originalFunctionBody)), "\n"
 
 	return (originalFunctionBody, abstractBody)
 
@@ -139,15 +122,13 @@ def parseFile(srcFileName):
 			init = 1
 			functionInstance = function(srcFileName)
 			functionInstanceList.append(functionInstance)
+			functionInstance.funcId = len(functionInstanceList)
 			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
 			functionInstance.lines = (funcLineFrom, funcLineTo)
 		
 		elif "FUNCTION_NAME" == astLine[0:len("FUNCTION_NAME")] and init:
 			functionInstance.name = astLineSplitted[4].rstrip()
 
-		# elif "PARAMETER_LIST" == astLine[0:len("PARAMETER_LIST")] and init:
-		# 	paramsList.append(astLineSplitted[4].rstrip())
-		
 		elif "PARAMETER_DECL" == astLine[0:len("PARAMETER_DECL")] and init:
 			paramDeclFlag = 1
 
@@ -171,9 +152,7 @@ def parseFile(srcFileName):
 	return functionInstanceList
 
 
-
 if __name__ == "__main__":
-	# for testing
 	targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
 	targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
 
@@ -184,7 +163,6 @@ if __name__ == "__main__":
 
 		functionInstanceList = parseFile(srcFile)
 
-		# print functionsList
 		for f in functionInstanceList:
 			f.removeListDup()
 			print f.name, f.lines
@@ -193,13 +171,6 @@ if __name__ == "__main__":
 			print "DTYPE\t", f.dataTypeList
 			print "CALLS\t", f.funcCalleeList
 			print ""
-			# print "[ORIGINAL]"
-			# print f.getOriginalFunction()
-			# print ""
-			# print f.getOriginalFunction()[::-1]
-
-			# print "================="
 			abstract(f, 4)
-			# print "-----------------"
 
 		sys.exit()

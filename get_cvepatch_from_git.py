@@ -21,7 +21,7 @@ import pickle
 repoName = None
 originalDir = os.getcwd()
 diffDir = os.path.join(originalDir, 'diff/')
-gitStoragePath = "/home/squizz/devgit/"
+gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/linux"
 gitDir = None
 cveDict = pickle.load(open("cvedata.pkl", "rb"))
 
@@ -34,7 +34,7 @@ def init():
 	global gitDir
 
 	if len(sys.argv) < 2:
-		repoName = "glibc"
+		repoName = "linux"
 	else:
 		repoName = sys.argv[1]
 
