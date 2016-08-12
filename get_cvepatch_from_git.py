@@ -21,46 +21,51 @@ import pickle
 repoName = None
 originalDir = os.getcwd()
 diffDir = os.path.join(originalDir, 'diff/')
-gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/linux"
-gitDir = None
+gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/"
 cveDict = pickle.load(open("cvedata.pkl", "rb"))
-
+multiModeFlag = 0
+multiRepoList = []
 
 """ FUNCTIONS """
 def init():
 	# parse arguments, make directories
 	global repoName
-	global gitStoragePath
-	global gitDir
+	global multiModeFlag
+	global multiRepoList
 
 	if len(sys.argv) < 2:
 		repoName = "linux"
+		multiModeFlag = 0
 	else:
 		repoName = sys.argv[1]
-
+		if sys.argv[2] == "-m":
+			multiModeFlag = 1
+			with open("repolists/list_" + repoName) as fp:
+				for repoLine in fp.readlines():
+					if len(repoLine) > 2:
+						multiRepoList.append(repoLine.rstrip())
 	if not repoName.endswith("/"):
 		repoName += '/'
 
-	gitDir = os.path.join(gitStoragePath, repoName)	# where .git exists
-
 	print "Retrieving CVE patch from", repoName
+	print "Multi-repo mode:",
+	if multiModeFlag:
+		print "ON."
+	else:
+		print "OFF."
+
 	print "Initializing...",
 
 	try:
-		os.mkdir('diff')
-	except:
-		pass
-
-	try:
-		os.mkdir(diffDir + repoName)
+		os.makedirs(diffDir + repoName)
 	except:
 		pass
 
 	print "Done."
 
 
-def callGitLog():
-	print "Calling git log...",
+def callGitLog(gitDir):
+	# print "Calling git log...",
 	grepKeyword = r"'CVE-20'"
 	command_log = "git log --all --pretty=fuller --grep=" + grepKeyword
 
@@ -73,7 +78,7 @@ def callGitLog():
 	except UnicodeDecodeError as err:
 		print "[-] Unicode error:", err
 
-	print "Done."
+	# print "Done."
 	return gitLogOutput
 
 
@@ -129,11 +134,15 @@ def updateCveInfo(cveId):
 	return cveId + '_' + cvss + '_' +  cwe + '_'
 
 
-def process(gitLogOutput):
+def process(gitLogOutput, subRepoName):
 	commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
-	print len(commitsList), "commits in", repoName
-
-	i = 0
+	print len(commitsList), "commits in", repoName,
+	if subRepoName is None:
+		print "\n"
+	else:
+		print subRepoName
+		os.chdir(os.path.join(gitStoragePath, repoName, subRepoName))
+	
 	for commitMessage in commitsList:
 		if filterCommitMessage(commitMessage):
 			continue
@@ -165,6 +174,8 @@ def process(gitLogOutput):
 						minCve = cveId
 				fp.write(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n')
 				fp.close()
+			elif len(cveIdList) == 0:
+				continue
 			else:
 				minCve = cveIdList[0]
 
@@ -185,8 +196,17 @@ def process(gitLogOutput):
 """ main """
 t1 = time.time()
 init()
-gitLogOutput = callGitLog()
-process(gitLogOutput)
+if multiModeFlag:
+	for sidx, subRepoName in enumerate(multiRepoList):
+		gitDir = os.path.join(gitStoragePath, repoName, subRepoName)	# where .git exists
+		gitLogOutput = callGitLog(gitDir)
+		print str(sidx+1) + '/' + str(len(multiRepoList))
+		if gitLogOutput != "":
+			process(gitLogOutput, subRepoName)
+else:
+	gitDir = os.path.join(gitStoragePath, repoName)	# where .git exists
+	gitLogOutput = callGitLog(gitDir)
+	process(gitLogOutput, None)
 
-print str(len(os.listdir(diffDir))) + " patches saved in", diffDir + repoName
+print str(len(os.listdir(diffDir + repoName))) + " patches saved in", diffDir + repoName
 print "Done. (" + str(time.time()-t1) + " sec)"

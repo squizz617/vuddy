@@ -22,7 +22,7 @@ import pickle
 
 import parseutility
 
-cveDict = pickle.load(open("cvedata.pkl", "rb"))
+# cveDict = pickle.load(open("cvedata.pkl", "rb"))
 
 # GLOBALS
 originalDir = os.getcwd()
@@ -34,10 +34,8 @@ dummyFunction = parseutility.function(None)
 
 # ARGUMENTS
 if len(sys.argv) < 2:
-	repoName = "glibc"	# name of the directory that holds DIFF patches
-	multimodeFlag = 0
-elif len(sys.argv) == 2:
-	repoName = sys.argv[1]
+	repoName = "android"	# name of the directory that holds DIFF patches
+	multimodeFlag = 1
 else:
 	repoName = sys.argv[1]
 	if sys.argv[2] == '-m':
@@ -109,10 +107,10 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 					chunksCnt += len(chunksList)
 
 					if multimodeFlag:
-						os.chdir(os.path.join(originalDir, "data/gitrepos", repoName, repoPath))
+						os.chdir(os.path.join("/media/squizz/VM-mount/data/gitrepos", repoName, repoPath))
 					else:
-						# os.chdir(os.path.join(originalDir, "data/gitrepos", repoName))
-						os.chdir(os.path.join("/home/squizz/devgit/", repoName))	#temporary change!!!! Aug 8
+						os.chdir(os.path.join("/media/squizz/VM-mount/data/gitrepos", repoName))
+						# os.chdir(os.path.join("/home/squizz/devgit/", repoName))	#temporary change!!!! Aug 8
 
 					try:
 						os.remove(originalDir + "/tmp_old")
