@@ -187,7 +187,7 @@ def process(gitLogOutput, subRepoName):
 			print "[+] Writing ", finalFileName + commitHashValue + ".diff",
 			try:
 				with open(diffDir + repoName + finalFileName + commitHashValue + ".diff", "w") as fp:
-					fp.write(gitShowOutput)
+					fp.write(subRepoName + '\n' + gitShowOutput)
 			except IOError as e:
 				print "Error:", e
 
