@@ -38,7 +38,7 @@ if len(sys.argv) < 2:
 	multimodeFlag = 1
 else:
 	repoName = sys.argv[1]
-	if sys.argv[2] == '-m':
+	if len(sys.argv) > 2 and sys.argv[2] == "-m":
 		multimodeFlag = 1
 
 print "Retrive vulnerable functions from " + repoName + "\nMulti-repo mode: ",

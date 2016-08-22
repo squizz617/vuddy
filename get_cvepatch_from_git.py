@@ -41,12 +41,14 @@ def init():
 		multiModeFlag = 0
 	else:
 		repoName = sys.argv[1]
-		if sys.argv[2] == "-m":
+		if len(sys.argv) > 2 and sys.argv[2] == "-m":
 			multiModeFlag = 1
 			with open("repolists/list_" + repoName) as fp:
 				for repoLine in fp.readlines():
 					if len(repoLine) > 2:
 						multiRepoList.append(repoLine.rstrip())
+		else:
+			multiModeFlag = 0
 	if not repoName.endswith("/"):
 		repoName += '/'
 
@@ -191,7 +193,10 @@ def process(gitLogOutput, subRepoName):
 			print "[+] Writing ", finalFileName + commitHashValue + ".diff",
 			try:
 				with open(diffDir + repoName + finalFileName + commitHashValue + ".diff", "w") as fp:
-					fp.write(subRepoName + '\n' + gitShowOutput)
+					if subRepoName is None:
+						fp.write(gitShowOutput)
+					else:	# multi-repo mode
+						fp.write(subRepoName + '\n' + gitShowOutput)
 			except IOError as e:
 				print "Error:", e
 
