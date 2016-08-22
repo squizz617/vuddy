@@ -36,9 +36,8 @@ dummyFunction = parseutility.function(None)
 if len(sys.argv) < 2:
 	repoName = "android"	# name of the directory that holds DIFF patches
 	multimodeFlag = 1
-elif len(sys.argv) == 2:
-	repoName = sys.argv[1]
 else:
+	repoName = sys.argv[1]
 	if sys.argv[2] == '-m':
 		multimodeFlag = 1
 
@@ -97,7 +96,7 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 			else:
 				secondLine = affectedFile.split('\n')[1]
 
-				if not secondLine.startswith("index"):
+				if secondLine.startswith("index") == 0 or secondLine.endswith("100644") == 0:
 					print "\t[-]", codePath, "(invalid metadata)"	# we are looking for "index" only.
 				else:
 					print "\t[+]", codePath
@@ -218,8 +217,8 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 						if not flag:
 							finalNewFunctionList.append(dummyFunction)
 
-					print "\t\t\t", finalOldFunctionList
-					print "\t\t\t", finalNewFunctionList
+					# print "\t\t\t", finalOldFunctionList
+					print "\t\t\t", len(finalNewFunctionList), "functions found."
 					vulFileNameBase = diffFileName.split('.diff')[0] + '_' + affectedFileName
 
 					
