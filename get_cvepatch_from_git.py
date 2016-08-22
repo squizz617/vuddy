@@ -7,7 +7,10 @@ CHANGES
 AUG 5	SB KIM	(*IMPORTANT*) To maintain the full cve-ids,
 				while keeping the filename structure as is,
 				I chose to store the mapping in a separate file.
-AUG 5	SB KIM	Also, filter the "merge" and "revert" commits first in this process.
+AUG 5	SB KIM	Also, filter the "merge" and "revert" commits first
+				in this process.
+AUG 15	SB KIM	For multi-repo mode, added the path to the .git object
+				at the beginning of each .diff file.
 """
 
 import os
@@ -153,14 +156,15 @@ def process(gitLogOutput, subRepoName):
 			cvePattern = re.compile('CVE-20\d{2}-\d{4}')
 			cveIdList = list(set(cvePattern.findall(commitMessage)))
 
-			"""	Note, Aug 5
-				If multiple CVE ids are assigned to one commit,
-				store the dependency in a file which is named after the repo,
-				(e.g., ~/diff/dependency_ubuntu)
-				and use one CVE that has the smallest ID number for filename.
-				(A sample:
-					CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853	CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
-				)
+			"""	
+			Note, Aug 5
+			If multiple CVE ids are assigned to one commit,
+			store the dependency in a file which is named after
+			the repo, (e.g., ~/diff/dependency_ubuntu)	and use
+			one representative CVE that has the smallest ID number
+			for filename. 
+			A sample:
+			CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853	CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
 			"""
 
 			if len(cveIdList) > 1:	# do this only if muliple CVEs are assigned to a commit

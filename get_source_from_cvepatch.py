@@ -36,8 +36,9 @@ dummyFunction = parseutility.function(None)
 if len(sys.argv) < 2:
 	repoName = "android"	# name of the directory that holds DIFF patches
 	multimodeFlag = 1
-else:
+elif len(sys.argv) == 2:
 	repoName = sys.argv[1]
+else:
 	if sys.argv[2] == '-m':
 		multimodeFlag = 1
 
