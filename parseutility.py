@@ -73,26 +73,38 @@ def abstract(instance, level):
 	if int(level) >= 1:	#PARAM
 		parameterList = instance.parameterList
 		for param in parameterList:
-			paramPattern = re.compile("(^|\W)" + param + "(\W)")
-			abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", originalFunctionBody)
+			try:
+				paramPattern = re.compile("(^|\W)" + param + "(\W)")
+				abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", abstractBody)
+			except:
+				pass
 
 	if int(level) >= 2:	#DTYPE
 		dataTypeList = instance.dataTypeList
 		for dtype in dataTypeList:
-			dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
-			abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
+			try:
+				dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
+				abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
+			except:
+				pass
 
 	if int(level) >= 3:	#LVAR
 		variableList = instance.variableList
 		for lvar in variableList:
-			lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
-			abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
+			try:
+				lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
+				abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
+			except:
+				pass
 
 	if int(level) >= 4:	#FUNCCALL
 		funcCalleeList = instance.funcCalleeList
 		for fcall in funcCalleeList:
-			fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
-			abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
+			try:
+				fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
+				abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
+			except:
+				pass
 
 	return (originalFunctionBody, abstractBody)
 
