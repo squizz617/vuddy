@@ -8,7 +8,7 @@ targetDir = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel"
 path = "SM-G930S-G930SKSU1APB2/"
 projName = "S7"
 intendedGranLvl = 'f'
-intendedAbsLvl = 4
+intendedAbsLvl = 0
 projDictList = []
 hashFileMapList = []
 for i in range(0, 5):

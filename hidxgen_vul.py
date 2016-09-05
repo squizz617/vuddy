@@ -4,9 +4,15 @@ import sys
 import hashlib
 import time
 
-projName = "android"
-intendedGranLvl = 'f'
-intendedAbsLvl = 4
+if len(sys.argv) == 1:
+	projName = "chromium"
+	intendedAbsLvl = 0
+	intendedGranLvl = 'f'
+else:
+	projName = sys.argv[1]
+	intendedAbsLvl = int(sys.argv[2])
+	intendedGranLvl = sys.argv[3]
+
 projDictList = []
 hashFileMapList = []
 for i in range(0, 5):
