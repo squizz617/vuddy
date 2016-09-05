@@ -28,6 +28,11 @@ Load every .vul files.
 * Input: (string) Path to the root directory
 * Output: (list) List of every .vul files
 
+#### parseFile()
+Parse functions from the specified file.
+* Input: (string) Name and path to the file
+* Output: (list) of function class instances
+
 #### removeComment()
 Removes C/C++ style comments from a given string.
 * Input: (string) source code
@@ -38,4 +43,10 @@ Normalizes the input string: LF, TABs, curly braces, spaces are removed.
 Then, all characters are lowercased.
 * Input: (string) original string
 * Output: (string) normalized string
+
+#### abstract()
+Apply abstraction on the function instance, and then return a tuple of the original body and abstracted body.
+* Input: (class instance) instance, (int) abstraction level
+* Output: tuple ( (string) originalFunctionBody, (string) abstractBody )
+
 
