@@ -20,31 +20,22 @@ I just don't wanna be bothered by cleanups.
 
 #### loadSource()
 Load every C/C++/C# files.
-
 Input: (string) Path to the root directory
-
 Output: (list) List of every source files
 
 #### loadVul()
 Load every .vul files.
-
 Input: (string) Path to the root directory
-
 Output: (list) List of every .vul files
 
 #### removeComment()
 Removes C/C++ style comments from a given string.
-
 Input: (string) source code
-
 Output: (string) source code w/o comments
 
 #### normalize()
 Normalizes the input string: LF, TABs, curly braces, spaces are removed.
-
 Then, all characters are lowercased.
-
 Input: (string) original string
-
 Output: (string) normalized string
 
