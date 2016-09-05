@@ -2,6 +2,7 @@ import parseutility
 import os
 import sys
 import hashlib
+import time
 
 targetDir = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel"
 path = "SM-G930S-G930SKSU1APB2/"
@@ -23,6 +24,7 @@ for li, loc in enumerate(locList):
 	locList[li] = int(loc)
 locList = sorted(locList)
 
+time0 = time.time()
 
 if intendedGranLvl == 'f':
 	for si, srcFile in enumerate(srcFileList):
@@ -115,3 +117,6 @@ else:
 						for f in hashFileMapList[i][key]:
 							fp.write(str(f) + '\t')
 						fp.write('\n')
+
+time1 = time.time()
+print "Elapsed time:", time1 - time0
