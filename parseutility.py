@@ -13,6 +13,7 @@ javaCallCommand = "java -jar CodeSensor.jar "
 
 class function:
 	parentFile = None 	# Absolute file which has the function
+	parentNumLoc = None # Number of LoC of the parent file
 	name = None 		# Name of the function
 	lines = None 		# Tuple (lineFrom, lineTo) that indicates the LoC of function
 	funcId = None 		# n, indicating n-th function in the file
@@ -45,7 +46,7 @@ class function:
 
 
 def loadSource(rootDirectory):
-	# returns the list of files under the specified root directory.
+	# returns the list of .src files under the specified root directory.
 	maxFileSizeInBytes = None
 	maxFileSizeInBytes = 2097152	# remove this line if you don't want to restrict
 									# the maximum file size that you process.
@@ -54,6 +55,24 @@ def loadSource(rootDirectory):
 	for path, dirs, files in walkList:
 		for fileName in files:
 			if fileName.endswith('.c') or fileName.endswith('.cpp') or fileName.endswith('.cc'):
+				absPathWithFileName = path.replace('\\', '/') + '/' + fileName
+				if maxFileSizeInBytes is not None:
+					if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
+						srcFileList.append(absPathWithFileName)
+				else:
+					srcFileList.append(absPathWithFileName)
+	return srcFileList
+
+def loadVul(rootDirectory):
+	# returns the list of .vul files under the specified root directory.
+	maxFileSizeInBytes = None
+	# maxFileSizeInBytes = 2097152	# remove this line if you don't want to restrict
+									# the maximum file size that you process.
+	walkList = os.walk(rootDirectory)
+	srcFileList = []
+	for path, dirs, files in walkList:
+		for fileName in files:
+			if fileName.endswith('OLD.vul'):
 				absPathWithFileName = path.replace('\\', '/') + '/' + fileName
 				if maxFileSizeInBytes is not None:
 					if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
@@ -170,7 +189,7 @@ def parseFile(srcFileName):
 	fp = open(srcFileName, 'r')
 	srcFileRaw = fp.readlines()
 	fp.close()
-
+	numLines = len(srcFileRaw)
 	functionInstanceList = []
 	paramDeclFlag = 0
 	varDeclFlag = 0
@@ -190,6 +209,7 @@ def parseFile(srcFileName):
 			init = 1
 			functionInstance = function(srcFileName)
 			functionInstanceList.append(functionInstance)
+			functionInstance.parentNumLoc = numLines
 			functionInstance.funcId = len(functionInstanceList)
 			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
 			functionInstance.lines = (funcLineFrom, funcLineTo)
