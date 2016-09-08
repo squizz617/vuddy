@@ -35,10 +35,10 @@ for si, srcFile in enumerate(srcFileList):
 	
 	numFuncs += len(functionInstanceList)
 	if len(functionInstanceList) > 0:
+		numLines += f.parentNumLoc
 
 	for f in functionInstanceList:
 		f.removeListDup()
-		numLines += f.parentNumLoc
 		path = f.parentFile
 		absBody = parseutility.abstract(f, intendedAbsLvl)[1]
 		absBody = parseutility.normalize(absBody)

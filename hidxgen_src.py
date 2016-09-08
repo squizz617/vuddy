@@ -5,7 +5,6 @@ import hashlib
 import time
 
 targetDir = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel"
-path = "SM-G930S-G930SKSU1APB2/"
 projName = "S7"
 intendedGranLvl = 'f'
 intendedAbsLvl = int(raw_input("Abstraction Level? "))
@@ -29,9 +28,11 @@ for si, srcFile in enumerate(srcFileList):
 
 	numFuncs += len(functionInstanceList)
 
+	if len(functionInstanceList) > 0:	# we shouldn't count multiple times
+		numLines += f.parentNumLoc
+
 	for f in functionInstanceList:
 		f.removeListDup()
-		numLines += f.parentNumLoc
 		path = f.parentFile
 		absBody = parseutility.abstract(f, intendedAbsLvl)[1]
 		absBody = parseutility.normalize(absBody)
