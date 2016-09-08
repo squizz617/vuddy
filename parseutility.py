@@ -242,24 +242,25 @@ def parseFile(srcFileName):
 
 if __name__ == "__main__":
 	# Just for testing.
-	targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
-	targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
+	# targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
+	# targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
 
-	srcFileList = load(targetDir)
+	# srcFileList = loadSource(targetDir)
 
-	for srcFile in srcFileList:
-		print srcFile
+	# for srcFile in srcFileList:
+		# print srcFile
 
-		functionInstanceList = parseFile(srcFile)
+	srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
+	functionInstanceList = parseFile(srcFile)
 
-		for f in functionInstanceList:
-			f.removeListDup()
-			print f.name, f.lines
-			print "PARAMS\t", f.parameterList
-			print "LVARS\t", f.variableList
-			print "DTYPE\t", f.dataTypeList
-			print "CALLS\t", f.funcCalleeList
-			print ""
-			abstract(f, 4)
+	for f in functionInstanceList:
+		f.removeListDup()
+		print f.name, f.lines
+		print "PARAMS\t", f.parameterList
+		print "LVARS\t", f.variableList
+		print "DTYPE\t", f.dataTypeList
+		print "CALLS\t", f.funcCalleeList
+		print ""
+		abstract(f, 4)
 
-		sys.exit()
+	sys.exit()
