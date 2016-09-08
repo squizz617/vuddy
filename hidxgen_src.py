@@ -4,9 +4,11 @@ import sys
 import hashlib
 import time
 
-targetDir = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel"
-projName = "S7"
-intendedGranLvl = 'f'
+targetDir = "/home/squizz/Desktop/kernel44"
+projName = "linux-kernel-v4.4"
+intendedGranLvl = raw_input("Granularity level? ")
+if intendedGranLvl != 'f':
+	intendedGranLvl = int(intendedGranLvl)
 intendedAbsLvl = int(raw_input("Abstraction Level? "))
 
 projDict = {}
@@ -22,32 +24,67 @@ numFiles = len(srcFileList)
 numFuncs = 0
 numLines = 0
 
-for si, srcFile in enumerate(srcFileList):
-	print si+1, '/', len(srcFileList), srcFile
-	functionInstanceList = parseutility.parseFile(srcFile)
+if intendedGranLvl == 'f':
+	for si, srcFile in enumerate(srcFileList):
+		print si+1, '/', len(srcFileList), srcFile
+		functionInstanceList = parseutility.parseFile(srcFile)
 
-	numFuncs += len(functionInstanceList)
+		numFuncs += len(functionInstanceList)
 
-	if len(functionInstanceList) > 0:	# we shouldn't count multiple times
-		numLines += f.parentNumLoc
+		if len(functionInstanceList) > 0:	# we shouldn't count multiple times
+			numLines += functionInstanceList[0].parentNumLoc
 
-	for f in functionInstanceList:
-		f.removeListDup()
-		path = f.parentFile
-		absBody = parseutility.abstract(f, intendedAbsLvl)[1]
-		absBody = parseutility.normalize(absBody)
-		funcLen = len(absBody)
-		hashValue = hashlib.md5(absBody).hexdigest()
+		for f in functionInstanceList:
+			f.removeListDup()
+			path = f.parentFile
+			absBody = parseutility.abstract(f, intendedAbsLvl)[1]
+			absBody = parseutility.normalize(absBody)
+			funcLen = len(absBody)
+			hashValue = hashlib.md5(absBody).hexdigest()
 
-		try:
-			projDict[funcLen].append(hashValue)
-		except KeyError:
-			projDict[funcLen] = [hashValue]
+			try:
+				projDict[funcLen].append(hashValue)
+			except KeyError:
+				projDict[funcLen] = [hashValue]
 
-		try:
-			hashFileMap[hashValue].extend([f.parentFile, f.funcId])
-		except KeyError:
-			hashFileMap[hashValue] = [f.parentFile, f.funcId]
+			try:
+				hashFileMap[hashValue].extend([f.parentFile, f.funcId])
+			except KeyError:
+				hashFileMap[hashValue] = [f.parentFile, f.funcId]
+else:
+	for si, srcFile in enumerate(srcFileList):
+		print si+1, '/', len(srcFileList), srcFile
+		functionInstanceList = parseutility.parseFile(srcFile)
+
+		numFuncs += len(functionInstanceList)
+
+		if len(functionInstanceList) > 0:	# we shouldn't count multiple times
+			numLines += functionInstanceList[0].parentNumLoc
+
+		for f in functionInstanceList:
+			f.removeListDup()
+			path = f.parentFile
+			absBody = parseutility.abstract(f, intendedAbsLvl)[1]
+			lineList = []
+			for line in absBody.split('\n'):
+				normLine = parseutility.normalize(line)
+				if len(normLine) > 1:
+					lineList.append(normLine)
+
+			for lidx in range(0, len(lineList)-intendedGranLvl+1):
+					window = ''.join(lineList[lidx:lidx+intendedGranLvl])
+					funcLen = len(window)
+					hashValue = hashlib.md5(window).hexdigest()
+
+					try:
+						projDict[funcLen].append(hashValue)
+					except KeyError:
+						projDict[funcLen] = [hashValue]
+
+					try:
+						hashFileMap[hashValue].extend([f.parentFile, f.funcId])
+					except KeyError:
+						hashFileMap[hashValue] = [f.parentFile, f.funcId]
 
 packageInfo = str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
 with open("hidx-target/hashmark_" + str(intendedAbsLvl) + '_' + str(intendedGranLvl) + '_' + projName + ".hidx", 'w') as fp:
