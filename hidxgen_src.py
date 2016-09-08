@@ -8,7 +8,7 @@ targetDir = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel"
 path = "SM-G930S-G930SKSU1APB2/"
 projName = "S7"
 intendedGranLvl = 'f'
-intendedAbsLvl = 0
+intendedAbsLvl = int(raw_input("Abstraction Level? "))
 projDictList = []
 hashFileMapList = []
 for i in range(0, 5):
@@ -26,13 +26,20 @@ locList = sorted(locList)
 
 time0 = time.time()
 
+numFiles = len(srcFileList)
+numFuncs = 0
+numLines = 0
+
 if intendedGranLvl == 'f':
 	for si, srcFile in enumerate(srcFileList):
 		print si+1, '/', len(srcFileList), srcFile
 		functionInstanceList = parseutility.parseFile(srcFile)
 
+		numFuncs += len(functionInstanceList)
+
 		for f in functionInstanceList:
 			f.removeListDup()
+			numLines += f.parentNumLoc
 			path = f.parentFile
 			absBody = parseutility.abstract(f, intendedAbsLvl)[1]
 			absBody = parseutility.normalize(absBody)
