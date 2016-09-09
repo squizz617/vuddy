@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Build-Jdk: 1.7.0_65
+Built-By: parrt
+Created-By: Apache Maven 3.3.9
+Main-Class: org.antlr.v4.Tool
+Archiver-Version: Plexus Archiver
+
