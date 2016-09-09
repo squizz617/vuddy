@@ -35,7 +35,7 @@ for si, srcFile in enumerate(srcFileList):
 	
 	numFuncs += len(functionInstanceList)
 	if len(functionInstanceList) > 0:
-		numLines += f.parentNumLoc
+		numLines += functionInstanceList[0].parentNumLoc
 
 	for f in functionInstanceList:
 		f.removeListDup()
