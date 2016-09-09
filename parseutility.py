@@ -1,3 +1,9 @@
+"""
+Parser utility.
+Author: Seulbae Kim
+Created: August 03, 2016
+"""
+
 import os
 import sys
 import subprocess
@@ -7,6 +13,7 @@ javaCallCommand = "java -jar CodeSensor.jar "
 
 class function:
 	parentFile = None 	# Absolute file which has the function
+	parentNumLoc = None # Number of LoC of the parent file
 	name = None 		# Name of the function
 	lines = None 		# Tuple (lineFrom, lineTo) that indicates the LoC of function
 	funcId = None 		# n, indicating n-th function in the file
@@ -23,12 +30,15 @@ class function:
 		self.funcCalleeList = []
 
 	def removeListDup(self):
+		# for best performance, must execute this method
+		# for every instance before applying the abstraction.
 		self.parameterList = list(set(self.parameterList))
 		self.variableList = list(set(self.variableList))
 		self.dataTypeList = list(set(self.dataTypeList))
 		self.funcCalleeList = list(set(self.funcCalleeList))
 
 	def getOriginalFunction(self):
+		# returns the original function back from the instance.
 		fp = open(self.parentFile, 'r')
 		srcFileRaw = fp.readlines()
 		fp.close()
@@ -36,41 +46,71 @@ class function:
 
 
 def loadSource(rootDirectory):
-	maxFileSizeInBytes = 2097152
+	# returns the list of .src files under the specified root directory.
+	maxFileSizeInBytes = None
+	maxFileSizeInBytes = 2097152	# remove this line if you don't want to restrict
+									# the maximum file size that you process.
 	walkList = os.walk(rootDirectory)
 	srcFileList = []
 	for path, dirs, files in walkList:
 		for fileName in files:
 			if fileName.endswith('.c') or fileName.endswith('.cpp') or fileName.endswith('.cc'):
 				absPathWithFileName = path.replace('\\', '/') + '/' + fileName
-				if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
+				if maxFileSizeInBytes is not None:
+					if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
+						srcFileList.append(absPathWithFileName)
+				else:
+					srcFileList.append(absPathWithFileName)
+	return srcFileList
+
+def loadVul(rootDirectory):
+	# returns the list of .vul files under the specified root directory.
+	maxFileSizeInBytes = None
+	# maxFileSizeInBytes = 2097152	# remove this line if you don't want to restrict
+									# the maximum file size that you process.
+	walkList = os.walk(rootDirectory)
+	srcFileList = []
+	for path, dirs, files in walkList:
+		for fileName in files:
+			if fileName.endswith('OLD.vul'):
+				absPathWithFileName = path.replace('\\', '/') + '/' + fileName
+				if maxFileSizeInBytes is not None:
+					if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
+						srcFileList.append(absPathWithFileName)
+				else:
 					srcFileList.append(absPathWithFileName)
 	return srcFileList
 
 
 def removeComment(string):
+	# Code for removing C/C++ style comments. (Imported from ReDeBug.)
 	c_regex = re.compile(r'(?P<comment>//.*?$|[{}]+)|(?P<multilinecomment>/\*.*?\*/)|(?P<noncomment>\'(\\.|[^\\\'])*\'|"(\\.|[^\\"])*"|.[^/\'"]*)', re.DOTALL | re.MULTILINE)
 	return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
 
 
 def getBody(originalFunction):
+	# returns the function's body as a string.
 	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
 
 
 def normalize(string):
+	# Code for normalizing the input string.
+	# LF and TAB literals, curly braces, and spaces are removed,
+	# and all characters are lowercased.
 	return ''.join(string.replace('\n', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
 
 
 def abstract(instance, level):
-	# print "LEVEL", level
+	# Applies abstraction on the function instance,
+	# and then returns a tuple consisting of the original body and abstracted body.
 	originalFunction = instance.getOriginalFunction()
 	originalFunction = removeComment(originalFunction)
 
-	if int(level) >= 0:
+	if int(level) >= 0:	# No abstraction.
 		originalFunctionBody = getBody(originalFunction)
 		abstractBody = originalFunctionBody
 
-	if int(level) >= 1:	#PARAM
+	if int(level) >= 1:	# PARAM
 		parameterList = instance.parameterList
 		for param in parameterList:
 			try:
@@ -79,7 +119,7 @@ def abstract(instance, level):
 			except:
 				pass
 
-	if int(level) >= 2:	#DTYPE
+	if int(level) >= 2:	# DTYPE
 		dataTypeList = instance.dataTypeList
 		for dtype in dataTypeList:
 			try:
@@ -88,7 +128,7 @@ def abstract(instance, level):
 			except:
 				pass
 
-	if int(level) >= 3:	#LVAR
+	if int(level) >= 3:	# LVAR
 		variableList = instance.variableList
 		for lvar in variableList:
 			try:
@@ -97,7 +137,7 @@ def abstract(instance, level):
 			except:
 				pass
 
-	if int(level) >= 4:	#FUNCCALL
+	if int(level) >= 4:	# FUNCCALL
 		funcCalleeList = instance.funcCalleeList
 		for fcall in funcCalleeList:
 			try:
@@ -108,9 +148,9 @@ def abstract(instance, level):
 
 	return (originalFunctionBody, abstractBody)
 
+
 def abstractWindow(instance, level, lineList):
-	# originalFunction = instance.getOriginalFunction()
-	# originalFunction = removeComment(originalFunction)
+	# Do not use this function.
 
 	if int(level) >= 0:
 		originalFunctionBody = '\n'.join(lineList)
@@ -144,10 +184,12 @@ def abstractWindow(instance, level, lineList):
 
 
 def parseFile(srcFileName):
+	# Parses the functions of the specified file using CodeSensor.jar
+	# and then returns the list of function instances.
 	fp = open(srcFileName, 'r')
 	srcFileRaw = fp.readlines()
 	fp.close()
-
+	numLines = len(srcFileRaw)
 	functionInstanceList = []
 	paramDeclFlag = 0
 	varDeclFlag = 0
@@ -159,7 +201,6 @@ def parseFile(srcFileName):
 		print "CodeSensor Error:", e
 		astString = ""
 
-	# print astString
 	astLineList = astString.split('\n')
 	for astLine in astLineList:
 		astLineSplitted = astLine.split('\t')
@@ -168,6 +209,7 @@ def parseFile(srcFileName):
 			init = 1
 			functionInstance = function(srcFileName)
 			functionInstanceList.append(functionInstance)
+			functionInstance.parentNumLoc = numLines
 			functionInstance.funcId = len(functionInstanceList)
 			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
 			functionInstance.lines = (funcLineFrom, funcLineTo)
@@ -199,24 +241,26 @@ def parseFile(srcFileName):
 
 
 if __name__ == "__main__":
-	targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
-	targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
+	# Just for testing.
+	# targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
+	# targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
 
-	srcFileList = load(targetDir)
+	# srcFileList = loadSource(targetDir)
 
-	for srcFile in srcFileList:
-		print srcFile
+	# for srcFile in srcFileList:
+		# print srcFile
 
-		functionInstanceList = parseFile(srcFile)
+	srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
+	functionInstanceList = parseFile(srcFile)
 
-		for f in functionInstanceList:
-			f.removeListDup()
-			print f.name, f.lines
-			print "PARAMS\t", f.parameterList
-			print "LVARS\t", f.variableList
-			print "DTYPE\t", f.dataTypeList
-			print "CALLS\t", f.funcCalleeList
-			print ""
-			abstract(f, 4)
+	for f in functionInstanceList:
+		f.removeListDup()
+		print f.name, f.lines
+		print "PARAMS\t", f.parameterList
+		print "LVARS\t", f.variableList
+		print "DTYPE\t", f.dataTypeList
+		print "CALLS\t", f.funcCalleeList
+		print ""
+		abstract(f, 4)
 
-		sys.exit()
+	sys.exit()
