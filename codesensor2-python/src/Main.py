@@ -40,7 +40,7 @@ def main(argv):
     listener = TreePrinterListener(parser)
     ParseTreeWalker().walk(listener, tree)
     
-    print listener.strbuilder
+    print listener.strbuilder,
 
 if __name__ == "__main__":
     main(sys.argv)
