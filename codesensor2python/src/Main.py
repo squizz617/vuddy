@@ -1,3 +1,5 @@
+#!/bin/python
+
 from antlr4 import *
 from antlr4.tree.Trees import Trees
 from ModuleLexer import ModuleLexer
@@ -20,10 +22,24 @@ class TreePrinterListener(ModuleListener):
         else:
             ruleName = str(ruleIndex)
         
-        (dwStart, dwStop) = ctx.getSourceInterval()
-        dwLine = 0
+        #(dwStart, dwStop) = ctx.getSourceInterval()
+        #dwLine = ctx.stop.line
+        szStart = str(ctx.start.line) + ":" + str(ctx.start.column)
+        szStop = str(ctx.stop.line) + ":" + str(ctx.stop.column)
         dwDepth = ctx.depth()
-        self.strbuilder += (ruleName + '\t' + str(dwDepth) + '\t' + str(dwLine) + '\t' + str(dwStart) + '\t' + str(dwStop) + '\n');
+        #self.strbuilder += (ruleName + '\t' + str(dwDepth) + '\t' + str(dwLine) + '\t' + str(dwStart) + '\t' + str(dwStop) + '\n');
+        self.strbuilder += (ruleName + '\t' + szStart + '\t' + szStop + '\t' + str(dwDepth) + '\n');
+    
+    def exitEveryRule(self, ctx):
+        ruleIndex = ctx.getRuleIndex()
+        ruleName = ""
+        
+        if (ruleIndex >= 0 and ruleIndex < len(self.ruleNames)):
+            ruleName = self.ruleNames[ruleIndex]
+        else:
+            ruleName = str(ruleIndex)
+        
+        self.strbuilder += ("----- EXIT : " + ruleName + '\n')
         
     def visitTerminal(self, node):
         self.strbuilder = self.strbuilder[:-1]

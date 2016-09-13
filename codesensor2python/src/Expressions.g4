@@ -53,6 +53,7 @@ inc_dec: ('--' | '++');
 // here because C programs can use 'public', 'protected' or 'private'
 // as variable names.
 
+
 postfix_expression: postfix_expression '[' expr ']' #arrayIndexing
                   | postfix_expression '(' function_argument_list ')' #funcCall
                   | postfix_expression '.' TEMPLATE? (identifier) #memberAccess
