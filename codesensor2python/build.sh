@@ -8,6 +8,7 @@ ANTLR_JAR='antlr-4.5.3-complete.jar'
 #rm -rf ${RESULT_JAR}
 rm -rf ${BUILD_DIR}
 mkdir ${BUILD_DIR}
+rm -rf "__init__.pyc"
 
 # Copy source files to build dir
 
