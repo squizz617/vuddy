@@ -76,6 +76,10 @@ class project:
 				fp.write('\n')
 		# print "Wrote", "hidx/hashmark_" + str(self.absLvl) + '_' + str(self.granLvl) + '_' + self.repoName + ".hidx"
 
+	# def get_index(self):
+	# 	return (granLvl-4)*5+absLvl
+
+
 pid = 0
 for granLvl in range(4, 11):
 	for absLvl in range(0, 5):
@@ -120,7 +124,8 @@ resultDict = {
 	"f": [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
 }
 
-
+print resultDict.keys().index("f")
+# sys.exit()
 vul = vulList[0]
 # t0 = time.time()
 fileName = os.path.join(repoName, vul)
@@ -151,7 +156,7 @@ for absLvl in range(5):
 	lineList = []
 
 	abstractBody = abstractBodyList[absLvl]
-	print abstractBody
+	# print abstractBody
 	for line in abstractBody.split('\n'):
 		normLine = parseutility.normalize(line)
 		if len(normLine) > 1:
@@ -161,6 +166,7 @@ for absLvl in range(5):
 	print len(lineList), "LINES"
 
 	fp = open("RESULTS-retest/" + str(absLvl) + '_' + str(len(lineList)), "w")
+	trial = 0
 	while trial < maxTrials:
 		vcnt = 0
 		for granLvl in range(4, 11):	# each granularity
@@ -198,21 +204,23 @@ for absLvl in range(5):
 		resultDict[granLvl][1][absLvl] += time.time()-t2
 
 		t3 = time.time()
-		projInstanceList[i].add_to_dictionary(funcLen, hashValue, path, f.funcId)
+		projInstanceList[5*(11-4)+absLvl].add_to_dictionary(funcLen, hashValue, path, f.funcId)
 		resultDict[granLvl][2][absLvl] += time.time()-t3
 
 		i = 0
 		for p in projInstanceList:
 			print p
-			print type(p.absLvl), type(absLvl)
+			# print type(p.absLvl), type(absLvl)
 			if p.absLvl == absLvl:
 				begin = time.time()
 				p.write_to_file()
 				time_IO = time.time() - begin
 				if p.granLvl != "f":
+					print i/5+4
 					resultDict[i/5+4][3][absLvl] += time_IO
 				else:
 					resultDict["f"][3][absLvl] += time_IO
+				print time_IO
 				i += 1
 
 		trial += 1
