@@ -17,9 +17,10 @@ class TreeParser(ModuleListener):
 	PARAMETER_NAME = 2
 	DECLARATOR = 3
 	TYPE_NAME = 4
+	FUNCTION_CALL = 5
 	
-	table = ["function_def", "function_name", "parameter_name", "declarator", "type_name"]
-	IDX = [0, 0, 0, 0, 0]
+	table = ["function_def", "function_name", "parameter_name", "declarator", "type_name", "identifier"]
+	IDX = [0, 0, 0, 0, 0, 0]
 	
 	def __init__(self):
 		self.functionInstanceList = []
@@ -43,6 +44,9 @@ class TreeParser(ModuleListener):
 		# function definition
 		self.funcDefFlag = 0
 		
+		self.funcCallFlag = 0
+		self.funcCallStr = ""
+
 		self.srcFileName = ""
 		self.numLines = 0 # ??
 	
@@ -78,7 +82,7 @@ class TreeParser(ModuleListener):
 	
 	def enterEveryRule(self, ctx):
 		ruleIndex = ctx.getRuleIndex()
-		
+
 		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF]:
 			self.funcDefFlag = 1
 			self.functionInstance = function(self.srcFileName)
@@ -98,11 +102,14 @@ class TreeParser(ModuleListener):
 		
 		elif ruleIndex == TreeParser.IDX[TreeParser.TYPE_NAME]:
 			self.typeNameFlag = 1
+
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_CALL]:
+			self.funcCallFlag = 1
 	
 	
 	def exitEveryRule(self, ctx):
 		ruleIndex = ctx.getRuleIndex()
-		
+
 		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF] and self.funcDefFlag:
 			self.funcDefFlag = 0
 			self.functionInstanceList.append(self.functionInstance)
@@ -122,21 +129,59 @@ class TreeParser(ModuleListener):
 			self.functionInstance.dataTypeList.append(self.typeNameStr.rstrip())
 			self.typeNameFlag = 0
 			self.typeNameStr = ""
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_CALL] and self.funcCallFlag:
+			self.functionInstance.funcCalleeList.append(self.funcCallStr.rstrip())
+			self.funcCallFlag = 0
+			self.funcCallStr = ""
 	
 	def visitTerminal(self, node):
+		# print "node:", node
 		if self.funcNameFlag:
+			# print "FuncName", Trees.getNodeText(node)
 			self.funcNameStr += (Trees.getNodeText(node) + ' ')
 		
 		elif self.paramNameFlag:
+			# print "Parameter", Trees.getNodeText(node)
 			self.paramNameStr += (Trees.getNodeText(node) + ' ')
 		
 		elif self.declaratorFlag:
 			tmpText = Trees.getNodeText(node)
+			# print "LvarName", Trees.getNodeText(node)
+
 			if tmpText != "*": # remove pointer(*) in name of local variables
 				self.declaratorStr += (tmpText + ' ')
 		
 		elif self.typeNameFlag:
+			# print "TypeName", Trees.getNodeText(node)
 			self.typeNameStr += (Trees.getNodeText(node) + ' ')
+
+		elif self.funcCallFlag:
+			print "self", node
+			parentNodes = node.getParent()
+			p1 = parentNodes
+			p2 = p1.parentCtx
+			p3 = p2.parentCtx
+			p4 = p3.parentCtx
+
+			print "p1", type(p1)
+			print "p2", type(p2)
+			print "p3", type(p3)
+			print "p4", type(p4)
+			print ""
+
+
+			# print "\n\n\n"
+
+			if str(type(p4)).endswith("FuncCallContext'>"):
+				self.funcCallStr += (Trees.getNodeText(node) + ' ')
+			# print type(parentNodes)
+			# print parentNodes
+
+			# parentNodesAsList = str(parentNodes)[1:-1].split(" ")
+			# if len(parentNodesAsList) > 2:
+			# 	if parentNodesAsList[2] == "50":
+
+			# 		print "CALL", Trees.getNodeText(node)
 
 
 
@@ -144,6 +189,7 @@ def main(argv):
 	functionInstanceList = TreeParser().ParseFile(argv[1])
 	print argv[1]
 
+	sys.exit()
 	for f in functionInstanceList:
 		f.removeListDup()
 		print f.name, f.lines
@@ -152,6 +198,11 @@ def main(argv):
 		print "DTYPE\t", f.dataTypeList
 		print "CALLS\t", f.funcCalleeList
 		print ""
+
+		for call in f.funcCalleeList:
+			print call
+
+
 		abstract(f, 4)
 
 	sys.exit()
