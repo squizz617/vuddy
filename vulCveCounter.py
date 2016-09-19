@@ -1,6 +1,10 @@
 import os
 import sys
+import pickle
+
 import parseutility as p
+
+mapDict = pickle.load(open("cvedata.pkl", "rb"))
 
 cveDict = {}
 c = 0
@@ -30,3 +34,34 @@ for f in files:
 					cveDict[cve] = 1
 
 print len(cveDict)
+
+yearDict = {}
+
+cweDict = {}
+
+
+for cve in cveDict:
+	try:
+		cwe = mapDict[cve][1]
+		if cwe in cweDict:
+			cweDict[cwe] += 1
+		else:
+			cweDict[cwe] = 1
+	except:
+		pass
+
+	year = cve.split('-')[1]
+	if year in yearDict:
+		yearDict[year] += 1
+	else:
+		yearDict[year] = 1
+
+print len(cweDict)
+
+yearKeys = yearDict.keys()
+for year in sorted(yearKeys):
+	print year, yearDict[year]
+
+cweKeys = cweDict.keys()
+for cwe in sorted(cweKeys):
+	print cwe + '\t' + str(cweDict[cwe])
