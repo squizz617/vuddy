@@ -8,53 +8,52 @@ grammar Common;
 @parser::members
 {
 def skipToEndOfObject(self):
-    CurlyStack = [];
+    CurlyStack = []
     t = self._input.LA(1)
-    
-    while (t != EOF and not (len(CurlyStack) == 0 and t == CLOSING_CURLY)):
-        if t == PRE_ELSE:
-            ifdefStack = [];
+
+    while (t != self.EOF and not (len(CurlyStack) == 0 and t == self.CLOSING_CURLY)):
+        if t == self.PRE_ELSE:
+            ifdefStack = []
             self.consume()
             t = self._input.LA(1)
             
-            while (t != EOF and not (len(ifdefStack) == 0 and t == PRE_ENDIF)):
-                if t == PRE_IF:
+            while (t != self.EOF and not (len(ifdefStack) == 0 and t == self.PRE_ENDIF)):
+                if t == self.PRE_IF:
                     ifdefStack.append(1)
-                elif t == PRE_ENDIF:
+                elif t == self.PRE_ENDIF:
                     ifdefStack.pop()
                 
                 self.consume()
                 t = self._input.LA(1)
         
-        if t == OPENING_CURLY:
+        if t == self.OPENING_CURLY:
             CurlyStack.append(1)
-        elif t == CLOSING_CURLY:
+        elif t == self.CLOSING_CURLY:
             CurlyStack.pop()
         
         self.consume()
         t = self._input.LA(1)
     
-    if t != EOF:
+    if t != self.EOF:
         self.consume()
 
 
 # this should go into FunctionGrammar but ANTLR fails
 # to join the parser::members-section on inclusion
-
 def preProcSkipToEnd(self):
     CurlyStack = []
     t = self._input.LA(1)
     
-    while (t != EOF and not (CurlyStack == 0 and t == PRE_ENDIF)):
-        if t == PRE_IF:
+    while (t != self.EOF and not (len(CurlyStack) == 0 and t == self.PRE_ENDIF)):
+        if t == self.PRE_IF:
             CurlyStack.append(1)
-        elif t == PRE_ENDIF:
+        elif t == self.PRE_ENDIF:
             CurlyStack.pop()
         
         self.consume()
         t = self._input.LA(1)
     
-    if t == EOF:
+    if t == self.EOF:
         self.consume()
 }
 
