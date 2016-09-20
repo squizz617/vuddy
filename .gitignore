@@ -10,3 +10,8 @@ hidx/
 hidx*/
 result-0901*
 *.tar.gz
+
+misc/
+
+codesensor2python/build/
+
