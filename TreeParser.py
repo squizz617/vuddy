@@ -18,9 +18,14 @@ class TreeParser(ModuleListener):
 	DECLARATOR = 3
 	TYPE_NAME = 4
 	FUNCTION_CALL = 5
+
+	init = 0
 	
 	table = ["function_def", "function_name", "parameter_name", "declarator", "type_name", "identifier"]
 	IDX = [0, 0, 0, 0, 0, 0]
+
+	functionInstanceList = []
+	functionInstance = None
 	
 	def __init__(self):
 		self.functionInstanceList = []
@@ -111,25 +116,31 @@ class TreeParser(ModuleListener):
 		ruleIndex = ctx.getRuleIndex()
 
 		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF] and self.funcDefFlag:
+			print "INIT"
 			self.funcDefFlag = 0
 			self.functionInstanceList.append(self.functionInstance)
 		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_NAME] and self.funcNameFlag:
+			print "NAME"
 			self.functionInstance.name = self.funcNameStr.rstrip()
 			self.funcNameFlag = 0
 			self.funcNameStr = ""
 		elif ruleIndex == TreeParser.IDX[TreeParser.PARAMETER_NAME] and self.paramNameFlag:
+			print "PARAM"
 			self.functionInstance.parameterList.append(self.paramNameStr.rstrip())
 			self.paramNameFlag = 0
 			self.paramNameStr = ""
 		elif ruleIndex == TreeParser.IDX[TreeParser.DECLARATOR] and self.declaratorFlag:
+			print "LVAR"
 			self.functionInstance.variableList.append(self.declaratorStr.rstrip())
 			self.declaratorFlag = 0
 			self.declaratorStr = ""
 		elif ruleIndex == TreeParser.IDX[TreeParser.TYPE_NAME] and self.typeNameFlag:
+			print "DTYPE"
 			self.functionInstance.dataTypeList.append(self.typeNameStr.rstrip())
 			self.typeNameFlag = 0
 			self.typeNameStr = ""
 		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_CALL] and self.funcCallFlag:
+			print "CALL"
 			self.functionInstance.funcCalleeList.append(self.funcCallStr.rstrip())
 			self.funcCallFlag = 0
 			self.funcCallStr = ""
@@ -162,25 +173,27 @@ class TreeParser(ModuleListener):
 
 
 def main(argv):
+	import time
+	t1 = time.time()
 	functionInstanceList = TreeParser().ParseFile(argv[1])
 	print argv[1]
-
-	sys.exit()
+	t2 = time.time()
+	# sys.exit()
 	for f in functionInstanceList:
 		f.removeListDup()
 		print f.name, f.lines
-		print "PARAMS\t", f.parameterList
-		print "LVARS\t", f.variableList
-		print "DTYPE\t", f.dataTypeList
-		print "CALLS\t", f.funcCalleeList
+		print "PARAMS\t", f.parameterList, "\n"
+		print "LVARS\t", f.variableList, "\n"
+		print "DTYPE\t", f.dataTypeList, "\n"
+		print "CALLS\t", f.funcCalleeList, "\n"
 		print ""
-
-		for call in f.funcCalleeList:
-			print call
-
 
 		abstract(f, 4)
 
+	t3 = time.time()
+
+	print "parse %.4f" %(t2 - t1)
+	print "print %.4f" %(t3 - t2)
 	sys.exit()
 
 if __name__ == "__main__":
