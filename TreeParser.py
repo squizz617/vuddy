@@ -135,54 +135,30 @@ class TreeParser(ModuleListener):
 			self.funcCallStr = ""
 	
 	def visitTerminal(self, node):
-		# print "node:", node
 		if self.funcNameFlag:
-			# print "FuncName", Trees.getNodeText(node)
 			self.funcNameStr += (Trees.getNodeText(node) + ' ')
 		
 		elif self.paramNameFlag:
-			# print "Parameter", Trees.getNodeText(node)
 			self.paramNameStr += (Trees.getNodeText(node) + ' ')
 		
 		elif self.declaratorFlag:
 			tmpText = Trees.getNodeText(node)
-			# print "LvarName", Trees.getNodeText(node)
 
 			if tmpText != "*": # remove pointer(*) in name of local variables
 				self.declaratorStr += (tmpText + ' ')
 		
 		elif self.typeNameFlag:
-			# print "TypeName", Trees.getNodeText(node)
 			self.typeNameStr += (Trees.getNodeText(node) + ' ')
 
 		elif self.funcCallFlag:
-			print "self", node
 			parentNodes = node.getParent()
 			p1 = parentNodes
 			p2 = p1.parentCtx
 			p3 = p2.parentCtx
-			p4 = p3.parentCtx
-
-			print "p1", type(p1)
-			print "p2", type(p2)
-			print "p3", type(p3)
-			print "p4", type(p4)
-			print ""
-
-
-			# print "\n\n\n"
+			p4 = p3.parentCtx	# walk up to its fourth parent
 
 			if str(type(p4)).endswith("FuncCallContext'>"):
 				self.funcCallStr += (Trees.getNodeText(node) + ' ')
-			# print type(parentNodes)
-			# print parentNodes
-
-			# parentNodesAsList = str(parentNodes)[1:-1].split(" ")
-			# if len(parentNodesAsList) > 2:
-			# 	if parentNodesAsList[2] == "50":
-
-			# 		print "CALL", Trees.getNodeText(node)
-
 
 
 def main(argv):
