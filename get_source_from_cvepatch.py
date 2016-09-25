@@ -96,7 +96,7 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 			else:
 				secondLine = affectedFile.split('\n')[1]
 
-				if secondLine.startswith("index") == 0 or secondLine.endswith("100644") == 0:
+				if secondLine.startswith("index") == 0:# or secondLine.endswith("100644") == 0:
 					print "\t[-]", codePath, "(invalid metadata)"	# we are looking for "index" only.
 				else:
 					print "\t[+]", codePath
