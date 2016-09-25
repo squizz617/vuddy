@@ -182,6 +182,8 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 								except ValueError:
 									pass
 								else:
+									if lnList.count(num) > 1:
+										listIndex += 1
 									# print "\nmatch:", num
 									# print "value\t", chunkSplitted[1:][lnList.index(num)]
 									# print "pm   \t", pmList[lnList.index(num)]
