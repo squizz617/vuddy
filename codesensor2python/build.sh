@@ -22,7 +22,7 @@ cd ${BUILD_DIR}
 # Generate Lexer and Parser from Grammar
 
 #java -jar ../${ANTLR_JAR} CPPGrammar.g
-java -cp ../${ANTLR_JAR} org.antlr.v4.Tool -Dlanguage=Python2 Module.g4
+java -cp ../${ANTLR_JAR} org.antlr.v4.Tool -Dlanguage=Python2 Module.g4 Function.g4
 
 # Compile java-files
 #javac -cp ./${ANTLR_JAR} ./*.java -Xlint:unchecked
