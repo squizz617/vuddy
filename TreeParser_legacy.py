@@ -11,11 +11,8 @@ from codesensor2python.build.FunctionListener import FunctionListener
 from codesensor2python.build.FunctionParser import FunctionParser
 from parseutility import function, abstract
 
-from multiprocessing import Pool
 from cStringIO import StringIO
 import sys
-
-from get_cpu_count import get_cpu_count
 
 class BodyParser(FunctionListener):
 	IS_FIRST = 1
@@ -36,7 +33,15 @@ class BodyParser(FunctionListener):
 		
 		# Function body's base line
 		self.defaultLine = 0
-
+		'''
+		# Function's name
+		self.funcNameFlag = 0
+		self.funcNameStr = StringIO()
+		
+		# Function parameter's name
+		self.paramNameFlag = 0
+		self.paramNameStr = StringIO()
+		'''
 		# Local variable's name
 		self.declaratorFlag = 0
 		self.declaratorStr = StringIO()
@@ -44,10 +49,19 @@ class BodyParser(FunctionListener):
 		# type (return type, parameter type, local variable type)
 		self.typeNameFlag = 0
 		self.typeNameStr = StringIO()
-		
+		'''
+		# function definition
+		self.funcDefFlag = 0
+		'''
 		self.funcCallFlag = 0
 		self.funcCallStr = StringIO()
-		
+		'''
+		# function body (compound_statement)
+		self.compoundStmtFlag = 0
+
+		self.srcFileName = ""
+		self.numLines = 0 # ??
+		'''
 		# set SLL option
 		self.enableSLL = 0
 	
@@ -89,11 +103,25 @@ class BodyParser(FunctionListener):
 			self.defaultLine = (line - 1)
 		
 		ParseTreeWalker().walk(self, tree)
-	
+		
 	
 	def enterEveryRule(self, ctx):
 		ruleIndex = ctx.getRuleIndex()
+		'''
+		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF]:
+			self.funcDefFlag = 1
+			self.functionInstance = function(self.srcFileName)
+			#self.functionInstanceList.append(self.functionInstance)
+			self.functionInstance.parentNumLoc = self.numLines #????
+			self.functionInstance.funcId = len(self.functionInstanceList)
+			self.functionInstance.lines = (ctx.start.line, ctx.stop.line)
 		
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_NAME]:
+			self.funcNameFlag = 1
+		
+		elif ruleIndex == TreeParser.IDX[TreeParser.PARAMETER_NAME]:
+			self.paramNameFlag = 1
+		'''
 		if ruleIndex == BodyParser.IDX[BodyParser.DECLARATOR]:
 			self.declaratorFlag = 1
 		
@@ -102,11 +130,30 @@ class BodyParser(FunctionListener):
 
 		elif ruleIndex == BodyParser.IDX[BodyParser.FUNCTION_CALL]:
 			self.funcCallFlag = 1
+		'''
+		elif ruleIndex == TreeParser.IDX[TreeParser.COMPOUND_STMT]:
+			self.compoundStmtFlag = 1
+		'''
 	
 	
 	def exitEveryRule(self, ctx):
 		ruleIndex = ctx.getRuleIndex()
-		
+		'''
+		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF] and self.funcDefFlag:
+			#print "INIT"
+			self.funcDefFlag = 0
+			self.functionInstanceList.append(self.functionInstance)
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_NAME] and self.funcNameFlag:
+			#print "NAME"
+			self.functionInstance.name = self.funcNameStr.getvalue().rstrip()
+			self.funcNameFlag = 0
+			self.funcNameStr = StringIO()
+		elif ruleIndex == TreeParser.IDX[TreeParser.PARAMETER_NAME] and self.paramNameFlag:
+			#print "PARAM"
+			self.functionInstance.parameterList.append(self.paramNameStr.getvalue().rstrip())
+			self.paramNameFlag = 0
+			self.paramNameStr = StringIO()
+		'''
 		if ruleIndex == BodyParser.IDX[BodyParser.DECLARATOR] and self.declaratorFlag: # useless if-statement (because, enter declarator -> exit identifier)
 			#print "LVAR"
 			self.functionInstance.variableList.append(self.declaratorStr.getvalue().rstrip())
@@ -128,9 +175,24 @@ class BodyParser(FunctionListener):
 				self.functionInstance.variableList.append(self.declaratorStr.getvalue().rstrip())
 				self.declaratorFlag = 0
 				self.declaratorStr = StringIO()
-	
+		'''
+		elif ruleIndex == TreeParser.IDX[TreeParser.COMPOUND_STMT] and self.compoundStmtFlag:
+			self.compoundStmtFlag = 0
+		'''
 	
 	def visitTerminal(self, node):
+		'''
+		if self.compoundStmtFlag:
+			return
+		
+		elif self.funcNameFlag:
+			self.funcNameStr.write(Trees.getNodeText(node))
+			self.funcNameStr.write(' ')
+		
+		elif self.paramNameFlag:
+			self.paramNameStr.write(Trees.getNodeText(node))
+			self.paramNameStr.write(' ')
+		'''
 		if self.declaratorFlag:
 			tmpText = Trees.getNodeText(node)
 			
@@ -158,10 +220,6 @@ class BodyParser(FunctionListener):
 					self.funcCallFlag = 2
 
 
-def f(arg):
-	BodyParser().ParseString(arg[0], arg[1], arg[2], arg[3])
-	return arg[1]
-
 class TreeParser(ModuleListener):
 	IS_FIRST = 1
 	FUNCTION_DEF = 0
@@ -175,9 +233,9 @@ class TreeParser(ModuleListener):
 	table = ["function_def", "function_name", "parameter_name", "declarator", "type_name", "identifier", "compound_statement"]
 	IDX = [0, 0, 0, 0, 0, 0, 0]
 	
-	job_list = []
 	
 	def __init__(self):
+		self.functionInstanceList = []
 		self.functionInstance = None
 		
 		# Function's name
@@ -188,12 +246,19 @@ class TreeParser(ModuleListener):
 		self.paramNameFlag = 0
 		self.paramNameStr = StringIO()
 		
+		# Local variable's name
+		self.declaratorFlag = 0
+		self.declaratorStr = StringIO()
+		
 		# type (return type, parameter type, local variable type)
 		self.typeNameFlag = 0
 		self.typeNameStr = StringIO()
 		
 		# function definition
 		self.funcDefFlag = 0
+		
+		self.funcCallFlag = 0
+		self.funcCallStr = StringIO()
 		
 		# function body (compound_statement)
 		self.compoundStmtFlag = 0
@@ -225,6 +290,7 @@ class TreeParser(ModuleListener):
 		if bSLL:
 			#print "start parsing in TreeParser class with SLL mode"
 			parser._interp.predictionMode = PredictionMode.SLL
+			#parser._errHandler = DefaultErrorStrategy()
 			parser._errHandler = BailErrorStrategy() # BailErrorStrategy() reports error
 		try:
 			tree = parser.code()
@@ -243,14 +309,9 @@ class TreeParser(ModuleListener):
 		self.numLines = len(srcFileRaw) #???
 		self.srcFileName = srcFileName
 		
-		
 		ParseTreeWalker().walk(self, tree)
-		#print "len(job_list): %d" % len(self.job_list)
 		
-		pool = Pool(processes = get_cpu_count()) # get_cpu_count() - 1?
-		ret = pool.map(f, self.job_list)
-		pool.close() # maybe unnecessary
-		return ret
+		return self.functionInstanceList
 	
 	
 	def enterEveryRule(self, ctx):
@@ -259,9 +320,9 @@ class TreeParser(ModuleListener):
 		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF]:
 			self.funcDefFlag = 1
 			self.functionInstance = function(self.srcFileName)
+			#self.functionInstanceList.append(self.functionInstance)
 			self.functionInstance.parentNumLoc = self.numLines #????
-			#self.functionInstance.funcId = len(self.functionInstanceList)
-			self.functionInstance.funcId = (len(self.job_list) + 1)
+			self.functionInstance.funcId = len(self.functionInstanceList)
 			self.functionInstance.lines = (ctx.start.line, ctx.stop.line)
 		
 		elif not self.funcDefFlag:
@@ -273,9 +334,15 @@ class TreeParser(ModuleListener):
 		elif ruleIndex == TreeParser.IDX[TreeParser.PARAMETER_NAME]:
 			self.paramNameFlag = 1
 		
+		elif ruleIndex == TreeParser.IDX[TreeParser.DECLARATOR]:
+			self.declaratorFlag = 1
+		
 		elif ruleIndex == TreeParser.IDX[TreeParser.TYPE_NAME]:
 			self.typeNameFlag = 1
 
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_CALL]:
+			self.funcCallFlag = 1
+		
 		elif ruleIndex == TreeParser.IDX[TreeParser.COMPOUND_STMT]:
 			self.compoundStmtFlag = 1
 	
@@ -286,7 +353,7 @@ class TreeParser(ModuleListener):
 		if ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_DEF] and self.funcDefFlag:
 			#print "INIT"
 			self.funcDefFlag = 0
-			#self.functionInstanceList.append(self.functionInstance)
+			self.functionInstanceList.append(self.functionInstance)
 		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_NAME] and self.funcNameFlag:
 			#print "NAME"
 			self.functionInstance.name = self.funcNameStr.getvalue().rstrip()
@@ -297,11 +364,22 @@ class TreeParser(ModuleListener):
 			self.functionInstance.parameterList.append(self.paramNameStr.getvalue().rstrip())
 			self.paramNameFlag = 0
 			self.paramNameStr = StringIO()
+		elif ruleIndex == TreeParser.IDX[TreeParser.DECLARATOR] and self.declaratorFlag:
+			#print "LVAR"
+			self.functionInstance.variableList.append(self.declaratorStr.getvalue().rstrip())
+			self.declaratorFlag = 0
+			self.declaratorStr = StringIO()
 		elif ruleIndex == TreeParser.IDX[TreeParser.TYPE_NAME] and self.typeNameFlag:
 			#print "DTYPE"
 			self.functionInstance.dataTypeList.append(self.typeNameStr.getvalue().rstrip())
 			self.typeNameFlag = 0
 			self.typeNameStr = StringIO()
+		elif ruleIndex == TreeParser.IDX[TreeParser.FUNCTION_CALL] and self.funcCallFlag:
+			#print "CALL"
+			if self.funcCallFlag == 2:
+				self.functionInstance.funcCalleeList.append(self.funcCallStr.getvalue().rstrip())
+			self.funcCallFlag = 0
+			self.funcCallStr = StringIO()
 		elif ruleIndex == TreeParser.IDX[TreeParser.COMPOUND_STMT] and self.compoundStmtFlag:
 			self.compoundStmtFlag = 0
 			line = ctx.start.line
@@ -309,8 +387,7 @@ class TreeParser(ModuleListener):
 			stop_index = ctx.stop.stop
 			stream = ctx.start.getInputStream()
 			string = stream.getText(start_index, stop_index)
-			self.job_list.append((string, self.functionInstance, line, self.enableSLL))
-			#BodyParser().ParseString(string, self.functionInstance, line, self.enableSLL)
+			BodyParser().ParseString(string, self.functionInstance, line, self.enableSLL)
 	
 	def visitTerminal(self, node):
 		if self.compoundStmtFlag or not self.funcDefFlag:
@@ -323,9 +400,31 @@ class TreeParser(ModuleListener):
 			self.paramNameStr.write(Trees.getNodeText(node))
 			self.paramNameStr.write(' ')
 		
+		elif self.declaratorFlag:
+			tmpText = Trees.getNodeText(node)
+
+			if tmpText != "*": # remove pointer(*) in name of local variables
+				self.declaratorStr.write(tmpText)
+				self.declaratorStr.write(' ')
+		
 		elif self.typeNameFlag:
 			self.typeNameStr.write(Trees.getNodeText(node))
 			self.typeNameStr.write(' ')
+
+		elif self.funcCallFlag:
+			try:
+				parentNodes = node.getParent()
+				p1 = parentNodes
+				p2 = p1.parentCtx
+				p3 = p2.parentCtx
+				p4 = p3.parentCtx	# walk up to its fourth parent
+			except AttributeError:
+				pass
+			else:
+				if str(type(p4)).endswith("FuncCallContext'>"):
+					self.funcCallStr.write(Trees.getNodeText(node))
+					self.funcCallStr.write(' ')
+					self.funcCallFlag = 2
 
 
 def main(argv):
