@@ -38,17 +38,29 @@ public class Main {
 		long t1, t2, t3;
 		try {
 			String inputFilename = parseCommandLine(args);
+			String bParseBody = "1"; // "1": with body parser, "0": without body parser
+			if (args.length > 1)
+				bParseBody = args[args.length - 1];
+			if (!bParseBody.equals("0") && !bParseBody.equals("1"))
+				throw new Exception("argument bParseBody(last argument) required.");
+			
 			//System.out.println("processors: " + Runtime.getRuntime().availableProcessors());
 			t1 = System.currentTimeMillis();
-			TreeParser tp = new TreeParser();
-			ret = tp.ParseFile(inputFilename);
+			if (bParseBody.equals("1")) {
+				TreeParser tp = new TreeParser();
+				ret = tp.ParseFile(inputFilename);
+			}
+			else {
+				TreeParser1 tp = new TreeParser1();
+				ret = tp.ParseFile(inputFilename);
+			}
 			t2 = System.currentTimeMillis();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
 		}
 		
-		print_functions(ret); // print_functions() or print_functions_all()
+		print_functions_all(ret); // print_functions() or print_functions_all()
 		t3 = System.currentTimeMillis();
 		
 		System.out.println("parse " + (t2 - t1) / 1000.0);
@@ -93,7 +105,7 @@ public class Main {
 	}
 	
 	private static String parseCommandLine(String[] args) throws Exception {
-		if(args.length != 1) {
+		if(args.length < 1) {
 			throw new Exception("filename required.");
 		}
 		
@@ -658,3 +670,263 @@ class TreeParser implements ParseTreeListener {
 	public void visitErrorNode(ErrorNode node) { }
 }
 
+class TreeParser1 implements ParseTreeListener {
+	private static int IS_FIRST = 1;
+	
+	public final static int FUNCTION_DEF = 0;
+	public final static int FUNCTION_NAME = 1;
+	public final static int PARAMETER_NAME = 2;
+	public final static int DECLARATOR = 3;
+	public final static int TYPE_NAME = 4;
+	public final static int FUNCTION_CALL = 5;
+	public final static int COMPOUND_STMT = 6;
+	
+	private final static String[] table = {"function_def", "function_name", "parameter_name", 
+				"declarator", "type_name", "identifier", "compound_statement"};
+	private static int[] IDX = {0, 0, 0, 0, 0, 0, 0};
+	
+	private static List<String> ruleNames;
+	
+	//private ExecutorService executorService;
+	//private List<Future<function>> future_list = new ArrayList<Future<function>>(); // for multithread
+	//private List<JobInstance> job_list = new ArrayList<JobInstance>(); // for singlethread
+	
+	private List<function> ret;
+	
+	private function functionInstance = null;
+	
+	// Function's name
+	private int funcNameFlag = 0;
+	private StringBuilder funcNameStr = new StringBuilder();
+	
+	// Function parameter's name
+	private int paramNameFlag = 0;
+	private StringBuilder paramNameStr = new StringBuilder(); //final?
+	
+	// type (return type, parameter type, local variable type)
+	private int typeNameFlag = 0;
+	private StringBuilder typeNameStr = new StringBuilder();
+	
+	// function definition
+	private int funcDefFlag = 0;
+	
+	// function body (compund_statement)
+	private int compoundStmtFlag = 0;
+	
+	private String srcFileName;
+	private int numLines = 0;
+	
+	// set SLL option
+	private int enableSLL = 0;
+	
+	
+	public TreeParser1() {
+		this.ret = new ArrayList<function>();
+		
+		this.functionInstance = null;
+		
+		this.funcNameFlag = 0;
+		this.funcNameStr = new StringBuilder();
+		
+		this.paramNameFlag = 0;
+		this.paramNameStr = new StringBuilder();
+		
+		this.typeNameFlag = 0;
+		this.typeNameStr = new StringBuilder();
+		
+		this.funcDefFlag = 0;
+		
+		this.compoundStmtFlag = 0;
+		
+		this.enableSLL = 0;
+	}
+	
+	private void _init(ModuleParser parser) {
+		//this();
+		//this.executorService = Executors.newFixedThreadPool(
+		//	Runtime.getRuntime().availableProcessors()
+		//);
+		this.ret = new ArrayList<function>();
+		
+		this.functionInstance = null;
+		
+		this.funcNameFlag = 0;
+		this.funcNameStr = new StringBuilder();
+		
+		this.paramNameFlag = 0;
+		this.paramNameStr = new StringBuilder();
+		
+		this.typeNameFlag = 0;
+		this.typeNameStr = new StringBuilder();
+		
+		this.funcDefFlag = 0;
+		
+		this.compoundStmtFlag = 0;
+		
+		this.enableSLL = 0;
+		
+		
+		if (TreeParser1.IS_FIRST != 0) {
+			this.ruleNames = Arrays.asList(parser.getRuleNames());
+			
+			for (int i = 0; i < parser.ruleNames.length; i++) {
+				for (int j = 0; j < TreeParser1.table.length; j++) {
+					if (parser.ruleNames[i].equals(TreeParser1.table[j]))
+						TreeParser1.IDX[j] = i;
+				}
+			}
+		}
+		TreeParser1.IS_FIRST = 0;
+	}
+	
+	public List<function> ParseFile(String srcFileName) {
+		return this.ParseFile(srcFileName, 1);
+	}
+	public List<function> ParseFile(String srcFileName, int bSLL) {
+		try {
+			ANTLRFileStream  antlrFileStream = new ANTLRFileStream(srcFileName);
+			ModuleLexer lexer = new ModuleLexer(antlrFileStream);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			ModuleParser parser = new ModuleParser(tokens);
+			parser.removeErrorListeners(); // remove error listener
+			
+			if (bSLL != 0) {
+				parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+				parser.setErrorHandler(new BailErrorStrategy());
+			}
+			
+			//long t1 = System.currentTimeMillis();
+			ParseTree tree;
+			try {
+				tree = parser.code();
+			}
+			catch (ParseCancellationException e) {
+				parser.reset();
+				parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+				parser.setErrorHandler(new DefaultErrorStrategy());
+				tree = parser.code();
+			}
+			//long t2 = System.currentTimeMillis();
+			//System.err.println("time: " + (t2 - t1) / 1000.0);
+			this._init(parser); // reset before traverse a parse tree
+			this.enableSLL = bSLL;
+			
+			LineNumberReader lnr = new LineNumberReader(new FileReader(new File(srcFileName)));
+			while (lnr.skip(Long.MAX_VALUE) > 0);
+			this.numLines = lnr.getLineNumber() + 1;
+			lnr.close();
+			
+			this.srcFileName = new String(srcFileName);
+			
+			ParseTreeWalker.DEFAULT.walk(this, tree);
+			
+			//System.err.println("before get()");
+			//long t3 = System.currentTimeMillis();
+			//for (Future<function> future : this.future_list) {
+			//	ret.add(future.get());
+			//}
+			//long t4 = System.currentTimeMillis();
+			//System.err.println("time: " + (t4 - t3) / 1000.0);
+			//System.err.println("after get()");
+			/*
+			for (int i = 0; i < job_list.size(); i++) { // singlethread
+				JobInstance j = job_list.get(i);
+				BodyParser p = new BodyParser();
+				p.ParseString(j.string, j.functionInstance, j.line, j.enableSLL);
+				ret.add(j.functionInstance);
+			}
+			*/
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			//this.executorService.shutdownNow();
+			return null;
+		}
+		//this.executorService.shutdown();
+		return this.ret;
+	}
+	
+	@Override
+	public void enterEveryRule(ParserRuleContext ctx) {
+		int ruleIndex = ctx.getRuleIndex();
+		
+		if (ruleIndex == TreeParser1.IDX[TreeParser1.FUNCTION_DEF]) {
+			this.funcDefFlag = 1;
+			this.functionInstance = new function(this.srcFileName);
+			this.functionInstance.parentNumLoc = this.numLines;
+			this.functionInstance.funcId = this.ret.size() + 1;
+			this.functionInstance.lineStart = ctx.getStart().getLine();
+			this.functionInstance.lineStop = ctx.getStop().getLine();
+		}
+		else if (this.funcDefFlag == 0)
+			return;
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.FUNCTION_NAME])
+			this.funcNameFlag = 1;
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.PARAMETER_NAME])
+			this.paramNameFlag = 1;
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.TYPE_NAME])
+			this.typeNameFlag = 1;
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.COMPOUND_STMT])
+			this.compoundStmtFlag = 1;
+	}
+	
+	@Override
+	public void exitEveryRule(ParserRuleContext ctx) {
+		int ruleIndex = ctx.getRuleIndex();
+		
+		if (ruleIndex == TreeParser1.IDX[TreeParser1.FUNCTION_DEF] && this.funcDefFlag != 0) {
+			this.ret.add(this.functionInstance);
+			this.funcDefFlag = 0;
+		}
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.FUNCTION_NAME] && this.funcNameFlag != 0) {
+			this.functionInstance.name = this.funcNameStr.toString().trim();
+			this.funcNameFlag = 0;
+			this.funcNameStr.setLength(0);
+		}
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.PARAMETER_NAME] && this.paramNameFlag != 0) {
+			this.functionInstance.parameterList.add(this.paramNameStr.toString().trim());
+			this.paramNameFlag = 0;
+			this.paramNameStr.setLength(0);
+		}
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.TYPE_NAME] && this.typeNameFlag != 0) {
+			this.functionInstance.dataTypeList.add(this.typeNameStr.toString().trim());
+			this.typeNameFlag = 0;
+			this.typeNameStr.setLength(0);
+		}
+		else if (ruleIndex == TreeParser1.IDX[TreeParser1.COMPOUND_STMT] && this.compoundStmtFlag != 0) {
+			this.compoundStmtFlag = 0;
+			
+			CharStream inputStream = ctx.start.getInputStream();
+			int start_index = ctx.start.getStopIndex();
+			int stop_index = ctx.stop.getStopIndex();
+			String string = inputStream.getText(new Interval(start_index + 1, stop_index - 1));
+			int line = ctx.start.getLine();
+			
+			//this.job_list.add(new JobInstance(string, this.functionInstance, line, this.enableSLL)); // for singlethread
+			//this.future_list.add(
+			//	this.executorService.submit(new JobInstance(string, this.functionInstance, line, this.enableSLL))
+			//); // for multithread
+		}
+	}
+	
+	@Override
+	public void visitTerminal(TerminalNode node) {
+		if (this.compoundStmtFlag != 0 || this.funcDefFlag == 0)
+			return;
+		else if (this.funcNameFlag != 0) {
+			this.funcNameStr.append(Trees.getNodeText(node, this.ruleNames));
+			this.funcNameStr.append(' ');
+		}
+		else if (this.paramNameFlag != 0) {
+			this.paramNameStr.append(Trees.getNodeText(node, this.ruleNames));
+			this.paramNameStr.append(' ');
+		}
+		else if (this.typeNameFlag != 0) {
+			this.typeNameStr.append(Trees.getNodeText(node, this.ruleNames));
+			this.typeNameStr.append(' ');
+		}
+	}
+	
+	@Override
+	public void visitErrorNode(ErrorNode node) { }
+}
