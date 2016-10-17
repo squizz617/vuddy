@@ -10,8 +10,10 @@ hidx/
 hidx*/
 result-0901*
 *.tar.gz
+*.html
 
 misc/
-
+experiments-related/
 codesensor2python/build/
 
+kernel44/
