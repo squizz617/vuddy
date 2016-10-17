@@ -90,16 +90,20 @@ def callGitLog(gitDir):
 
 def filterCommitMessage(commitMessage):
 	filterKeywordList = ["merge", "revert", "upgrade"]
-
+	matchCnt = 0
 	for kwd in filterKeywordList:
 		keywordPattern = r"\W" + kwd + r"\W|\W" + kwd + r"s\W"
 		compiledKeyworddPattern = re.compile(keywordPattern)
 		match = compiledKeyworddPattern.search(commitMessage.lower())
 
+		# bug fixed.. now revert and upgrade commits will be filtered out.
 		if match:
-			return 1
-		else:
-			return 0
+			matchCnt += 1
+
+	if matchCnt > 0:
+		return 1
+	else:
+		return 0
 
 
 def callGitShow(commitHashValue):
