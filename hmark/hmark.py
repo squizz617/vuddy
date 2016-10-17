@@ -284,8 +284,11 @@ class App:
 				# fp = open(f, 'r')
 				# fileLines = fp.readlines()
 				# fp.close()
-
-				functionInstanceList = parseutility.parseFile2(f)
+				if absLevel == 0:
+					functionInstanceList = parseutility.parseFile_shallow(f)
+				else:
+					functionInstanceList = parseutility.parseFile_deep(f)
+					
 				numFunc += len(functionInstanceList)
 
 				if len(functionInstanceList) > 0:

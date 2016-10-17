@@ -9,7 +9,7 @@ import sys
 import subprocess
 import re
 
-javaCallCommand = "java -jar CodeSensor.jar "
+# javaCallCommand = "java -jar CodeSensor.jar "
 
 class function:
 	parentFile = None 	# Absolute file which has the function
@@ -157,100 +157,122 @@ def abstract(instance, level):
 	return (originalFunctionBody, abstractBody)
 
 
-def abstractWindow(instance, level, lineList):
-	# Do not use this function.
+# def abstractWindow(instance, level, lineList):
+# 	# Do not use this function.
 
-	if int(level) >= 0:
-		originalFunctionBody = '\n'.join(lineList)
-		abstractBody = originalFunctionBody
+# 	if int(level) >= 0:
+# 		originalFunctionBody = '\n'.join(lineList)
+# 		abstractBody = originalFunctionBody
 
-	if int(level) >= 1:	#PARAM
-		parameterList = instance.parameterList
-		for param in parameterList:
-			paramPattern = re.compile("(^|\W)" + param + "(\W)")
-			abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", originalFunctionBody)
+# 	if int(level) >= 1:	#PARAM
+# 		parameterList = instance.parameterList
+# 		for param in parameterList:
+# 			paramPattern = re.compile("(^|\W)" + param + "(\W)")
+# 			abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", originalFunctionBody)
 
-	if int(level) >= 2:	#DTYPE
-		dataTypeList = instance.dataTypeList
-		for dtype in dataTypeList:
-			dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
-			abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
+# 	if int(level) >= 2:	#DTYPE
+# 		dataTypeList = instance.dataTypeList
+# 		for dtype in dataTypeList:
+# 			dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
+# 			abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
 
-	if int(level) >= 3:	#LVAR
-		variableList = instance.variableList
-		for lvar in variableList:
-			lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
-			abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
+# 	if int(level) >= 3:	#LVAR
+# 		variableList = instance.variableList
+# 		for lvar in variableList:
+# 			lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
+# 			abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
 
-	if int(level) >= 4:	#FUNCCALL
-		funcCalleeList = instance.funcCalleeList
-		for fcall in funcCalleeList:
-			fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
-			abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
+# 	if int(level) >= 4:	#FUNCCALL
+# 		funcCalleeList = instance.funcCalleeList
+# 		for fcall in funcCalleeList:
+# 			fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
+# 			abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
 
-	return (originalFunctionBody, abstractBody)
+# 	return (originalFunctionBody, abstractBody)
 
 
-def parseFile(srcFileName):
-	# Parses the functions of the specified file using CodeSensor.jar
-	# and then returns the list of function instances.
-	fp = open(srcFileName, 'r')
-	srcFileRaw = fp.readlines()
-	fp.close()
-	numLines = len(srcFileRaw)
+# def parseFile(srcFileName):
+# 	# Parses the functions of the specified file using CodeSensor.jar
+# 	# and then returns the list of function instances.
+# 	fp = open(srcFileName, 'r')
+# 	srcFileRaw = fp.readlines()
+# 	fp.close()
+# 	numLines = len(srcFileRaw)
+# 	functionInstanceList = []
+# 	paramDeclFlag = 0
+# 	varDeclFlag = 0
+# 	init = 0
+
+# 	try:
+# 		astString = subprocess.check_output(javaCallCommand + srcFileName, stderr=subprocess.STDOUT, shell=True)
+# 	except subprocess.CalledProcessError as e:
+# 		print "CodeSensor Error:", e
+# 		astString = ""
+
+# 	astLineList = astString.split('\n')
+# 	for astLine in astLineList:
+# 		astLineSplitted = astLine.split('\t')
+
+# 		if "FUNCTION_DEF" == astLine[0:len("FUNCTION_DEF")]:
+# 			init = 1
+# 			functionInstance = function(srcFileName)
+# 			functionInstanceList.append(functionInstance)
+# 			functionInstance.parentNumLoc = numLines
+# 			functionInstance.funcId = len(functionInstanceList)
+# 			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
+# 			functionInstance.lines = (funcLineFrom, funcLineTo)
+		
+# 		elif "FUNCTION_NAME" == astLine[0:len("FUNCTION_NAME")] and init:
+# 			functionInstance.name = astLineSplitted[4].rstrip()
+
+# 		elif "PARAMETER_DECL" == astLine[0:len("PARAMETER_DECL")] and init:
+# 			paramDeclFlag = 1
+
+# 		elif "VAR_DECL" == astLine[0:len("VAR_DECL")] and init:
+# 			varDeclFlag = 1
+		
+# 		elif "NAME" == astLine[0:len("NAME")] and init:
+# 			if paramDeclFlag:
+# 				functionInstance.parameterList.append(astLineSplitted[4].rstrip())
+# 				paramDeclFlag = 0
+# 			elif varDeclFlag:
+# 				functionInstance.variableList.append(astLineSplitted[4].rstrip())
+# 				varDeclFlag = 0
+		
+# 		elif "TYPE_NAME" == astLine[0:len("TYPE_NAME")] and init:
+# 			functionInstance.dataTypeList.append(astLineSplitted[4].rstrip())
+
+# 		elif "CALLEE" == astLine[0:len("CALLEE")] and init:
+# 			functionInstance.funcCalleeList.append(astLineSplitted[4].rstrip())
+
+# 	return functionInstanceList
+
+def parseFile_shallow(srcFileName):
+	# this does not parse body.
+	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar " + srcFileName + " 0"
 	functionInstanceList = []
-	paramDeclFlag = 0
-	varDeclFlag = 0
-	init = 0
-
 	try:
-		astString = subprocess.check_output(javaCallCommand + srcFileName, stderr=subprocess.STDOUT, shell=True)
+		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
 	except subprocess.CalledProcessError as e:
-		print "CodeSensor Error:", e
+		print "Parser Error:", e
 		astString = ""
 
-	astLineList = astString.split('\n')
-	for astLine in astLineList:
-		astLineSplitted = astLine.split('\t')
+	funcList = astString.split('\r')
+	for func in funcList[1:]:
+		functionInstance = function(srcFileName)
+		functionInstanceList.append(functionInstance)
 
-		if "FUNCTION_DEF" == astLine[0:len("FUNCTION_DEF")]:
-			init = 1
-			functionInstance = function(srcFileName)
-			functionInstanceList.append(functionInstance)
-			functionInstance.parentNumLoc = numLines
-			functionInstance.funcId = len(functionInstanceList)
-			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
-			functionInstance.lines = (funcLineFrom, funcLineTo)
-		
-		elif "FUNCTION_NAME" == astLine[0:len("FUNCTION_NAME")] and init:
-			functionInstance.name = astLineSplitted[4].rstrip()
-
-		elif "PARAMETER_DECL" == astLine[0:len("PARAMETER_DECL")] and init:
-			paramDeclFlag = 1
-
-		elif "VAR_DECL" == astLine[0:len("VAR_DECL")] and init:
-			varDeclFlag = 1
-		
-		elif "NAME" == astLine[0:len("NAME")] and init:
-			if paramDeclFlag:
-				functionInstance.parameterList.append(astLineSplitted[4].rstrip())
-				paramDeclFlag = 0
-			elif varDeclFlag:
-				functionInstance.variableList.append(astLineSplitted[4].rstrip())
-				varDeclFlag = 0
-		
-		elif "TYPE_NAME" == astLine[0:len("TYPE_NAME")] and init:
-			functionInstance.dataTypeList.append(astLineSplitted[4].rstrip())
-
-		elif "CALLEE" == astLine[0:len("CALLEE")] and init:
-			functionInstance.funcCalleeList.append(astLineSplitted[4].rstrip())
+		elemsList = func.split('\n')[1:-1]
+		functionInstance.parentNumLoc = int(elemsList[1])
+		functionInstance.name = elemsList[2]
+		functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+		functionInstance.funcId = int(elemsList[4])
 
 	return functionInstanceList
 
-
-def parseFile2(srcFileName):
-	# this uses codeSensor2.jar
-	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar "
+def parseFile_deep(srcFileName):
+	# this parses function definition plus body.
+	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar " + srcFileName + " 1"
 
 	# fp = open(srcFileName, 'r')
 	# srcFileRaw = fp.readlines()
@@ -259,7 +281,7 @@ def parseFile2(srcFileName):
 	functionInstanceList = []
 
 	try:
-		astString = subprocess.check_output(javaCallCommand + srcFileName, stderr=subprocess.STDOUT, shell=True)
+		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
 	except subprocess.CalledProcessError as e:
 		print "Parser Error:", e
 		astString = ""
