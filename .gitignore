@@ -11,7 +11,7 @@ hidx*/
 result-0901*
 *.tar.gz
 *.html
-
+*.hidx
 misc/
 experiments-related/
 codesensor2python/build/
