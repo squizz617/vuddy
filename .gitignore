@@ -16,9 +16,9 @@ misc/
 experiments-related/
 codesensor2python/build/
 codesensor2python/
-codesensor2/build/
+FuncParser/build/
 kernel44/
-codesensor2/CodeSensor2.jar
+FuncParser/FuncParser.jar
 
 hmark/build/
 hmark/dist/
