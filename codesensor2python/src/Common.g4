@@ -8,6 +8,37 @@ grammar Common;
 @parser::members
 {
 def skipToEndOfObject(self):
+    CurlyStack = 0
+    t = self._input.LA(1)
+
+    while (t != self.EOF and not (CurlyStack == 0 and t == self.CLOSING_CURLY)):
+        if t == self.PRE_ELSE:
+            ifdefStack = 0
+            self.consume()
+            t = self._input.LA(1)
+            
+            while (t != self.EOF and not (ifdefStack == 0 and t == self.PRE_ENDIF)):
+                if t == self.PRE_IF:
+                    ifdefStack += 1
+                elif t == self.PRE_ENDIF:
+                    ifdefStack -= 1
+                
+                self.consume()
+                t = self._input.LA(1)
+        
+        if t == self.OPENING_CURLY:
+            CurlyStack += 1
+        elif t == self.CLOSING_CURLY:
+            CurlyStack -= 1
+        
+        self.consume()
+        t = self._input.LA(1)
+    
+    if t != self.EOF:
+        self.consume()
+
+'''
+def skipToEndOfObject(self):
     CurlyStack = []
     t = self._input.LA(1)
 
@@ -36,10 +67,27 @@ def skipToEndOfObject(self):
     
     if t != self.EOF:
         self.consume()
-
+'''
 
 # this should go into FunctionGrammar but ANTLR fails
 # to join the parser::members-section on inclusion
+def preProcSkipToEnd(self):
+    CurlyStack = 0
+    t = self._input.LA(1)
+    
+    while (t != self.EOF and not (CurlyStack == 0 and t == self.PRE_ENDIF)):
+        if t == self.PRE_IF:
+            CurlyStack += 1
+        elif t == self.PRE_ENDIF:
+            CurlyStack -= 1
+        
+        self.consume()
+        t = self._input.LA(1)
+    
+    if t == self.EOF:
+        self.consume()
+
+'''
 def preProcSkipToEnd(self):
     CurlyStack = []
     t = self._input.LA(1)
@@ -55,6 +103,7 @@ def preProcSkipToEnd(self):
     
     if t == self.EOF:
         self.consume()
+'''
 }
 
 unary_operator : '&' | '*' | '+'| '-' | '~' | '!';

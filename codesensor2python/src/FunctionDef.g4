@@ -13,8 +13,8 @@ parameter_decl_clause: (parameter_decl (',' parameter_decl)*) (',' '...')?
 parameter_decl : param_decl_specifiers parameter_id | param_decl_specifiers | parameter_id;
 parameter_id: ptrs? ('(' parameter_id ')' | parameter_name) type_suffix?;
 
+compound_statement: OPENING_CURLY {self.skipToEndOfObject()};
 //compound_statement: OPENING_CURLY { skipToEndOfObject(); };
-compound_statement: statements;
 
 ctor_list: ':'  ctor_initializer (',' ctor_initializer)*;
 ctor_initializer:  initializer_id ctor_expr;

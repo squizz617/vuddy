@@ -21,11 +21,10 @@ cd ${BUILD_DIR}
 # Generate Lexer and Parser from Grammar
 
 #java -jar ../${ANTLR_JAR} CPPGrammar.g
-java -cp ${ANTLR_JAR} org.antlr.v4.Tool Module.g4
+java -cp ${ANTLR_JAR} org.antlr.v4.Tool Module.g4 Function.g4
 
 # Compile java-files
-#javac -cp ./${ANTLR_JAR} ./*.java -Xlint:unchecked
-javac -cp ./${ANTLR_JAR} ./*.java
+javac -cp ./${ANTLR_JAR} ./*.java -Xlint:unchecked
 
 # unpack ANTLR-jar since we need some of the class files
 
