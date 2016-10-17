@@ -175,8 +175,8 @@ class TreeParser(ModuleListener):
 def main(argv):
 	import time
 	t1 = time.time()
-	functionInstanceList = TreeParser().ParseFile(argv[1])
-	print argv[1]
+	functionInstanceList = TreeParser().ParseFile("calledfunctiontest.c")
+	# print argv[1]
 	t2 = time.time()
 	# sys.exit()
 	for f in functionInstanceList:

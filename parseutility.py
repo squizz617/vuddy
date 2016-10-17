@@ -250,7 +250,8 @@ if __name__ == "__main__":
 	# for srcFile in srcFileList:
 		# print srcFile
 
-	srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
+	# srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
+	srcFile = "../kernel44/arch/um/kernel/syscall.c"
 	functionInstanceList = parseFile(srcFile)
 
 	for f in functionInstanceList:
@@ -261,6 +262,8 @@ if __name__ == "__main__":
 		print "DTYPE\t", f.dataTypeList
 		print "CALLS\t", f.funcCalleeList
 		print ""
-		abstract(f, 4)
+		na = normalize(abstract(f, 4)[1])
+		import hashlib
+		print hashlib.md5(na).hexdigest()
 
 	sys.exit()
