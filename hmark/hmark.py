@@ -19,11 +19,14 @@ import webbrowser
 from hashlib import md5
 
 from multiprocessing import Pool
+import pkgutil
 
 import parseutility
 
 """ GLOBALS """
-currentVersion = "3.0.0"
+with open("version", 'r') as fp:
+	currentVersion = fp.readline()
+# currentVersion = "3.0.0"
 osName = ""
 bits = ""
 urlBase = "http://iotqv.korea.ac.kr/getbinaryversion/wf1/"
@@ -288,7 +291,7 @@ class App:
 					functionInstanceList = parseutility.parseFile_shallow(f)
 				else:
 					functionInstanceList = parseutility.parseFile_deep(f)
-					
+
 				numFunc += len(functionInstanceList)
 
 				if len(functionInstanceList) > 0:
@@ -450,7 +453,7 @@ def run_gui():
 
 	try:
 		# if icon is available
-		icon = resource_path("hashmarker_icon.gif")
+		icon = resource_path("icon.gif")
 		img = PhotoImage(file=icon)
 		root.tk.call('wm', 'iconphoto', root._w, img)
 	except TclError:

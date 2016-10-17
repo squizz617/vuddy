@@ -249,7 +249,7 @@ def abstract(instance, level):
 
 def parseFile_shallow(srcFileName):
 	# this does not parse body.
-	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar " + srcFileName + " 0"
+	javaCallCommand = "java -Xmx1024m -jar FuncParser.jar " + srcFileName + " 0"
 	functionInstanceList = []
 	try:
 		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
@@ -272,7 +272,7 @@ def parseFile_shallow(srcFileName):
 
 def parseFile_deep(srcFileName):
 	# this parses function definition plus body.
-	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar " + srcFileName + " 1"
+	javaCallCommand = "java -Xmx1024m -jar FuncParser.jar " + srcFileName + " 1"
 
 	# fp = open(srcFileName, 'r')
 	# srcFileRaw = fp.readlines()
