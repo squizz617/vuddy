@@ -4,8 +4,10 @@ import sys
 import hashlib
 import time
 
-targetDir = "/home/squizz/Desktop/kernel44"
-projName = "linux-kernel-v4.4"
+import TreeParser
+
+targetDir = "/home/squizz/Desktop/ffmpeg-2.8.6"
+projName = "ffmpeg-2.8.6"
 intendedGranLvl = raw_input("Granularity level? ")
 if intendedGranLvl != 'f':
 	intendedGranLvl = int(intendedGranLvl)
@@ -27,6 +29,8 @@ numLines = 0
 if intendedGranLvl == 'f':
 	for si, srcFile in enumerate(srcFileList):
 		print si+1, '/', len(srcFileList), srcFile
+		
+		# functionInstanceList = TreeParser.TreeParser().parseFile(srcFile)
 		functionInstanceList = parseutility.parseFile(srcFile)
 
 		numFuncs += len(functionInstanceList)
@@ -54,7 +58,7 @@ if intendedGranLvl == 'f':
 else:
 	for si, srcFile in enumerate(srcFileList):
 		print si+1, '/', len(srcFileList), srcFile
-		functionInstanceList = parseutility.parseFile(srcFile)
+		functionInstanceList = TreeParser.parseFile(srcFile)
 
 		numFuncs += len(functionInstanceList)
 
@@ -87,7 +91,7 @@ else:
 						hashFileMap[hashValue] = [f.parentFile, f.funcId]
 
 packageInfo = str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
-with open("hidx-target/hashmark_" + str(intendedAbsLvl) + '_' + str(intendedGranLvl) + '_' + projName + ".hidx", 'w') as fp:
+with open("hidx-target-tp/hashmark_" + str(intendedAbsLvl) + '_' + str(intendedGranLvl) + '_' + projName + ".hidx", 'w') as fp:
 	fp.write(packageInfo)
 	for key in sorted(projDict):
 		fp.write(str(key) + '\t')

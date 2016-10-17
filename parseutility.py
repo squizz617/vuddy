@@ -54,7 +54,7 @@ def loadSource(rootDirectory):
 	srcFileList = []
 	for path, dirs, files in walkList:
 		for fileName in files:
-			if fileName.endswith('.c') or fileName.endswith('.cpp') or fileName.endswith('.cc'):
+			if fileName.endswith('.c') or fileName.endswith('.cpp'):# or fileName.endswith('.cc'):
 				absPathWithFileName = path.replace('\\', '/') + '/' + fileName
 				if maxFileSizeInBytes is not None:
 					if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
@@ -113,6 +113,8 @@ def abstract(instance, level):
 	if int(level) >= 1:	# PARAM
 		parameterList = instance.parameterList
 		for param in parameterList:
+			if len(param) == 0:
+				continue
 			try:
 				paramPattern = re.compile("(^|\W)" + param + "(\W)")
 				abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", abstractBody)
@@ -122,6 +124,8 @@ def abstract(instance, level):
 	if int(level) >= 2:	# DTYPE
 		dataTypeList = instance.dataTypeList
 		for dtype in dataTypeList:
+			if len(dtype) == 0:
+				continue
 			try:
 				dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
 				abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
@@ -131,6 +135,8 @@ def abstract(instance, level):
 	if int(level) >= 3:	# LVAR
 		variableList = instance.variableList
 		for lvar in variableList:
+			if len(lvar) == 0:
+				continue
 			try:
 				lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
 				abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
@@ -140,6 +146,8 @@ def abstract(instance, level):
 	if int(level) >= 4:	# FUNCCALL
 		funcCalleeList = instance.funcCalleeList
 		for fcall in funcCalleeList:
+			if len(fcall) == 0:
+				continue
 			try:
 				fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
 				abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
@@ -240,6 +248,41 @@ def parseFile(srcFileName):
 	return functionInstanceList
 
 
+def parseFile2(srcFileName):
+	# this uses codeSensor2.jar
+	javaCallCommand = "java -Xmx1024m -jar CodeSensor2.jar "
+
+	# fp = open(srcFileName, 'r')
+	# srcFileRaw = fp.readlines()
+	# fp.close()
+	# numLines = len(srcFileRaw)
+	functionInstanceList = []
+
+	try:
+		astString = subprocess.check_output(javaCallCommand + srcFileName, stderr=subprocess.STDOUT, shell=True)
+	except subprocess.CalledProcessError as e:
+		print "Parser Error:", e
+		astString = ""
+
+	funcList = astString.split('\r')
+	for func in funcList[1:]:
+		functionInstance = function(srcFileName)
+		functionInstanceList.append(functionInstance)
+
+		elemsList = func.split('\n')[1:-1]
+		functionInstance.parentNumLoc = int(elemsList[1])
+		functionInstance.name = elemsList[2]
+		functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+		functionInstance.funcId = int(elemsList[4])
+		functionInstance.parameterList = elemsList[5].rstrip().split('\t')
+		functionInstance.variableList = elemsList[6].rstrip().split('\t')
+		functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
+		functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
+
+	return functionInstanceList
+
+
+
 if __name__ == "__main__":
 	# Just for testing.
 	# targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
@@ -250,8 +293,10 @@ if __name__ == "__main__":
 	# for srcFile in srcFileList:
 		# print srcFile
 
-	srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
-	functionInstanceList = parseFile(srcFile)
+	# srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
+	srcFile = "../kernel44/arch/um/kernel/syscall.c"
+	srcFile = "./module.c"
+	functionInstanceList = parseFile2(srcFile)
 
 	for f in functionInstanceList:
 		f.removeListDup()
@@ -261,6 +306,8 @@ if __name__ == "__main__":
 		print "DTYPE\t", f.dataTypeList
 		print "CALLS\t", f.funcCalleeList
 		print ""
-		abstract(f, 4)
+		na = normalize(abstract(f, 4)[1])
+		import hashlib
+		print hashlib.md5(na).hexdigest()
 
 	sys.exit()
