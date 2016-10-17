@@ -48,7 +48,7 @@ public class Main {
 			return;
 		}
 		
-		print_functions(ret); // print_functions() or print_functions_all()
+		print_functions_all(ret); // print_functions() or print_functions_all()
 		t3 = System.currentTimeMillis();
 		
 		System.out.println("parse " + (t2 - t1) / 1000.0);
