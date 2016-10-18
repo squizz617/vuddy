@@ -101,11 +101,11 @@ elif osName == "Win":
 	             binaries=None,\n\
 	             datas=None,\n\
 	             hiddenimports=[],\n\
-	             hookspath=None,\n\
-	             runtime_hooks=None,\n\
-	             excludes=None,\n\
-	             win_no_prefer_redirects=None,\n\
-	             win_private_assemblies=None,\n\
+	             hookspath=[],\n\
+	             runtime_hooks=[],\n\
+	             excludes=[],\n\
+	             win_no_prefer_redirects=False,\n\
+	             win_private_assemblies=False,\n\
 	             cipher=block_cipher)\n\
 	a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
 	a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
@@ -114,15 +114,20 @@ elif osName == "Win":
 	             cipher=block_cipher)\n\
 	exe = EXE(pyz,\n\
 	          a.scripts,\n\
-	          a.binaries,\n\
-	          a.zipfiles,\n\
-	          a.datas,\n\
+	          exclude_binaries=True,\n\
 	          name='HMark_" + version + "_" + osName + "_" + bits + "',\n\
 	          debug=False,\n\
-	          strip=None,\n\
+	          strip=False,\n\
 	          upx=True,\n\
 	          console=True,\n\
-	          icon='icon.ico')\
+	          icon='icon.ico')\n\
+	coll = COLLECT(exe,\n\
+               a.binaries,\n\
+               a.zipfiles,\n\
+               a.datas,\n\
+               strip=False,\n\
+               upx=True,\n\
+               name='HMark_" + version + "_" + osName + "_" + bits + "')\
 	""")
 
 
