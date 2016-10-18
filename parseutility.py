@@ -260,8 +260,6 @@ def parseFile_shallow(srcFileName):
 	funcList = astString.split('\r')
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
-		functionInstanceList.append(functionInstance)
-
 		elemsList = func.split('\n')[1:-1]
 		if len(elemsList) > 4:
 			functionInstance.parentNumLoc = int(elemsList[1])
@@ -269,16 +267,14 @@ def parseFile_shallow(srcFileName):
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
 			functionInstance.funcId = int(elemsList[4])
 
+			functionInstanceList.append(functionInstance)
+
 	return functionInstanceList
 
 def parseFile_deep(srcFileName):
 	# this parses function definition plus body.
 	javaCallCommand = "java -Xmx1024m -jar FuncParser.jar " + srcFileName + " 1"
 
-	# fp = open(srcFileName, 'r')
-	# srcFileRaw = fp.readlines()
-	# fp.close()
-	# numLines = len(srcFileRaw)
 	functionInstanceList = []
 
 	try:
@@ -290,7 +286,6 @@ def parseFile_deep(srcFileName):
 	funcList = astString.split('\r')
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
-		functionInstanceList.append(functionInstance)
 
 		elemsList = func.split('\n')[1:-1]
 		if len(elemsList) > 8:
@@ -302,6 +297,8 @@ def parseFile_deep(srcFileName):
 			functionInstance.variableList = elemsList[6].rstrip().split('\t')
 			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
 			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
+			
+			functionInstanceList.append(functionInstance)
 
 	return functionInstanceList
 
