@@ -8,20 +8,51 @@ import os
 import sys
 import subprocess
 import re
+import platform
+
+def get_version():
+	global osName
+	global bits
+
+	pf = platform.platform()
+	if 'Windows' in pf:
+		osName = 'w'
+	elif 'Linux' in pf:
+		osName = 'l'
+	else:
+		osName = 'osx'
+
+	bits, _ = platform.architecture()
+	if '64' in bits:
+		bits = '64'
+	else:
+		bits = '86'
+
+	if osName == 'osx':
+		bits = ''
 
 # sys.path.append(sys._MEIPASS)
 
 def setEnvironment(caller):
+	get_version()
 	global javaCallCommand
 	if caller == "GUI":
 		try:
 			base_path = sys._MEIPASS
 		except:
 			base_path = os.path.abspath(".")
-		full_path = os.path.join(base_path, "FuncParser.jar")
-		javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+		if osName == 'w':
+			full_path = os.path.join(base_path, "FuncParser.exe")
+			javaCallCommand = full_path + " "
+
+		elif osName == 'l':
+			full_path = os.path.join(base_path, "FuncParser.jar")
+			javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
 	else:
-		javaCallCommand = "java -Xmx1024m -jar FuncParser.jar "
+		if osName == 'w':
+			javaCallCommand = "FuncParser.exe "
+		elif osName == 'l':
+			javaCallCommand = "java -Xmx1024m -jar FuncParser.jar "
 
 
 class function:
