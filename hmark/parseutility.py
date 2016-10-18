@@ -42,16 +42,17 @@ def setEnvironment(caller):
 		except:
 			base_path = os.path.abspath(".")
 		if osName == 'w':
-			full_path = os.path.join(base_path, "FuncParser.exe")
-			javaCallCommand = full_path + " "
+			# full_path = os.path.join(base_path, "FuncParser.exe")
+			javaCallCommand = "FuncParser.exe "
 
-		elif osName == 'l':
+		elif osName == 'l' or osName == "osx":
 			full_path = os.path.join(base_path, "FuncParser.jar")
 			javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+
 	else:
 		if osName == 'w':
 			javaCallCommand = "FuncParser.exe "
-		elif osName == 'l':
+		elif osName == 'l' or osName == "osx":
 			javaCallCommand = "java -Xmx1024m -jar FuncParser.jar "
 
 

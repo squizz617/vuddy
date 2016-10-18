@@ -491,6 +491,16 @@ def main():
 			print "Please try again after installing JDK."
 			print msg
 			sys.exit()
+	elif osName == "osx":
+		try:
+			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
+		except subprocess.CalledProcessError as e:
+			print "java error:", e
+			msg = ""
+		if "requesting install" in msg:
+			print "Please try again after installing JDK."
+			print msg
+			sys.exit()
 	check_update()
 	run_gui()
 
