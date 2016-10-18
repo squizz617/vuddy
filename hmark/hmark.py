@@ -496,7 +496,6 @@ def main():
 			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
 		except subprocess.CalledProcessError as e:
 			print "Please try again after installing JDK."
-			print msg
 			sys.exit()
 	check_update()
 	run_gui()
