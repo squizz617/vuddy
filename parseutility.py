@@ -263,10 +263,11 @@ def parseFile_shallow(srcFileName):
 		functionInstanceList.append(functionInstance)
 
 		elemsList = func.split('\n')[1:-1]
-		functionInstance.parentNumLoc = int(elemsList[1])
-		functionInstance.name = elemsList[2]
-		functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
-		functionInstance.funcId = int(elemsList[4])
+		if len(elemsList) > 4:
+			functionInstance.parentNumLoc = int(elemsList[1])
+			functionInstance.name = elemsList[2]
+			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+			functionInstance.funcId = int(elemsList[4])
 
 	return functionInstanceList
 
@@ -292,14 +293,15 @@ def parseFile_deep(srcFileName):
 		functionInstanceList.append(functionInstance)
 
 		elemsList = func.split('\n')[1:-1]
-		functionInstance.parentNumLoc = int(elemsList[1])
-		functionInstance.name = elemsList[2]
-		functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
-		functionInstance.funcId = int(elemsList[4])
-		functionInstance.parameterList = elemsList[5].rstrip().split('\t')
-		functionInstance.variableList = elemsList[6].rstrip().split('\t')
-		functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
-		functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
+		if len(elemsList) > 8:
+			functionInstance.parentNumLoc = int(elemsList[1])
+			functionInstance.name = elemsList[2]
+			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+			functionInstance.funcId = int(elemsList[4])
+			functionInstance.parameterList = elemsList[5].rstrip().split('\t')
+			functionInstance.variableList = elemsList[6].rstrip().split('\t')
+			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
+			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
 
 	return functionInstanceList
 
