@@ -20,7 +20,7 @@ import webbrowser
 from hashlib import md5
 
 from multiprocessing import Pool
-import pkgutil
+import subprocess
 
 import parseutility
 import version
@@ -330,7 +330,7 @@ class App:
 			self.listProcess.see("end")
 			self.listProcess.insert(Tkinter.END, "")
 			self.listProcess.see("end")
-			self.listProcess.insert(END, "Saving hash index to file...")
+			self.listProcess.insert(Tkinter.END, "Saving hash index to file...")
 			self.listProcess.see("end")
 
 			try:
@@ -481,6 +481,16 @@ def run_gui():
 
 def main():
 	get_version()
+	if osName == 'l':
+		try:
+			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
+		except subprocess.CalledProcessError as e:
+			print "java error:", e
+			msg = ""
+		if "apt-get" in msg:
+			print "Please try again after installing JDK."
+			print msg
+			sys.exit()
 	check_update()
 	run_gui()
 

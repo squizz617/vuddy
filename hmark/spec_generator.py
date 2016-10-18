@@ -102,7 +102,6 @@ a = Analysis(['hmark.py'],\n\
              win_private_assemblies=False,\n\
              cipher=block_cipher)\n\
 a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
-a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
 pyz = PYZ(a.pure, a.zipped_data,\n\
              cipher=block_cipher)\n\
 exe = EXE(pyz,\n\
