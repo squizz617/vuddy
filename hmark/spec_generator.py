@@ -56,8 +56,8 @@ exe = EXE(pyz,\n\
 
 elif osName == "OSX":
 		fp.write("\
-	# -*- mode: python -*-\n\
-	block_cipher = None\n\
+	# -*- mode: python -*-\n\n\
+	block_cipher = None\n\n\n\
 	a = Analysis(['hmark.py'],\n\
 	             pathex=['" + cwd + "'],\n\
 	             binaries=None,\n\
@@ -71,7 +71,6 @@ elif osName == "OSX":
 	             cipher=block_cipher)\n\
 	a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
 	a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
-	a.datas += [('version', '" + os.path.join(cwd, 'version') + "', 'DATA')]\n\
 	pyz = PYZ(a.pure, a.zipped_data,\n\
 	             cipher=block_cipher)\n\
 	exe = EXE(pyz,\n\
