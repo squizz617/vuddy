@@ -5,7 +5,8 @@ Author: Seulbae Kim
 Last update: June 30, 2016
 """
 
-from Tkinter import *
+# from Tkinter import *
+import Tkinter
 import tkFileDialog
 import ttk
 
@@ -22,16 +23,22 @@ from multiprocessing import Pool
 import pkgutil
 
 import parseutility
+import version
 
 """ GLOBALS """
-with open("version", 'r') as fp:
-	currentVersion = fp.readline()
+# with open("version.dat", 'r') as fp:
+# 	currentVersion = fp.readline()
+currentVersion = version.version
 # currentVersion = "3.0.0"
 osName = ""
 bits = ""
 urlBase = "http://iotqv.korea.ac.kr/getbinaryversion/wf1/"
 urlDownload = "http://iotqv.korea.ac.kr/downloads"
 
+# try:
+# 	sys.path.append(sys._MEIPASS)
+# except:
+# 	pass
 
 def get_version():
 	global osName
@@ -148,34 +155,34 @@ class App:
 		master.resizable(width=False, height=False)
 
 		""" MENU """
-		self.menubar = Menu(master, tearoff=1)
+		self.menubar = Tkinter.Menu(master, tearoff=1)
 		self.menubar.add_command(label="ABOUT", command=self.show_about)
 		self.menubar.add_command(label="HELP", command=self.show_help)
 		master.config(menu=self.menubar)
 
 		""" BROWSE DIRECTORY """
-		frmDirectory = Frame(master)
-		frmDirectory.pack(fill=BOTH, padx=50, pady=(20, 0))
+		frmDirectory = Tkinter.Frame(master)
+		frmDirectory.pack(fill=Tkinter.BOTH, padx=50, pady=(20, 0))
 
-		self.directory = StringVar()
+		self.directory = Tkinter.StringVar()
 		self.directory.set('Choose the root directory of your program.')
-		self.btnDirectory = Button(frmDirectory, text="Browse directory", command=self.askDirectory)
-		self.btnDirectory.pack(side=LEFT)
+		self.btnDirectory = Tkinter.Button(frmDirectory, text="Browse directory", command=self.askDirectory)
+		self.btnDirectory.pack(side=Tkinter.LEFT)
 
-		self.lblSelected = Label(frmDirectory, fg=self.defaultbg, text="Selected: ")
-		self.lblSelected.pack(side=LEFT, padx=(10, 0))
-		self.lblDirectory = Label(frmDirectory, fg="Red", textvariable=self.directory)
-		self.lblDirectory.pack(side=LEFT)
+		self.lblSelected = Tkinter.Label(frmDirectory, fg=self.defaultbg, text="Selected: ")
+		self.lblSelected.pack(side=Tkinter.LEFT, padx=(10, 0))
+		self.lblDirectory = Tkinter.Label(frmDirectory, fg="Red", textvariable=self.directory)
+		self.lblDirectory.pack(side=Tkinter.LEFT)
 
 		""" ABSTRACTION """
-		frmAbstraction = Frame(master)
-		frmAbstraction.pack(fill=BOTH)
+		frmAbstraction = Tkinter.Frame(master)
+		frmAbstraction.pack(fill=Tkinter.BOTH)
 
-		lblfrmAbstraction = LabelFrame(frmAbstraction, text="Select abstraction mode")
-		lblfrmAbstraction.pack(fill=BOTH, expand="yes", padx=50, pady=10)
+		lblfrmAbstraction = Tkinter.LabelFrame(frmAbstraction, text="Select abstraction mode")
+		lblfrmAbstraction.pack(fill=Tkinter.BOTH, expand="yes", padx=50, pady=10)
 
-		self.absLevel = IntVar()
-		# R1 = Radiobutton(lblfrmAbstraction, text="No abstraction", variable=self.absLevel, value=0, command=self.selectAbst)
+		self.absLevel = Tkinter.IntVar()
+		# R1 = Radiobutton(lblfr-mAbstraction, text="No abstraction", variable=self.absLevel, value=0, command=self.selectAbst)
 		# R2 = Radiobutton(lblfrmAbstraction, text="Level 1: Parameter abstraction", variable=self.absLevel, value=1, command=self.selectAbst)
 		# R3 = Radiobutton(lblfrmAbstraction, text="Level 2: Data type abstraction", variable=self.absLevel, value=2, command=self.selectAbst)
 		# R4 = Radiobutton(lblfrmAbstraction, text="Level 3: Local variable abstraction", variable=self.absLevel, value=3, command=self.selectAbst)
@@ -183,16 +190,16 @@ class App:
 		# R2.pack(side=LEFT, anchor=W)
 		# R3.pack(side=LEFT, anchor=W)
 		# R4.pack(side=LEFT, anchor=W)
-		R1 = Radiobutton(lblfrmAbstraction, text="Abstraction OFF: Detect exact clones only", variable=self.absLevel, value=0, command=self.selectAbst)
-		R2 = Radiobutton(lblfrmAbstraction, text="Abstraction ON: Detect near-miss (similar) clones, as well as exact clones", variable=self.absLevel, value=4, command=self.selectAbst)
-		R1.pack(side=LEFT, anchor=W)
-		R2.pack(side=RIGHT, anchor=W)
+		R1 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction OFF: Detect exact clones only", variable=self.absLevel, value=0, command=self.selectAbst)
+		R2 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction ON: Detect near-miss (similar) clones, as well as exact clones", variable=self.absLevel, value=4, command=self.selectAbst)
+		R1.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
+		R2.pack(side=Tkinter.RIGHT, anchor=Tkinter.W)
 
 		""" GENERATE """
-		frmGenerate = Frame(master)
-		frmGenerate.pack(fill=BOTH, padx=50, pady=5)
+		frmGenerate = Tkinter.Frame(master)
+		frmGenerate.pack(fill=Tkinter.BOTH, padx=50, pady=5)
 
-		self.btnGenerate = Button(
+		self.btnGenerate = Tkinter.Button(
 			frmGenerate,
 			width=10000,
 			text="----- Generate hashmark -----",
@@ -200,23 +207,23 @@ class App:
 			# command=lambda: self.callback(1)
 			command=self.generate
 			)
-		self.btnGenerate.pack(side=BOTTOM)
+		self.btnGenerate.pack(side=Tkinter.BOTTOM)
 
 		""" PROCESS """
-		frmProcess = Frame(master)
-		frmProcess.pack(fill=X)
+		frmProcess = Tkinter.Frame(master)
+		frmProcess.pack(fill=Tkinter.X)
 
-		scrollbar = Scrollbar(frmProcess)
-		scrollbar.pack(side=RIGHT, fill=Y)
-		self.listProcess = Listbox(frmProcess, state="disabled", width=600, height=26, yscrollcommand=scrollbar.set, selectmode=SINGLE)
+		scrollbar = Tkinter.Scrollbar(frmProcess)
+		scrollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
+		self.listProcess = Tkinter.Listbox(frmProcess, state="disabled", width=600, height=26, yscrollcommand=scrollbar.set, selectmode=Tkinter.SINGLE)
 		# self.listProcess.insert(END, "")
-		self.listProcess.pack(side=LEFT, fill=BOTH)
+		self.listProcess.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
 		scrollbar.config(command=self.listProcess.yview)
 
 
 		""" PROGRESSBAR """
 		frmPgbar = ttk.Frame(master)
-		frmPgbar.pack(expand=True, fill=BOTH, side=TOP)
+		frmPgbar.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.TOP)
 
 		self.progress = 0
 		self.progressbar = ttk.Progressbar(
@@ -227,17 +234,17 @@ class App:
 			# variable=self.progress,
 			maximum=1
 			)
-		self.progressbar.pack(expand=True, fill=BOTH, side=TOP)
+		self.progressbar.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.TOP)
 
 		# self.progressbar["maximum"] = 100
 		# self.progressbar.start(50)
 
 		""" QUIT """
-		frmBottom = Frame(master, bd=20)
-		frmBottom.pack(side=RIGHT)
+		frmBottom = Tkinter.Frame(master, bd=20)
+		frmBottom.pack(side=Tkinter.RIGHT)
 
-		self.btnQuit = Button(frmBottom, width=15, text="QUIT", command=frmBottom.quit)
-		self.btnQuit.pack(side=BOTTOM)
+		self.btnQuit = Tkinter.Button(frmBottom, width=15, text="QUIT", command=frmBottom.quit)
+		self.btnQuit.pack(side=Tkinter.BOTTOM)
 
 
 	# def callback(self, num):
@@ -260,17 +267,17 @@ class App:
 		hashFileMap = {}
 
 		self.listProcess.config(state="normal")
-		self.listProcess.insert(END, "Loading source files... This may take a few minutes.")
+		self.listProcess.insert(Tkinter.END, "Loading source files... This may take a few minutes.")
 		self.listProcess.update()
 
 		fileList = parseutility.loadSource(directory)
 		numFile = len(fileList)
 
 		if numFile == 0:
-			self.listProcess.insert(END, "Error: Failed loading source files. Check if you selected proper directory, or if your project contains .c or .cpp files.")
+			self.listProcess.insert(Tkinter.END, "Error: Failed loading source files. Check if you selected proper directory, or if your project contains .c or .cpp files.")
 		else:
 			# self.listProcess.insert(END, "")
-			self.listProcess.insert(END, "Load complete. Generating hashmark...")
+			self.listProcess.insert(Tkinter.END, "Load complete. Generating hashmark...")
 			# self.listProcess.insert(END, "")
 			# self.listProcess.insert(END, "")
 
@@ -281,16 +288,16 @@ class App:
 
 				self.progressbar["value"] = progress
 				self.progressbar.update()
-				a = self.listProcess.insert(END, '[+] ' + f)
+				a = self.listProcess.insert(Tkinter.END, '[+] ' + f)
 				self.listProcess.see("end")
 
 				# fp = open(f, 'r')
 				# fileLines = fp.readlines()
 				# fp.close()
 				if absLevel == 0:
-					functionInstanceList = parseutility.parseFile_shallow(f)
+					functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
 				else:
-					functionInstanceList = parseutility.parseFile_deep(f)
+					functionInstanceList = parseutility.parseFile_deep(f, "GUI")
 
 				numFunc += len(functionInstanceList)
 
@@ -318,16 +325,20 @@ class App:
 					else:
 						numFunc -= 1 # decrement numFunc by 1 if funclen is under threshold
 
-			self.listProcess.insert(END, "")
-			self.listProcess.insert(END, "Hash index successfully generated.")
+			self.listProcess.insert(Tkinter.END, "")
+			self.listProcess.insert(Tkinter.END, "Hash index successfully generated.")
 			self.listProcess.see("end")
-			self.listProcess.insert(END, "")
+			self.listProcess.insert(Tkinter.END, "")
 			self.listProcess.see("end")
 			self.listProcess.insert(END, "Saving hash index to file...")
 			self.listProcess.see("end")
 
-			packageInfo = str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
-			with open("hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
+			try:
+				os.mkdir("hidx")
+			except:
+				pass
+			packageInfo = str(currentVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
+			with open("hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
 				fp.write(packageInfo)
 
 				for key in sorted(projDic):
@@ -346,21 +357,21 @@ class App:
 
 			timeOut = time.time()
 
-			self.listProcess.insert(END, "Done.")
+			self.listProcess.insert(Tkinter.END, "Done.")
 			self.listProcess.see("end")
-			self.listProcess.insert(END, "")
-			self.listProcess.insert(END, "Elapsed time: %.02f sec." % (timeOut - timeIn))
-			self.listProcess.see("end")
-
-
-			self.listProcess.insert(END, "Program statistics:")
-			self.listProcess.insert(END, " - " + str(numFile) + ' files;')
-			self.listProcess.insert(END, " - " + str(numFunc) + ' functions;')
-			self.listProcess.insert(END, " - " + str(numLine) + ' lines of code.')
+			self.listProcess.insert(Tkinter.END, "")
+			self.listProcess.insert(Tkinter.END, "Elapsed time: %.02f sec." % (timeOut - timeIn))
 			self.listProcess.see("end")
 
-			self.listProcess.insert(END, "")
-			self.listProcess.insert(END, "Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hashmark_" + str(absLevel) + "_" + proj + ".hidx")
+
+			self.listProcess.insert(Tkinter.END, "Program statistics:")
+			self.listProcess.insert(Tkinter.END, " - " + str(numFile) + ' files;')
+			self.listProcess.insert(Tkinter.END, " - " + str(numFunc) + ' functions;')
+			self.listProcess.insert(Tkinter.END, " - " + str(numLine) + ' lines of code.')
+			self.listProcess.see("end")
+
+			self.listProcess.insert(Tkinter.END, "")
+			self.listProcess.insert(Tkinter.END, "Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx")
 			self.listProcess.see("end")
 
 
@@ -378,7 +389,7 @@ class App:
 
 
 	def show_about(self):
-		top = Toplevel(padx=20, pady=10)
+		top = Tkinter.Toplevel(padx=20, pady=10)
 		if osName == 'w':	# this only works for windows.
 			top.withdraw()	# temporarily hide widget for better UI
 		aboutMessage = """
@@ -387,9 +398,9 @@ HMark is an hash index generator for vulnerable code clone detection.
 Developed by CSSA.
 http://iotqv.korea.ac.kr
 """
-		msg = Message(top, text=aboutMessage)
+		msg = Tkinter.Message(top, text=aboutMessage)
 		msg.pack()
-		btnOkay = Button(top, text="Okay", command=top.destroy)
+		btnOkay = Tkinter.Button(top, text="Okay", command=top.destroy)
 		btnOkay.pack()
 
 		top.update()
@@ -409,7 +420,7 @@ http://iotqv.korea.ac.kr
 
 
 	def show_help(self):
-		top = Toplevel(padx=20, pady=10)
+		top = Tkinter.Toplevel(padx=20, pady=10)
 		if osName == 'w':	# this only works for windows.
 			top.withdraw()	# temporarily hide widget
 
@@ -421,8 +432,8 @@ http://iotqv.korea.ac.kr
 - ON: HMARK will detect near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and called functions.\n
 3. Generate Hashmark.
 		"""
-		msg = Message(top, text=helpMessage)
-		btnOkay = Button(top, text="Okay", command=top.destroy)
+		msg = Tkinter.Message(top, text=helpMessage)
+		btnOkay = Tkinter.Button(top, text="Okay", command=top.destroy)
 		self.master.update_idletasks() 
 
 		msg.pack()
@@ -447,16 +458,16 @@ http://iotqv.korea.ac.kr
 def run_gui():
 	global currentVersion
 	global icon
-	root = Tk()
+	root = Tkinter.Tk()
 	app = App(root)
 	root.title("HMark ver " + str(currentVersion))
 
 	try:
 		# if icon is available
 		icon = resource_path("icon.gif")
-		img = PhotoImage(file=icon)
+		img = Tkinter.PhotoImage(file=icon)
 		root.tk.call('wm', 'iconphoto', root._w, img)
-	except TclError:
+	except Tkinter.TclError:
 		# if, for some reason, icon isn't available
 		pass
 
@@ -464,8 +475,8 @@ def run_gui():
 	
 	try:
 		root.destroy()
-	except TclError:
-		pass
+	except Tkinter.TclError:
+		print "Unexpectedly terminated."
 
 
 def main():
