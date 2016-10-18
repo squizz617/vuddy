@@ -94,41 +94,41 @@ elif osName == "OSX":
 
 elif osName == "Win":
 		fp.write("\
-	# -*- mode: python -*-\n\
-	block_cipher = None\n\
-	a = Analysis(['hmark.py'],\n\
-	             pathex=['" + cwd + "'],\n\
-	             binaries=None,\n\
-	             datas=None,\n\
-	             hiddenimports=[],\n\
-	             hookspath=[],\n\
-	             runtime_hooks=[],\n\
-	             excludes=[],\n\
-	             win_no_prefer_redirects=False,\n\
-	             win_private_assemblies=False,\n\
-	             cipher=block_cipher)\n\
-	a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
-	a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
-	a.datas += [('version', '" + os.path.join(cwd, 'version') + "', 'DATA')]\n\
-	pyz = PYZ(a.pure, a.zipped_data,\n\
-	             cipher=block_cipher)\n\
-	exe = EXE(pyz,\n\
-	          a.scripts,\n\
-	          exclude_binaries=True,\n\
-	          name='HMark_" + version + "_" + osName + "_" + bits + "',\n\
-	          debug=False,\n\
-	          strip=False,\n\
-	          upx=True,\n\
-	          console=True,\n\
-	          icon='icon.ico')\n\
-	coll = COLLECT(exe,\n\
-               a.binaries,\n\
-               a.zipfiles,\n\
-               a.datas,\n\
-               strip=False,\n\
-               upx=True,\n\
-               name='HMark_" + version + "_" + osName + "_" + bits + "')\
-	""")
+# -*- mode: python -*-\n\
+block_cipher = None\n\
+a = Analysis(['hmark.py'],\n\
+             pathex=['" + cwd + "'],\n\
+             binaries=None,\n\
+             datas=None,\n\
+             hiddenimports=[],\n\
+             hookspath=[],\n\
+             runtime_hooks=[],\n\
+             excludes=[],\n\
+             win_no_prefer_redirects=False,\n\
+             win_private_assemblies=False,\n\
+             cipher=block_cipher)\n\
+a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
+a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
+a.datas += [('version', '" + os.path.join(cwd, 'version') + "', 'DATA')]\n\
+pyz = PYZ(a.pure, a.zipped_data,\n\
+             cipher=block_cipher)\n\
+exe = EXE(pyz,\n\
+          a.scripts,\n\
+          exclude_binaries=True,\n\
+          name='HMark_" + version + "_" + osName + "_" + bits + "',\n\
+          debug=False,\n\
+          strip=False,\n\
+          upx=True,\n\
+          console=True,\n\
+          icon='icon.ico')\n\
+coll = COLLECT(exe,\n\
+            a.binaries,\n\
+            a.zipfiles,\n\
+            a.datas,\n\
+            strip=False,\n\
+            upx=True,\n\
+            name='HMark_" + version + "_" + osName + "_" + bits + "')\
+""")
 
 
 fp.close()
