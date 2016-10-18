@@ -124,8 +124,8 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 					os.system(command_show)
 
 					os.chdir(originalDir)
-					oldFunctionInstanceList = parseutility.parseFile(originalDir + "/tmp_old")
-					newFunctionInstanceList = parseutility.parseFile(originalDir + "/tmp_new")
+					oldFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_old")
+					newFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_new")
 
 					finalOldFunctionList = []
 
@@ -236,8 +236,8 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 						else:
 							finalNewFunction = finalNewFunctionList[index].getOriginalFunction()
 
-						tmpold = parseutility.normalize(parseutility.removeComment(finalOldFunction))
-						tmpnew = parseutility.normalize(parseutility.removeComment(finalNewFunction))
+						tmpold = parseutility.normalize(parseutility.removeComment(parseutility.getBody(finalOldFunction)))
+						tmpnew = parseutility.normalize(parseutility.removeComment(parseutility.getBody(finalNewFunction)))
 
 						if tmpold != tmpnew:
 							# if two are same, it means nothing but comment is patched.
