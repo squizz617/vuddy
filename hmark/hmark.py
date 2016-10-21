@@ -24,6 +24,7 @@ import subprocess
 
 import parseutility
 import version
+import get_cpu_count
 
 """ GLOBALS """
 # with open("version.dat", 'r') as fp:
@@ -133,6 +134,13 @@ def check_update():
 	else:
 		print 'Hasher is up-to-date.'
 
+def parseFile_shallow_multi(f):
+	functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
+	return (f, functionInstanceList)
+
+def parseFile_deep_multi(f):
+	functionInstanceList = parseutility.parseFile_deep(f, "GUI")
+	return (f, functionInstanceList)
 
 class App:
 	def __init__(self, master):
@@ -280,8 +288,21 @@ class App:
 			self.listProcess.insert(Tkinter.END, "Load complete. Generating hashmark...")
 			# self.listProcess.insert(END, "")
 			# self.listProcess.insert(END, "")
+			
+			if absLevel == 0:
+				func = parseFile_shallow_multi
+			else:
+				func = parseFile_deep_multi
 
-			for idx, f in enumerate(fileList):
+			cpu_count = get_cpu_count.get_cpu_count()
+			if cpu_count != 1:
+				cpu_count -= 1
+			
+			pool = Pool(processes = cpu_count)
+			for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
+				f = tup[0]
+				functionInstanceList = tup[1]
+				
 				fullName = proj + f.split(proj, 1)[1]
 				pathOnly = f.split(proj, 1)[1][1:]
 				progress = (float)(idx + 1) / numFile
@@ -294,10 +315,10 @@ class App:
 				# fp = open(f, 'r')
 				# fileLines = fp.readlines()
 				# fp.close()
-				if absLevel == 0:
-					functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
-				else:
-					functionInstanceList = parseutility.parseFile_deep(f, "GUI")
+				#if absLevel == 0:
+				#	functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
+				#else:
+				#	functionInstanceList = parseutility.parseFile_deep(f, "GUI")
 
 				numFunc += len(functionInstanceList)
 
