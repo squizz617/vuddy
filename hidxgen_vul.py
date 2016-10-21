@@ -35,7 +35,11 @@ numLines = 0
 if intendedGranLvl == 'f':
 	for si, srcFile in enumerate(srcFileList):
 		print si+1, '/', len(srcFileList), srcFile
-		functionInstanceList = parseutility.parseFile(srcFile)
+		if intendedAbsLvl == 0:
+			functionInstanceList = parseutility.parseFile_shallow(srcFile)
+		elif intendedAbsLvl == 4:
+			functionInstanceList = parseutility.parseFile_deep(srcFile)
+
 		
 		numFuncs += len(functionInstanceList)
 		if len(functionInstanceList) > 0:
@@ -97,7 +101,7 @@ else:
 
 for i in range(0, 5):
 	if i == intendedAbsLvl:
-		packageInfo = str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
+		packageInfo = str("3.0.0") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
 		with open("hidx-vul/hashmark_" + str(i) + '_' + str(intendedGranLvl) + '_' + projName + ".hidx", 'w') as fp:
 			fp.write(packageInfo)
 			for key in sorted(projDictList[i]):

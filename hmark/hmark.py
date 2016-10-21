@@ -482,7 +482,6 @@ def run_gui():
 def main():
 	get_version()
 	if osName == 'l' or osName == "osx":
-		# err = None
 		try:
 			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
 		except subprocess.CalledProcessError as e:
