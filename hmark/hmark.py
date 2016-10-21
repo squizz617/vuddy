@@ -115,7 +115,7 @@ def check_update():
 	elif c1 == l1:
 		if c2 < l2:
 			updateFlag = 1
-		elif c2 == le:
+		elif c2 == l2:
 			if c3 < l3:
 				updateFlag = 1
 			else:
@@ -481,20 +481,12 @@ def run_gui():
 
 def main():
 	get_version()
-	if osName == 'l':
+	if osName == 'l' or osName == "osx":
+		# err = None
 		try:
 			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
 		except subprocess.CalledProcessError as e:
-			print "java error:", e
-			msg = ""
-		if "apt-get" in msg:
-			print "Please try again after installing JDK."
-			print msg
-			sys.exit()
-	elif osName == "osx":
-		try:
-			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
-		except subprocess.CalledProcessError as e:
+			print "Java error:", e
 			print "Please try again after installing JDK."
 			sys.exit()
 	check_update()

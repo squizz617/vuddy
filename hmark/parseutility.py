@@ -37,17 +37,19 @@ def setEnvironment(caller):
 	get_version()
 	global javaCallCommand
 	if caller == "GUI":
-		try:
-			base_path = sys._MEIPASS
-		except:
-			base_path = os.path.abspath(".")
+		# try:
+		# 	base_path = sys._MEIPASS
+		# except:
+		# 	base_path = os.path.abspath(".")
+		cwd = os.getcwd()
 		if osName == 'w':
 			# full_path = os.path.join(base_path, "FuncParser.exe")
-			javaCallCommand = "FuncParser.exe "
+			javaCallCommand = os.path.join(cwd, "FuncParser.exe ")
 
 		elif osName == 'l' or osName == "osx":
-			full_path = os.path.join(base_path, "FuncParser.jar")
-			javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+			# full_path = os.path.join(base_path, "FuncParser.jar")
+			# javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+			javaCallCommand = "java -Xmx1024m -jar " + os.path.join(cwd, "FuncParser.jar") + " "
 
 	else:
 		if osName == 'w':
