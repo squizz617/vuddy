@@ -298,7 +298,7 @@ def parseFile_shallow(srcFileName, caller):
 	# this does not parse body.
 	global javaCallCommand
 	setEnvironment(caller)
-	javaCallCommand += srcFileName + " 0"
+	javaCallCommand += "\"" + srcFileName + "\" 0"
 	functionInstanceList = []
 	try:
 		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
@@ -325,7 +325,7 @@ def parseFile_deep(srcFileName, caller):
 
 	setEnvironment(caller)
 	# this parses function definition plus body.
-	javaCallCommand += srcFileName + " 1"
+	javaCallCommand += "\"" + srcFileName + "\" 1"
 
 	functionInstanceList = []
 
