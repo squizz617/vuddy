@@ -357,7 +357,7 @@ def generate():
 
 		timeOut = time.time()
 		print "(Done)"
-		print "Elapsed time: %.02f sec." % (timeOut - timeIn))
+		print "Elapsed time: %.02f sec." % (timeOut - timeIn)
 		print str(numFile), "Files, ", str(numFile), "Functions, ", str(numLine), "Lines of code."
 		print ""
 
