@@ -49,13 +49,13 @@ def setEnvironment(caller):
 		elif osName == 'l' or osName == "osx":
 			# full_path = os.path.join(base_path, "FuncParser.jar")
 			# javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-			javaCallCommand = "java -Xmx1024m -jar " + os.path.join(cwd, "FuncParser.jar") + " "
+			javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser.jar") + "\" "
 
 	else:
 		if osName == 'w':
 			javaCallCommand = "FuncParser.exe "
 		elif osName == 'l' or osName == "osx":
-			javaCallCommand = "java -Xmx1024m -jar FuncParser.jar "
+			javaCallCommand = "java -Xmx1024m -jar \"FuncParser.jar\" "
 
 
 class function:
@@ -298,7 +298,7 @@ def parseFile_shallow(srcFileName, caller):
 	# this does not parse body.
 	global javaCallCommand
 	setEnvironment(caller)
-	javaCallCommand += srcFileName + " 0"
+	javaCallCommand += "\"" + srcFileName + "\" 0"
 	functionInstanceList = []
 	try:
 		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
@@ -325,7 +325,7 @@ def parseFile_deep(srcFileName, caller):
 
 	setEnvironment(caller)
 	# this parses function definition plus body.
-	javaCallCommand += srcFileName + " 1"
+	javaCallCommand += "\"" + srcFileName + "\" 1"
 
 	functionInstanceList = []
 
