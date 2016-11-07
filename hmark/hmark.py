@@ -73,7 +73,7 @@ def check_update():
 	try:
 		response = urllib2.urlopen(urlBase+osName+bits)
 	except Exception:
-		print 'Update server is not responding. Please heck your network connection and try again.'
+		print 'Update server is not responding. Please check your network connection and try again.'
 		sys.exit()
 
 	latestVersion = "0.0.0"	# for exception handling
