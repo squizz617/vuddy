@@ -266,6 +266,7 @@ def generate():
 	progress = 0
 
 	proj = directory.replace('\\', '/').split('/')[-1]
+	print "PROJ-------------", proj
 	timeIn = time.time()
 	numFile = 0
 	numFunc = 0
@@ -301,7 +302,7 @@ def generate():
 			fullName = proj + f.split(proj, 1)[1]
 			pathOnly = f.split(proj, 1)[1][1:]
 			progress = (float)(idx + 1) / numFile
-			sys.stdout.write("\r%d%%" % progress)
+			sys.stdout.write("\r%f%%" % progress*100)
 			sys.stdout.flush()
 
 			numFunc += len(functionInstanceList)
