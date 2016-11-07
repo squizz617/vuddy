@@ -264,9 +264,9 @@ def generate():
 	directory = sys.argv[1]
 	absLevel = int(sys.argv[2])
 	progress = 0
-
+	if directory.endswith('/'):
+		directory = directory[:-1]
 	proj = directory.replace('\\', '/').split('/')[-1]
-	print "PROJ-------------", proj
 	timeIn = time.time()
 	numFile = 0
 	numFunc = 0
@@ -301,8 +301,8 @@ def generate():
 			
 			fullName = proj + f.split(proj, 1)[1]
 			pathOnly = f.split(proj, 1)[1][1:]
-			progress = (float)(idx + 1) / numFile
-			sys.stdout.write("\r%f%%" % progress*100)
+			progress = 100*(float)(idx + 1) / numFile
+			sys.stdout.write("\r%.2f%%" % progress)
 			sys.stdout.flush()
 
 			numFunc += len(functionInstanceList)
@@ -331,7 +331,7 @@ def generate():
 				else:
 					numFunc -= 1 # decrement numFunc by 1 if funclen is under threshold
 
-		print "Hash index successfully generated."
+		print "\nHash index successfully generated."
 		print "Saving hash index to file...",
 
 		try:
