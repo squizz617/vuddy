@@ -120,6 +120,7 @@ class function {
 	public int lineStart = 0;
 	public int lineStop = 0;
 	public int funcId = 0;
+	public String funcBody;
 	
 	public List<String> parameterList;
 	public List<String> variableList;
@@ -176,6 +177,9 @@ class function {
 			ret.append(s);
 			ret.append('\t');
 		}
+		ret.append('\n');
+		
+		ret.append(this.funcBody);
 		ret.append('\n');
 		
 		return ret.toString();
@@ -641,6 +645,9 @@ class TreeParser implements ParseTreeListener {
 			String string = inputStream.getText(new Interval(start_index + 1, stop_index - 1));
 			int line = ctx.start.getLine();
 			
+			// add function's body
+			this.functionInstance.funcBody = string;
+			
 			//this.job_list.add(new JobInstance(string, this.functionInstance, line, this.enableSLL)); // for singlethread
 			this.future_list.add(
 				this.executorService.submit(new JobInstance(string, this.functionInstance, line, this.enableSLL))
@@ -901,6 +908,9 @@ class TreeParser1 implements ParseTreeListener {
 			int stop_index = ctx.stop.getStopIndex();
 			String string = inputStream.getText(new Interval(start_index + 1, stop_index - 1));
 			int line = ctx.start.getLine();
+			
+			// add function's body
+			this.functionInstance.funcBody = string;
 			
 			//this.job_list.add(new JobInstance(string, this.functionInstance, line, this.enableSLL)); // for singlethread
 			//this.future_list.add(
