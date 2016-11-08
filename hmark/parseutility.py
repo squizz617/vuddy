@@ -153,7 +153,8 @@ def abstract(instance, level):
 	# and then returns a tuple consisting of the original body and abstracted body.
 	originalFunctionBody = instance.funcBody
 	originalFunctionBody = removeComment(originalFunctionBody)
-
+	# print originalFunctionBody
+	# print '===================================================='
 	if int(level) >= 0:	# No abstraction.
 		abstractBody = originalFunctionBody
 
@@ -342,6 +343,7 @@ def parseFile_deep(srcFileName, caller):
 		functionInstance = function(srcFileName)
 
 		elemsList = func.split('\n')[1:-1]
+		# print elemsList
 		if len(elemsList) > 9:
 			functionInstance.parentNumLoc = int(elemsList[1])
 			functionInstance.name = elemsList[2]
@@ -351,8 +353,8 @@ def parseFile_deep(srcFileName, caller):
 			functionInstance.variableList = elemsList[6].rstrip().split('\t')
 			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
 			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
-			functionInstance.funcBody = elemsList[9]
-			
+			functionInstance.funcBody = ''.join(elemsList[9:])
+			# print '\n'.join(elemsList[9:])
 			functionInstanceList.append(functionInstance)
 
 	return functionInstanceList
