@@ -1,4 +1,4 @@
-// Generated from src/Function.g4 by ANTLR 4.0
+// Generated from ./src/Function.g4 by ANTLR 4.0
 
   import java.util.Stack;
 
