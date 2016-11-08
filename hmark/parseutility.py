@@ -49,7 +49,7 @@ def setEnvironment(caller):
 		elif osName == 'l' or osName == "osx":
 			# full_path = os.path.join(base_path, "FuncParser.jar")
 			# javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-			javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser.jar") + "\" "
+			javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser-opt.jar") + "\" "
 
 	else:
 		if osName == 'w':
@@ -68,6 +68,7 @@ class function:
 	variableList = []	# list of local variables
 	dataTypeList = []	# list of data types, including user-defined types
 	funcCalleeList = []	# list of called functions' names
+	funcBody = None
 
 	def __init__(self, fileName):
 		self.parentFile = fileName
@@ -84,12 +85,12 @@ class function:
 		self.dataTypeList = list(set(self.dataTypeList))
 		self.funcCalleeList = list(set(self.funcCalleeList))
 
-	def getOriginalFunction(self):
-		# returns the original function back from the instance.
-		fp = open(self.parentFile, 'r')
-		srcFileRaw = fp.readlines()
-		fp.close()
-		return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
+	# def getOriginalFunction(self):
+	# 	# returns the original function back from the instance.
+	# 	fp = open(self.parentFile, 'r')
+	# 	srcFileRaw = fp.readlines()
+	# 	fp.close()
+	# 	return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
 
 
 def loadSource(rootDirectory):
@@ -135,9 +136,9 @@ def removeComment(string):
 	return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
 
 
-def getBody(originalFunction):
-	# returns the function's body as a string.
-	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
+# def getBody(originalFunction):
+# 	# returns the function's body as a string.
+# 	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
 
 
 def normalize(string):
@@ -150,11 +151,10 @@ def normalize(string):
 def abstract(instance, level):
 	# Applies abstraction on the function instance,
 	# and then returns a tuple consisting of the original body and abstracted body.
-	originalFunction = instance.getOriginalFunction()
-	originalFunction = removeComment(originalFunction)
+	originalFunctionBody = instance.funcBody
+	originalFunctionBody = removeComment(originalFunctionBody)
 
 	if int(level) >= 0:	# No abstraction.
-		originalFunctionBody = getBody(originalFunction)
 		abstractBody = originalFunctionBody
 
 	if int(level) >= 1:	# PARAM
@@ -315,6 +315,8 @@ def parseFile_shallow(srcFileName, caller):
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
 			functionInstance.funcId = int(elemsList[4])
+			functionInstance.funcBody = elemsList[9]
+
 
 			functionInstanceList.append(functionInstance)
 
@@ -340,7 +342,7 @@ def parseFile_deep(srcFileName, caller):
 		functionInstance = function(srcFileName)
 
 		elemsList = func.split('\n')[1:-1]
-		if len(elemsList) > 8:
+		if len(elemsList) > 9:
 			functionInstance.parentNumLoc = int(elemsList[1])
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
@@ -349,6 +351,7 @@ def parseFile_deep(srcFileName, caller):
 			functionInstance.variableList = elemsList[6].rstrip().split('\t')
 			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
 			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
+			functionInstance.funcBody = elemsList[9]
 			
 			functionInstanceList.append(functionInstance)
 
