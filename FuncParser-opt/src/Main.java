@@ -63,8 +63,8 @@ public class Main {
 		print_functions_all(ret); // print_functions() or print_functions_all()
 		t3 = System.currentTimeMillis();
 		
-		// System.out.println("parse " + (t2 - t1) / 1000.0);
-		// System.out.println("print " + (t3 - t2) / 1000.0);
+		//System.out.println("parse " + (t2 - t1) / 1000.0);
+		//System.out.println("print " + (t3 - t2) / 1000.0);
 	}
 	
 	// Print all elements in function class seperated with CR, LF, TAB.
