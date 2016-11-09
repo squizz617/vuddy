@@ -307,16 +307,16 @@ def parseFile_shallow(srcFileName, caller):
 		print "Parser Error:", e
 		astString = ""
 
-	funcList = astString.split('\r')
+	funcList = astString.split('\r\r\r')
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
 		elemsList = func.split('\n')[1:-1]
-		if len(elemsList) > 4:
+		if len(elemsList) > 5:
 			functionInstance.parentNumLoc = int(elemsList[1])
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
 			functionInstance.funcId = int(elemsList[4])
-			functionInstance.funcBody = elemsList[9]
+			functionInstance.funcBody = ''.join(elemsList[5:])
 
 
 			functionInstanceList.append(functionInstance)
@@ -338,7 +338,7 @@ def parseFile_deep(srcFileName, caller):
 		print "Parser Error:", e
 		astString = ""
 
-	funcList = astString.split('\r')
+	funcList = astString.split('\r\r\r')
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
 
