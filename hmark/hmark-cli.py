@@ -302,8 +302,9 @@ def generate():
 			fullName = proj + f.split(proj, 1)[1]
 			pathOnly = f.split(proj, 1)[1][1:]
 			progress = 100*(float)(idx + 1) / numFile
-			sys.stdout.write("\r%.2f%%" % progress)
+			sys.stdout.write("\r%.2f%% %s                         " % (progress, fullName))
 			sys.stdout.flush()
+
 
 			numFunc += len(functionInstanceList)
 
