@@ -54,7 +54,7 @@ if intendedGranLvl == 'f':
 			funcLen = len(absBody)
 			hashValue = hashlib.md5(absBody).hexdigest()
 
-			if intendedAbsLvl == 4:
+			if intendedAbsLvl == 4 and len(functionInstanceList_New) > 0:
 				fnew = functionInstanceList_New[fi]
 				fnew.removeListDup()
 				absBodyNew = parseutility.abstract(fnew, intendedAbsLvl)[1]
