@@ -39,19 +39,32 @@ if intendedGranLvl == 'f':
 			functionInstanceList = parseutility.parseFile_shallow(srcFile)
 		elif intendedAbsLvl == 4:
 			functionInstanceList = parseutility.parseFile_deep(srcFile)
+			# Some lines below are added by Squizz on Jan 16, for FP reduction!
+			functionInstanceList_New = parseutility.parseFile_deep(srcFile.replace("OLD.vul", "NEW.vul"))
 
-		
 		numFuncs += len(functionInstanceList)
 		if len(functionInstanceList) > 0:
 			numLines += functionInstanceList[0].parentNumLoc
 
-		for f in functionInstanceList:
+		for fi, f in enumerate(functionInstanceList):
 			f.removeListDup()
 			path = f.parentFile
 			absBody = parseutility.abstract(f, intendedAbsLvl)[1]
 			absBody = parseutility.normalize(absBody)
 			funcLen = len(absBody)
 			hashValue = hashlib.md5(absBody).hexdigest()
+
+			if intendedAbsLvl == 4:
+				fnew = functionInstanceList_New[fi]
+				fnew.removeListDup()
+				absBodyNew = parseutility.abstract(fnew, intendedAbsLvl)[1]
+				absBodyNew = parseutility.normalize(absBodyNew)
+				hashValueNew = hashlib.md5(absBodyNew).hexdigest()
+
+				if hashValue == hashValueNew:
+					# if abstract bodies of old and new func are identical,
+					# don't create hash index
+					continue
 
 			try:
 				projDictList[intendedAbsLvl][funcLen].append(hashValue)
@@ -101,8 +114,8 @@ else:
 
 for i in range(0, 5):
 	if i == intendedAbsLvl:
-		packageInfo = str("3.0.0") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
-		with open("hidx-vul/hashmark_" + str(i) + '_' + str(intendedGranLvl) + '_' + projName + ".hidx", 'w') as fp:
+		packageInfo = str("3.0.1") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(numLines) + '\n'
+		with open("hidx-vul/hashmark_" + str(i) + '_' + projName + ".hidx", 'w') as fp:
 			fp.write(packageInfo)
 			for key in sorted(projDictList[i]):
 				fp.write(str(key) + '\t')
