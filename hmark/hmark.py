@@ -524,6 +524,7 @@ def resource_path(relative_path):
 
 
 """ EXECUTE """
-main()
+if __name__ == "__main__":
+	main()
 
 
