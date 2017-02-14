@@ -138,7 +138,7 @@ class function {
 	public String toString() {
 		StringBuilder ret = new StringBuilder();
 		
-		ret.append("\r\r\r"); // function string start
+		ret.append("\r\0?\r?\0\r"); // function string start
 		ret.append('\n');
 		
 		ret.append(parentFile);
