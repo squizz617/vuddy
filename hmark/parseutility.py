@@ -145,13 +145,16 @@ def normalize(string):
 	# Code for normalizing the input string.
 	# LF and TAB literals, curly braces, and spaces are removed,
 	# and all characters are lowercased.
-	return ''.join(string.replace('\n', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
+	return ''.join(string.replace('\n', '').replace('\r', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
 
 
 def abstract(instance, level):
 	# Applies abstraction on the function instance,
 	# and then returns a tuple consisting of the original body and abstracted body.
 	originalFunctionBody = instance.funcBody
+	# print "FROM PARSER"
+	# print originalFunctionBody
+	# print "==================="
 	originalFunctionBody = removeComment(originalFunctionBody)
 	# print originalFunctionBody
 	# print '===================================================='
