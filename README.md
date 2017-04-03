@@ -1,5 +1,13 @@
-# Advanced version of DiscoVULer
+# VUDDY (a.k.a. hmark)
 This version targets IEEE S&P (submission due: Nov. 11)
+
+## Procedure
+1. Clone git repository: `$ git clone [REPO]`
+2. Fetch diff patches: `$ python get_cvepatch_from_git.py [REPO] [-m: multimode]`
+3. Reconstruct old functions from diff: `$ python get_source_from_cvepatch.py [REPO] [-m: multimode]`
+4. Remove duplicate old functions: `$ python vul_dup_remover.py`
+5. Filter out wrong functions: `$ python verify_vul.py`
+6. Generate hidx of old fuenctions: `$ python hidxgen_vul.py [REPO] [ABSTRACTION LEVEL]`
 
 ## Key Modules
 1. Library
