@@ -9,7 +9,13 @@ This version targets IEEE S&P (submission due: Nov. 11)
 5. Filter out wrong functions: `$ python verify_vul.py`
 6. Generate hidx of old fuenctions: `$ python hidxgen_vul.py [REPO] [ABSTRACTION LEVEL]`
 
-## Key Modules
+## Other key modules
+File Name       | Description
+--------------- | -----------
+parseutility.py | Library which handles parser output
+cvedata.pkl     | Stores CVE, CVSS, CWE data (pickle)
+<!-- 
+
 1. Library
   + parseutility.py
 2. Vulnerability Retrievers
@@ -21,7 +27,7 @@ This version targets IEEE S&P (submission due: Nov. 11)
 
 You don't have to worry about the rest of the files.
 
-I just don't wanna be bothered by cleanups.
+I just don't wanna be bothered by cleanups. -->
 
 ## Documentation
 ### parseutility.py
