@@ -8,8 +8,55 @@ import os
 import sys
 import subprocess
 import re
+import platform
 
-# javaCallCommand = "java -jar CodeSensor.jar "
+def get_version():
+	global osName
+	global bits
+
+	pf = platform.platform()
+	if 'Windows' in pf:
+		osName = 'w'
+	elif 'Linux' in pf:
+		osName = 'l'
+	else:
+		osName = 'osx'
+
+	bits, _ = platform.architecture()
+	if '64' in bits:
+		bits = '64'
+	else:
+		bits = '86'
+
+	if osName == 'osx':
+		bits = ''
+
+# sys.path.append(sys._MEIPASS)
+
+def setEnvironment(caller):
+	get_version()
+	global javaCallCommand
+	if caller == "GUI":
+		# try:
+		# 	base_path = sys._MEIPASS
+		# except:
+		# 	base_path = os.path.abspath(".")
+		cwd = os.getcwd()
+		if osName == 'w':
+			# full_path = os.path.join(base_path, "FuncParser.exe")
+			javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
+
+		elif osName == 'l' or osName == "osx":
+			# full_path = os.path.join(base_path, "FuncParser.jar")
+			# javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+			javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser-opt.jar") + "\" "
+
+	else:
+		if osName == 'w':
+			javaCallCommand = "FuncParser-opt.exe "
+		elif osName == 'l' or osName == "osx":
+			javaCallCommand = "java -Xmx1024m -jar \"FuncParser-opt.jar\" "
+
 
 class function:
 	parentFile = None 	# Absolute file which has the function
@@ -21,6 +68,7 @@ class function:
 	variableList = []	# list of local variables
 	dataTypeList = []	# list of data types, including user-defined types
 	funcCalleeList = []	# list of called functions' names
+	funcBody = None
 
 	def __init__(self, fileName):
 		self.parentFile = fileName
@@ -37,12 +85,12 @@ class function:
 		self.dataTypeList = list(set(self.dataTypeList))
 		self.funcCalleeList = list(set(self.funcCalleeList))
 
-	def getOriginalFunction(self):
-		# returns the original function back from the instance.
-		fp = open(self.parentFile, 'r')
-		srcFileRaw = fp.readlines()
-		fp.close()
-		return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
+	# def getOriginalFunction(self):
+	# 	# returns the original function back from the instance.
+	# 	fp = open(self.parentFile, 'r')
+	# 	srcFileRaw = fp.readlines()
+	# 	fp.close()
+	# 	return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
 
 
 def loadSource(rootDirectory):
@@ -88,26 +136,29 @@ def removeComment(string):
 	return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
 
 
-def getBody(originalFunction):
-	# returns the function's body as a string.
-	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
+# def getBody(originalFunction):
+# 	# returns the function's body as a string.
+# 	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
 
 
 def normalize(string):
 	# Code for normalizing the input string.
 	# LF and TAB literals, curly braces, and spaces are removed,
 	# and all characters are lowercased.
-	return ''.join(string.replace('\n', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
+	return ''.join(string.replace('\n', '').replace('\r', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
 
 
 def abstract(instance, level):
 	# Applies abstraction on the function instance,
 	# and then returns a tuple consisting of the original body and abstracted body.
-	originalFunction = instance.getOriginalFunction()
-	originalFunction = removeComment(originalFunction)
-
+	originalFunctionBody = instance.funcBody
+	# print "FROM PARSER"
+	# print originalFunctionBody
+	# print "==================="
+	originalFunctionBody = removeComment(originalFunctionBody)
+	# print originalFunctionBody
+	# print '===================================================='
 	if int(level) >= 0:	# No abstraction.
-		originalFunctionBody = getBody(originalFunction)
 		abstractBody = originalFunctionBody
 
 	if int(level) >= 1:	# PARAM
@@ -156,100 +207,15 @@ def abstract(instance, level):
 
 	return (originalFunctionBody, abstractBody)
 
+delimiter = "\r\0?\r?\0\r"
 
-# def abstractWindow(instance, level, lineList):
-# 	# Do not use this function.
-
-# 	if int(level) >= 0:
-# 		originalFunctionBody = '\n'.join(lineList)
-# 		abstractBody = originalFunctionBody
-
-# 	if int(level) >= 1:	#PARAM
-# 		parameterList = instance.parameterList
-# 		for param in parameterList:
-# 			paramPattern = re.compile("(^|\W)" + param + "(\W)")
-# 			abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", originalFunctionBody)
-
-# 	if int(level) >= 2:	#DTYPE
-# 		dataTypeList = instance.dataTypeList
-# 		for dtype in dataTypeList:
-# 			dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
-# 			abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
-
-# 	if int(level) >= 3:	#LVAR
-# 		variableList = instance.variableList
-# 		for lvar in variableList:
-# 			lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
-# 			abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
-
-# 	if int(level) >= 4:	#FUNCCALL
-# 		funcCalleeList = instance.funcCalleeList
-# 		for fcall in funcCalleeList:
-# 			fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
-# 			abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
-
-# 	return (originalFunctionBody, abstractBody)
-
-
-# def parseFile(srcFileName):
-# 	# Parses the functions of the specified file using CodeSensor.jar
-# 	# and then returns the list of function instances.
-# 	fp = open(srcFileName, 'r')
-# 	srcFileRaw = fp.readlines()
-# 	fp.close()
-# 	numLines = len(srcFileRaw)
-# 	functionInstanceList = []
-# 	paramDeclFlag = 0
-# 	varDeclFlag = 0
-# 	init = 0
-
-# 	try:
-# 		astString = subprocess.check_output(javaCallCommand + srcFileName, stderr=subprocess.STDOUT, shell=True)
-# 	except subprocess.CalledProcessError as e:
-# 		print "CodeSensor Error:", e
-# 		astString = ""
-
-# 	astLineList = astString.split('\n')
-# 	for astLine in astLineList:
-# 		astLineSplitted = astLine.split('\t')
-
-# 		if "FUNCTION_DEF" == astLine[0:len("FUNCTION_DEF")]:
-# 			init = 1
-# 			functionInstance = function(srcFileName)
-# 			functionInstanceList.append(functionInstance)
-# 			functionInstance.parentNumLoc = numLines
-# 			functionInstance.funcId = len(functionInstanceList)
-# 			(funcLineFrom, funcLineTo) = (int(astLineSplitted[1].split(':')[0]), int(astLineSplitted[2].split(':')[0]))
-# 			functionInstance.lines = (funcLineFrom, funcLineTo)
-		
-# 		elif "FUNCTION_NAME" == astLine[0:len("FUNCTION_NAME")] and init:
-# 			functionInstance.name = astLineSplitted[4].rstrip()
-
-# 		elif "PARAMETER_DECL" == astLine[0:len("PARAMETER_DECL")] and init:
-# 			paramDeclFlag = 1
-
-# 		elif "VAR_DECL" == astLine[0:len("VAR_DECL")] and init:
-# 			varDeclFlag = 1
-		
-# 		elif "NAME" == astLine[0:len("NAME")] and init:
-# 			if paramDeclFlag:
-# 				functionInstance.parameterList.append(astLineSplitted[4].rstrip())
-# 				paramDeclFlag = 0
-# 			elif varDeclFlag:
-# 				functionInstance.variableList.append(astLineSplitted[4].rstrip())
-# 				varDeclFlag = 0
-		
-# 		elif "TYPE_NAME" == astLine[0:len("TYPE_NAME")] and init:
-# 			functionInstance.dataTypeList.append(astLineSplitted[4].rstrip())
-
-# 		elif "CALLEE" == astLine[0:len("CALLEE")] and init:
-# 			functionInstance.funcCalleeList.append(astLineSplitted[4].rstrip())
-
-# 	return functionInstanceList
-
-def parseFile_shallow(srcFileName):
+def parseFile_shallow(srcFileName, caller):
 	# this does not parse body.
-	javaCallCommand = "java -Xmx1024m -jar FuncParser.jar " + srcFileName + " 0"
+	global javaCallCommand
+	global delimiter
+
+	setEnvironment(caller)
+	javaCallCommand += "\"" + srcFileName + "\" 0"
 	functionInstanceList = []
 	try:
 		astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
@@ -257,23 +223,31 @@ def parseFile_shallow(srcFileName):
 		print "Parser Error:", e
 		astString = ""
 
-	funcList = astString.split('\r')
+	funcList = astString.split(delimiter)
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
 		elemsList = func.split('\n')[1:-1]
-		if len(elemsList) > 4:
+		# print elemsList
+		if len(elemsList) > 9:
 			functionInstance.parentNumLoc = int(elemsList[1])
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
 			functionInstance.funcId = int(elemsList[4])
+			functionInstance.funcBody = ''.join(elemsList[9:])
+			# print functionInstance.funcBody
+			# print "-------------------"
 
 			functionInstanceList.append(functionInstance)
 
 	return functionInstanceList
 
-def parseFile_deep(srcFileName):
+def parseFile_deep(srcFileName, caller):
+	global javaCallCommand
+	global delimiter
+
+	setEnvironment(caller)
 	# this parses function definition plus body.
-	javaCallCommand = "java -Xmx1024m -jar FuncParser.jar " + srcFileName + " 1"
+	javaCallCommand += "\"" + srcFileName + "\" 1"
 
 	functionInstanceList = []
 
@@ -283,12 +257,13 @@ def parseFile_deep(srcFileName):
 		print "Parser Error:", e
 		astString = ""
 
-	funcList = astString.split('\r')
+	funcList = astString.split(delimiter)
 	for func in funcList[1:]:
 		functionInstance = function(srcFileName)
 
 		elemsList = func.split('\n')[1:-1]
-		if len(elemsList) > 8:
+		# print elemsList
+		if len(elemsList) > 9:
 			functionInstance.parentNumLoc = int(elemsList[1])
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
@@ -297,38 +272,8 @@ def parseFile_deep(srcFileName):
 			functionInstance.variableList = elemsList[6].rstrip().split('\t')
 			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
 			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
-			
+			functionInstance.funcBody = ''.join(elemsList[9:])
+			# print '\n'.join(elemsList[9:])
 			functionInstanceList.append(functionInstance)
 
 	return functionInstanceList
-
-
-
-if __name__ == "__main__":
-	# Just for testing.
-	# targetDir = "C:\Users\Squizz-CCS\Documents\CCSLAB\RES_Zeroday_2016\HTTPD\httpd-2.4.20"
-	# targetDir = r"C:\Users\Squizz-CCS\Desktop\testcode"
-
-	# srcFileList = loadSource(targetDir)
-
-	# for srcFile in srcFileList:
-		# print srcFile
-
-	# srcFile = "/home/squizz/Downloads/SM-G930S-G930SKSU1APB2/Kernel/arch/x86/kernel/ldt.c"
-	srcFile = "../kernel44/arch/um/kernel/syscall.c"
-	srcFile = "./module.c"
-	functionInstanceList = parseFile2(srcFile)
-
-	for f in functionInstanceList:
-		f.removeListDup()
-		print f.name, f.lines
-		print "PARAMS\t", f.parameterList
-		print "LVARS\t", f.variableList
-		print "DTYPE\t", f.dataTypeList
-		print "CALLS\t", f.funcCalleeList
-		print ""
-		na = normalize(abstract(f, 4)[1])
-		import hashlib
-		print hashlib.md5(na).hexdigest()
-
-	sys.exit()
