@@ -124,8 +124,8 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 					os.system(command_show)
 
 					os.chdir(originalDir)
-					oldFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_old")
-					newFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_new")
+					oldFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_old", "")
+					newFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_new", "")
 
 					finalOldFunctionList = []
 
