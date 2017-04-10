@@ -23,3 +23,5 @@ FuncParser/FuncParser.jar
 hmark/build/
 hmark/dist/
 
+NVDCVEcrawler/*.xml
+
