@@ -1,12 +1,8 @@
 """
 This module retrieves the vulnerable function from cvepatch (diff)
 Author: Seulbae Kim (seulbae@korea.ac.kr)
-Last Modified: July 20, 2016
 Usage: python get_source_from_cvepatch REPONAME [-m]
 	-m: multi-repo mode
-
-* THIS IS MK-2.
-  See Mk-1 for more info about this weird manual branching system.
 
 [CHANGELOG]
 Jul 20	SBKIM	discard comment changes
@@ -20,7 +16,7 @@ import re
 import subprocess
 import pickle
 
-import parseutility
+import hmark.parseutility as parseutility
 
 # cveDict = pickle.load(open("cvedata.pkl", "rb"))
 
@@ -229,15 +225,14 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):	# diffFileName 
 					for index, f in enumerate(finalOldFunctionList):
 						os.chdir(originalDir)
 						oldFuncInstance = finalOldFunctionList[index]
-						finalOldFunction = oldFuncInstance.getOriginalFunction()
+						finalOldFunction = oldFuncInstance.funcBody
 						finalOldFuncId = str(oldFuncInstance.funcId)
 						if finalNewFunctionList[index].name is None:
-							finalNewFunction = ""	# we cannot call getOriginalFunction with the dummy (removed) functions.
+							finalNewFunction = ""
 						else:
-							finalNewFunction = finalNewFunctionList[index].getOriginalFunction()
-
-						tmpold = parseutility.normalize(parseutility.removeComment(parseutility.getBody(finalOldFunction)))
-						tmpnew = parseutility.normalize(parseutility.removeComment(parseutility.getBody(finalNewFunction)))
+							finalNewFunction = finalNewFunctionList[index].funcBody
+						tmpold = parseutility.normalize(parseutility.removeComment(finalOldFunction))
+						tmpnew = parseutility.normalize(parseutility.removeComment(finalNewFunction))
 
 						if tmpold != tmpnew:
 							# if two are same, it means nothing but comment is patched.

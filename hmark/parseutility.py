@@ -233,7 +233,7 @@ def parseFile_shallow(srcFileName, caller):
 			functionInstance.name = elemsList[2]
 			functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
 			functionInstance.funcId = int(elemsList[4])
-			functionInstance.funcBody = ''.join(elemsList[9:])
+			functionInstance.funcBody = '\n'.join(elemsList[9:])
 			# print functionInstance.funcBody
 			# print "-------------------"
 
@@ -272,7 +272,7 @@ def parseFile_deep(srcFileName, caller):
 			functionInstance.variableList = elemsList[6].rstrip().split('\t')
 			functionInstance.dataTypeList = elemsList[7].rstrip().split('\t')
 			functionInstance.funcCalleeList = elemsList[8].rstrip().split('\t')
-			functionInstance.funcBody = ''.join(elemsList[9:])
+			functionInstance.funcBody = '\n'.join(elemsList[9:])
 			# print '\n'.join(elemsList[9:])
 			functionInstanceList.append(functionInstance)
 
