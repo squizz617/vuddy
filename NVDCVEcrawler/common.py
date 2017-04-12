@@ -20,11 +20,13 @@ def download_url(url, fileName):
 
 		downloadedSize += len(buffer)
 		f.write(buffer)
-		status = "#" * (downloadedSize * barSize / fileSize)
+		status = "\r"
+		status += "#" * (downloadedSize * barSize / fileSize)
 		status += " " * (barSize - downloadedSize * barSize / fileSize)
-		status += r"%10d  [%3.2f%%]" % (downloadedSize, downloadedSize * 100. / fileSize)
-		status += chr(8)*(len(status)+1)
+		status += "%10d  [%3.2f%%]" % (downloadedSize, downloadedSize * 100. / fileSize)
+		# status += chr(8)*(len(status)+1)
 		sys.stdout.write(status)
+		sys.stdout.flush()
 
 	sys.stdout.write("\n")
 	f.close()
