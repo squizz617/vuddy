@@ -1,11 +1,10 @@
 #! /usr/bin/env python2
 """
-Version 2.0~ of Hashmarker (CSSA)
-Author: Seulbae Kim
-Last update: June 30, 2016
+Version 3.0~ of Hashmarker (CSSA)
+Author: Seulbae Kim (seulbae@korea.ac.kr)
+http://github.com/squizz617/discovuler-advanced/hmark
 """
 
-# from Tkinter import *
 import Tkinter
 import tkFileDialog
 import ttk
@@ -19,85 +18,73 @@ from re import compile, findall
 import webbrowser
 from hashlib import md5
 
-# from multiprocessing import Pool, freeze_support, forking, Process
 import multiprocessing
-
 import subprocess
 
 import parseutility
 import version
 import get_cpu_count
 
-""" GLOBALS """
-# with open("version.dat", 'r') as fp:
-# 	currentVersion = fp.readline()
-currentVersion = version.version
-# currentVersion = "3.0.0"
-osName = ""
-bits = ""
-urlBase = "http://iotqv.korea.ac.kr/getbinaryversion/wf1/"
-urlDownload = "http://iotqv.korea.ac.kr/downloads"
+import argparse
 
-# try:
-# 	sys.path.append(sys._MEIPASS)
-# except:
-# 	pass
+""" GLOBALS """
+currentVersion = version.version
+osName = ""
+bits = "86"	# force x86 for backward compatibility
+urlBase = "http://iotcube.korea.ac.kr/"
+urlCheck = urlBase + "getbinaryversion/wf1/"
+urlDownload = urlBase + "downloads"
+
 
 def get_version():
 	global osName
-	global bits
+	# global bits
 
 	pf = platform.platform()
-	if 'Windows' in pf:
-		osName = 'w'
-	elif 'Linux' in pf:
-		osName = 'l'
+	if "Windows" in pf:
+		osName = "w"
+	elif "Linux" in pf:
+		osName = "l"
 	else:
-		osName = 'osx'
+		osName = "osx"
+		bits = ""
 
-	bits, _ = platform.architecture()
-	if '64' in bits:
-		bits = '64'
-	else:
-		bits = '86'
+	# bits, _ = platform.architecture()
+	# if '64' in bits:
+	# 	bits = '64'
+	# else:
+	# 	bits = '86'
 
-	if osName == 'osx':
-		bits = ''
+	# if osName == 'osx':
+	# 	bits = ''
 
 
 def check_update():
 	global currentVersion
 
 	if len(currentVersion.split('.')) < 3:
-		currentVersion += '.0'
+		currentVersion += ".0"
 
-	print 'Current local version:', currentVersion
+	print "Local version: " + currentVersion
 	try:
-		response = urllib2.urlopen(urlBase+osName+bits)
+		response = urllib2.urlopen(urlCheck+osName+bits)
+
 	except Exception:
-		print 'Update server is not responding. Please check your network connection and try again.'
+		print "[-] Update server is not responding."
+		print "    Please check your network connection or firewall and try again."
+		print "    To bypass update checking, run with [--no-update-check] option."
+		raw_input("Press Enter to continue...")
 		sys.exit()
 
 	latestVersion = "0.0.0"	# for exception handling
 
 	html = response.read()
-	# p = r"tools/wf1/HashMarker_" + r"([a-zA-Z0-9_.]+)" + r"\">"
-	# p = r"<body>([0-9.]+)</body>"
-	# p = compile(p)
-	# binaryList = findall(p, html)
-	# print binaryList
 	latestVersion = html
-	# print latestVersion
+
 	if len(latestVersion.split('.')) < 3:
 		latestVersion += '.0'
-	# for bin in binaryList:
-	# 	bin = bin.lower()
-	# 	if osName.lower() in bin and bits in bin:
-	# 		latestVersion = float(bin.split('_')[0])
-	# 	elif osName.lower() in bin and osName == 'OSX':
-	# 		latestVersion = float(bin.split('_')[0])
-			
-	print 'Latest server version:', latestVersion
+
+	print "Latest version: " + latestVersion,
 
 	# compare version
 	cvList = currentVersion.split('.')
@@ -129,12 +116,17 @@ def check_update():
 		updateFlag = 0
 
 	if updateFlag:
-		print 'Your Hasher is not up-to-date.\nPlease download and run the latest version.\nProceeding to download page.'
+		print "(out-of-date)"
+		print "[-] Your Hasher is not up-to-date."
+		print "    Please download and run the latest version."
+		print "    Proceeding to the download page."
+		print "    To bypass update checking, run with [--no-update-check] option."
+
 		webbrowser.open(urlDownload)
 		raw_input("Press Enter to continue...")
 		sys.exit()
 	else:
-		print 'Hasher is up-to-date.'
+		print "(up-to-date)"
 
 def parseFile_shallow_multi(f):
 	functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
@@ -192,14 +184,6 @@ class App:
 		lblfrmAbstraction.pack(fill=Tkinter.BOTH, expand="yes", padx=50, pady=10)
 
 		self.absLevel = Tkinter.IntVar()
-		# R1 = Radiobutton(lblfr-mAbstraction, text="No abstraction", variable=self.absLevel, value=0, command=self.selectAbst)
-		# R2 = Radiobutton(lblfrmAbstraction, text="Level 1: Parameter abstraction", variable=self.absLevel, value=1, command=self.selectAbst)
-		# R3 = Radiobutton(lblfrmAbstraction, text="Level 2: Data type abstraction", variable=self.absLevel, value=2, command=self.selectAbst)
-		# R4 = Radiobutton(lblfrmAbstraction, text="Level 3: Local variable abstraction", variable=self.absLevel, value=3, command=self.selectAbst)
-		# R1.pack(side=LEFT, anchor=W)
-		# R2.pack(side=LEFT, anchor=W)
-		# R3.pack(side=LEFT, anchor=W)
-		# R4.pack(side=LEFT, anchor=W)
 		R1 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction OFF: Detect exact clones only", variable=self.absLevel, value=0, command=self.selectAbst)
 		R2 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction ON: Detect near-miss (similar) clones, as well as exact clones", variable=self.absLevel, value=4, command=self.selectAbst)
 		R1.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
@@ -213,7 +197,7 @@ class App:
 			frmGenerate,
 			width=10000,
 			text="----- Generate hashmark -----",
-			state='disabled',
+			state="disabled",
 			# command=lambda: self.callback(1)
 			command=self.generate
 			)
@@ -230,7 +214,6 @@ class App:
 		self.listProcess.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
 		scrollbar.config(command=self.listProcess.yview)
 
-
 		""" PROGRESSBAR """
 		frmPgbar = ttk.Frame(master)
 		frmPgbar.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.TOP)
@@ -246,9 +229,6 @@ class App:
 			)
 		self.progressbar.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.TOP)
 
-		# self.progressbar["maximum"] = 100
-		# self.progressbar.start(50)
-
 		""" QUIT """
 		frmBottom = Tkinter.Frame(master, bd=20)
 		frmBottom.pack(side=Tkinter.RIGHT)
@@ -256,11 +236,6 @@ class App:
 		self.btnQuit = Tkinter.Button(frmBottom, width=15, text="QUIT", command=frmBottom.quit)
 		self.btnQuit.pack(side=Tkinter.BOTTOM)
 
-
-	# def callback(self, num):
-	# 	print num
-	# 	print self.directory.get()	# self.directory is a StringVar() instance, so have to call get() for its value.
-	# 	print self.absLevel	# it is just a plain variable.
 
 	def generate(self):
 		directory = self.directory.get()
@@ -311,7 +286,7 @@ class App:
 
 				self.progressbar["value"] = progress
 				self.progressbar.update()
-				a = self.listProcess.insert(Tkinter.END, '[+] ' + f)
+				a = self.listProcess.insert(Tkinter.END, "[+] " + f)
 				self.listProcess.see("end")
 
 				# fp = open(f, 'r')
@@ -419,7 +394,7 @@ class App:
 HMark is an hash index generator for vulnerable code clone detection.
 
 Developed by CSSA.
-http://iotqv.korea.ac.kr
+http://iotcube.net
 """
 		msg = Tkinter.Message(top, text=aboutMessage)
 		msg.pack()
@@ -470,7 +445,7 @@ http://iotqv.korea.ac.kr
 		parentX = int(parentGeo[1])	# width of parent (the main window)
 		parentY = int(parentGeo[2])	# height of parent
 
-		top.geometry("+%d+%d" % (parentX + self.mainWidth/2 - topw/2, parentY + self.mainHeight/2 - toph/2))
+		top.geometry("+%d+%d" % (parentX+self.mainWidth/2-topw/2, parentY+self.mainHeight/2-toph/2))
 		top.resizable(width=False, height=False)
 		top.grab_set_global()
 		top.title("Help")
@@ -485,24 +460,35 @@ def run_gui():
 	app = App(root)
 	root.title("HMark ver " + str(currentVersion))
 
-	try:
-		# if icon is available
+	try: # if icon is available
 		icon = resource_path("icon.gif")
 		img = Tkinter.PhotoImage(file=icon)
 		root.tk.call('wm', 'iconphoto', root._w, img)
-	except Tkinter.TclError:
-		# if, for some reason, icon isn't available
+	except Tkinter.TclError: # if, for some reason, icon isn't available
+		
 		pass
 
 	root.mainloop()
-	
+
 	try:
 		root.destroy()
+		print "Farewell!"
 	except Tkinter.TclError:
-		print "Unexpectedly terminated."
+		print "GUI process terminated."
 
 
 def main():
+	ap = argparse.ArgumentParser()
+	ap.add_argument(
+		"-n",
+		"--no-update-check",
+		dest="no_update_check",
+		action="store_true",
+		required=False,
+		help="Bypass update checking (not recommended)"
+	)
+	args = ap.parse_args()
+
 	get_version()
 	if osName == 'l' or osName == "osx":
 		try:
@@ -511,7 +497,13 @@ def main():
 			print "Java error:", e
 			print "Please try again after installing JDK."
 			sys.exit()
-	check_update()
+
+	if args.no_update_check:
+		print "Bypassed the update checker."
+	else:
+		check_update()
+
+	print "Running GUI"
 	run_gui()
 
 
