@@ -18,7 +18,12 @@ import subprocess
 import re
 import sys
 import time
-import pickle
+#import pickle
+try:
+	import cPickle as pickle
+except:
+	import pickle
+import argparse
 
 """ GLOBALS """
 repoName = None
@@ -28,29 +33,66 @@ gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/"
 cveDict = pickle.load(open("cvedata.pkl", "rb"))
 multiModeFlag = 0
 multiRepoList = []
+gitBinary = None
+javaBinary = None
+
 
 """ FUNCTIONS """
+# parse arguments
+def parse_argument():
+	global repoName
+	global multiModeFlag
+	global multiRepoList
+	global gitStoragePath
+	global gitBinary
+	global javaBinary
+
+	parser = argparse.ArgumentParser(prog='get_cvepatch_from_git.py')
+	parser.add_argument('REPO',
+						help='''Repository name''')
+	parser.add_argument('-m', '--multimode', action="store_true",
+						help='''Multimode''')
+	parser.add_argument('-r', '--repopath', metavar='PATH',
+						help='''Directory of repositories''')
+	parser.add_argument('-g', '--git', metavar='GIT',
+						help='''Path of git binary''')
+	parser.add_argument('-j', '--java', metavar='JAVA',
+						help='''Path of java binary''')
+
+	args = parser.parse_args()
+
+	print args.REPO
+	print args.multimode
+	print args.repopath
+	print args.git
+	print args.java
+
+	repoName = args.REPO
+	if args.multimode:
+		multiModeFlag = 1
+		with open("repolists/list_" + repoName) as fp:
+			for repoLine in fp.readlines():
+				if len(repoLine) > 2:
+					multiRepoList.append(repoLine.rstrip())
+	else:
+		multiModeFlag = 0
+	if args.repopath is not None:
+		gitStoragePath = args.repopath
+	if args.git is not None:
+		gitBinary = args.git
+	if args.java is not None:
+		javaBinary = args.java
+	if not repoName.endswith("/"):
+		repoName += '/'
+
+
 def init():
 	# parse arguments, make directories
 	global repoName
 	global multiModeFlag
 	global multiRepoList
 
-	if len(sys.argv) < 2:
-		repoName = "linux"
-		multiModeFlag = 0
-	else:
-		repoName = sys.argv[1]
-		if len(sys.argv) > 2 and sys.argv[2] == "-m":
-			multiModeFlag = 1
-			with open("repolists/list_" + repoName) as fp:
-				for repoLine in fp.readlines():
-					if len(repoLine) > 2:
-						multiRepoList.append(repoLine.rstrip())
-		else:
-			multiModeFlag = 0
-	if not repoName.endswith("/"):
-		repoName += '/'
+	parse_argument()
 
 	print "Retrieving CVE patch from", repoName
 	print "Multi-repo mode:",
