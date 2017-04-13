@@ -28,47 +28,34 @@ import get_cpu_count
 import argparse
 
 """ GLOBALS """
-currentVersion = version.version
+localVersion = version.version
 osName = ""
-bits = "86"	# force x86 for backward compatibility
 urlBase = "http://iotcube.korea.ac.kr/"
 urlCheck = urlBase + "getbinaryversion/wf1/"
 urlDownload = urlBase + "downloads"
 
 
-def get_version():
+def get_platform():
 	global osName
-	# global bits
 
 	pf = platform.platform()
 	if "Windows" in pf:
-		osName = "w"
+		osName = "win"
 	elif "Linux" in pf:
-		osName = "l"
+		osName = "linux"
 	else:
 		osName = "osx"
-		bits = ""
-
-	# bits, _ = platform.architecture()
-	# if '64' in bits:
-	# 	bits = '64'
-	# else:
-	# 	bits = '86'
-
-	# if osName == 'osx':
-	# 	bits = ''
 
 
 def check_update():
-	global currentVersion
+	global localVersion
 
-	if len(currentVersion.split('.')) < 3:
-		currentVersion += ".0"
+	if len(localVersion.split('.')) < 3:
+		localVersion += ".0"
+	print "Local version: " + localVersion
 
-	print "Local version: " + currentVersion
 	try:
-		response = urllib2.urlopen(urlCheck+osName+bits)
-
+		response = urllib2.urlopen(urlCheck+osName)
 	except Exception:
 		print "[-] Update server is not responding."
 		print "    Please check your network connection or firewall and try again."
@@ -87,7 +74,7 @@ def check_update():
 	print "Latest version: " + latestVersion,
 
 	# compare version
-	cvList = currentVersion.split('.')
+	cvList = localVersion.split('.')
 	c1 = int(cvList[0])
 	c2 = int(cvList[1])
 	c3 = int(cvList[2])
@@ -98,7 +85,7 @@ def check_update():
 
 	updateFlag = 0
 
-	if currentVersion == latestVersion:
+	if localVersion == latestVersion:
 		updateFlag = 0
 	elif c1 < l1:
 		updateFlag = 1
@@ -142,7 +129,7 @@ class App:
 		self.defaultbg = master.cget('bg')
 
 		self.mainWidth = 900 # width for the Tk root (root == master of this class)
-		if osName == 'osx':
+		if osName == "osx":
 			self.mainHeight = 700 # height for the Tk root
 		else:
 			self.mainHeight = 650
@@ -158,8 +145,8 @@ class App:
 
 		""" MENU """
 		self.menubar = Tkinter.Menu(master, tearoff=1)
-		self.menubar.add_command(label="ABOUT", command=self.show_about)
 		self.menubar.add_command(label="HELP", command=self.show_help)
+		self.menubar.add_command(label="ABOUT", command=self.show_about)
 		master.config(menu=self.menubar)
 
 		""" BROWSE DIRECTORY """
@@ -184,21 +171,32 @@ class App:
 		lblfrmAbstraction.pack(fill=Tkinter.BOTH, expand="yes", padx=50, pady=10)
 
 		self.absLevel = Tkinter.IntVar()
-		R1 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction OFF: Detect exact clones only", variable=self.absLevel, value=0, command=self.selectAbst)
-		R2 = Tkinter.Radiobutton(lblfrmAbstraction, text="Abstraction ON: Detect near-miss (similar) clones, as well as exact clones", variable=self.absLevel, value=4, command=self.selectAbst)
+		R1 = Tkinter.Radiobutton(
+			lblfrmAbstraction,
+			text="Abstraction OFF: Detect exact clones only",
+			variable=self.absLevel,
+			value=0,
+			command=self.selectAbst
+			)
+		R2 = Tkinter.Radiobutton(
+			lblfrmAbstraction,
+			text="Abstraction ON: Detect near-miss (similar) clones, as well as exact clones",
+			variable=self.absLevel,
+			value=4,
+			command=self.selectAbst
+			)
 		R1.pack(side=Tkinter.LEFT, anchor=Tkinter.W)
 		R2.pack(side=Tkinter.RIGHT, anchor=Tkinter.W)
 
 		""" GENERATE """
 		frmGenerate = Tkinter.Frame(master)
 		frmGenerate.pack(fill=Tkinter.BOTH, padx=50, pady=5)
-
 		self.btnGenerate = Tkinter.Button(
 			frmGenerate,
 			width=10000,
 			text="----- Generate hashmark -----",
 			state="disabled",
-			# command=lambda: self.callback(1)
+			# command=lambda:self.generate("GUI", "", "")
 			command=self.generate
 			)
 		self.btnGenerate.pack(side=Tkinter.BOTTOM)
@@ -224,18 +222,51 @@ class App:
 			orient="horizontal",
 			mode="determinate",
 			value=self.progress,
-			# variable=self.progress,
 			maximum=1
 			)
 		self.progressbar.pack(expand=True, fill=Tkinter.BOTH, side=Tkinter.TOP)
 
 		""" QUIT """
-		frmBottom = Tkinter.Frame(master, bd=20)
-		frmBottom.pack(side=Tkinter.RIGHT)
+		frmBottom = Tkinter.Frame(master)#, bd=20)
+		frmBottom.pack(fill=Tkinter.BOTH)
 
-		self.btnQuit = Tkinter.Button(frmBottom, width=15, text="QUIT", command=frmBottom.quit)
-		self.btnQuit.pack(side=Tkinter.BOTTOM)
+		self.btnOpenFolder = Tkinter.Button(
+			frmBottom,
+			width=15,
+			text="Open hidx folder",
+			state="disabled",
+			command=self.openFolder
+			)
+		self.btnQuit = Tkinter.Button(
+			frmBottom,
+			width=15,
+			text="QUIT",
+			command=frmBottom.quit
+			)
+		self.btnOpenFolder.pack(side=Tkinter.LEFT, padx=50)
+		self.btnQuit.pack(side=Tkinter.RIGHT, padx=50, pady=15)
 
+
+	def openFolder(self):
+		path = os.path.join(os.getcwd(), "hidx")
+		if osName == "win":
+			subprocess.Popen(
+				["explorer", "/select,", path],
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE
+			)
+		elif osName == "linux":
+			subprocess.Popen(
+				["xdg-open", path],
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE
+			)
+		elif osName == "osx":	# needs testing
+			subprocess.Popen(
+				["open", "-R", path],
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE
+			)
 
 	def generate(self):
 		directory = self.directory.get()
@@ -289,14 +320,6 @@ class App:
 				a = self.listProcess.insert(Tkinter.END, "[+] " + f)
 				self.listProcess.see("end")
 
-				# fp = open(f, 'r')
-				# fileLines = fp.readlines()
-				# fp.close()
-				#if absLevel == 0:
-				#	functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
-				#else:
-				#	functionInstanceList = parseutility.parseFile_deep(f, "GUI")
-
 				numFunc += len(functionInstanceList)
 
 				if len(functionInstanceList) > 0:
@@ -335,7 +358,7 @@ class App:
 				os.mkdir("hidx")
 			except:
 				pass
-			packageInfo = str(currentVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
+			packageInfo = str(localVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
 			with open("hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
 				fp.write(packageInfo)
 
@@ -361,7 +384,6 @@ class App:
 			self.listProcess.insert(Tkinter.END, "Elapsed time: %.02f sec." % (timeOut - timeIn))
 			self.listProcess.see("end")
 
-
 			self.listProcess.insert(Tkinter.END, "Program statistics:")
 			self.listProcess.insert(Tkinter.END, " - " + str(numFile) + ' files;')
 			self.listProcess.insert(Tkinter.END, " - " + str(numFunc) + ' functions;')
@@ -371,6 +393,7 @@ class App:
 			self.listProcess.insert(Tkinter.END, "")
 			self.listProcess.insert(Tkinter.END, "Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx")
 			self.listProcess.see("end")
+			self.btnOpenFolder.config(state="normal")
 
 
 	def selectAbst(self):
@@ -388,7 +411,7 @@ class App:
 
 	def show_about(self):
 		top = Tkinter.Toplevel(padx=20, pady=10)
-		if osName == 'w':	# this only works for windows.
+		if osName == "win":	# this only works for windows.
 			top.withdraw()	# temporarily hide widget for better UI
 		aboutMessage = """
 HMark is an hash index generator for vulnerable code clone detection.
@@ -413,13 +436,13 @@ http://iotcube.net
 		top.resizable(width=False, height=False)
 		top.grab_set_global()
 		top.title("About HMark...")
-		if osName == 'w':
+		if osName == "win":
 			top.deiconify()	# show widget, as its position is set
 
 
 	def show_help(self):
 		top = Tkinter.Toplevel(padx=20, pady=10)
-		if osName == 'w':	# this only works for windows.
+		if osName == "win":	# this only works for windows.
 			top.withdraw()	# temporarily hide widget
 
 
@@ -449,23 +472,22 @@ http://iotcube.net
 		top.resizable(width=False, height=False)
 		top.grab_set_global()
 		top.title("Help")
-		if osName == 'w':
+		if osName == "win":
 			top.deiconify()	# show widget, as its position is set
 
 
 def run_gui():
-	global currentVersion
+	global localVersion
 	global icon
 	root = Tkinter.Tk()
 	app = App(root)
-	root.title("HMark ver " + str(currentVersion))
+	root.title("HMark ver " + str(localVersion))
 
 	try: # if icon is available
 		icon = resource_path("icon.gif")
 		img = Tkinter.PhotoImage(file=icon)
 		root.tk.call('wm', 'iconphoto', root._w, img)
 	except Tkinter.TclError: # if, for some reason, icon isn't available
-		
 		pass
 
 	root.mainloop()
@@ -476,21 +498,185 @@ def run_gui():
 	except Tkinter.TclError:
 		print "GUI process terminated."
 
+def generate_cli(targetPath, isAbstraction):
+	directory = targetPath
+	print isAbstraction
+	if isAbstraction.lower() == "on":
+		absLevel = 4
+	else:
+		absLevel = 0
+
+	proj = directory.replace('\\', '/').split('/')[-1]
+	timeIn = time.time()
+	numFile = 0
+	numFunc = 0
+	numLine = 0
+
+	projDic = {}
+	hashFileMap = {}
+
+	print "[+] Loading source files... This may take a few minutes."
+
+	fileList = parseutility.loadSource(directory)
+	numFile = len(fileList)
+
+	if numFile == 0:
+		print "[-] Error: Failed loading source files."
+		print "    Check if you selected proper directory, or if your project contains .c or .cpp files."
+		sys.exit()
+	else:
+		print "[+] Load complete. Generating hashmark..."
+		
+		if absLevel == 0:
+			func = parseFile_shallow_multi
+		else:
+			func = parseFile_deep_multi
+
+		cpu_count = get_cpu_count.get_cpu_count()
+		if cpu_count != 1:
+			cpu_count -= 1
+		
+		pool = multiprocessing.Pool(processes = cpu_count)
+		for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
+			f = tup[0]
+			functionInstanceList = tup[1]
+			
+			fullName = proj + f.split(proj, 1)[1]
+			pathOnly = f.split(proj, 1)[1][1:]
+			progress = (float)(idx + 1) / numFile
+
+			try:
+				# http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
+				rows, columns = subprocess.check_output(['stty', 'size']).split()
+			except ValueError:
+				columns = 80
+
+			progress = 100*(float)(idx + 1) / numFile
+			buf = "\r%.2f%% %s" % (progress, fullName)
+			buf += " " * (int(columns) - len(buf))
+			sys.stdout.write(buf)
+			sys.stdout.flush()
+
+			numFunc += len(functionInstanceList)
+
+			if len(functionInstanceList) > 0:
+				numLine += functionInstanceList[0].parentNumLoc
+
+			for f in functionInstanceList:
+				f.removeListDup()
+				path = f.parentFile
+				absBody = parseutility.abstract(f, absLevel)[1]
+				absBody = parseutility.normalize(absBody)
+				funcLen = len(absBody)
+				
+				if funcLen > 50:
+					hashValue = md5(absBody).hexdigest()
+
+					try:
+						projDic[funcLen].append(hashValue)
+					except KeyError:
+						projDic[funcLen] = [hashValue]
+					try:
+						hashFileMap[hashValue].extend([pathOnly, f.funcId])
+					except KeyError:
+						hashFileMap[hashValue] = [pathOnly, f.funcId]
+				else:
+					numFunc -= 1 # decrement numFunc by 1 if funclen is under threshold
+
+		print ""
+		print "[+] Hash index successfully generated."
+		print "[+] Saving hash index to file...",
+
+		packageInfo = str(localVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
+		with open("hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
+			fp.write(packageInfo)
+
+			for key in sorted(projDic):
+				fp.write(str(key) + '\t')
+				for h in list(set(projDic[key])):
+					fp.write(h + '\t')
+				fp.write('\n')
+
+			fp.write('\n=====\n')
+
+			for key in sorted(hashFileMap):
+				fp.write(str(key) + '\t')
+				for f in hashFileMap[key]:
+					fp.write(str(f) + '\t')
+				fp.write('\n')
+
+		timeOut = time.time()
+
+		print "(Done)"
+		print ""
+		print "[+] Elapsed time: %.02f sec." % (timeOut - timeIn)
+		print "Program statistics:"
+		print " - " + str(numFile) + ' files;'
+		print " - " + str(numFunc) + ' functions;'
+		print " - " + str(numLine) + ' lines of code.'
+		print ""
+		print "[+] Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx"
+
+
+def run_cli(targetPath, isAbstraction):
+	generate_cli(targetPath, isAbstraction)
+	print "Farewell!"
+
 
 def main():
-	ap = argparse.ArgumentParser()
+	try:
+		os.mkdir("hidx")
+	except:
+		pass
+	
+	get_platform()
+
+	progStr = "hmark_" + localVersion + "_" + osName
+	if osName == "win":
+		progStr += ".exe"
+
+	ap = argparse.ArgumentParser(
+		prog=progStr
+	)
+	
+	ap.add_argument(
+		"-c",
+		"--cli-mode",
+		dest="cli_mode",
+		nargs=2,
+		metavar=("path", "ON/OFF"),
+		required=False,
+		help="run hmark without GUI by specifying the path to the target directory, and the abstraction mode"
+	)
+
 	ap.add_argument(
 		"-n",
-		"--no-update-check",
+		"--no-updatecheck",
 		dest="no_update_check",
 		action="store_true",
 		required=False,
-		help="Bypass update checking (not recommended)"
+		help="bypass update checking (not recommended)"
+	)
+	ap.add_argument(
+		"-V",
+		"--version",
+		dest="version",
+		action="store_true",
+		required=False,
+		help="print hmark version and exit"
 	)
 	args = ap.parse_args()
 
-	get_version()
-	if osName == 'l' or osName == "osx":
+	if args.version:
+		print "hmark " + localVersion + " for " + osName
+		sys.exit()
+
+	if args.no_update_check:
+		print "Bypassed the update checker."
+	else:
+		check_update()
+
+	if osName == "linux" or osName == "osx":
 		try:
 			msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
 		except subprocess.CalledProcessError as e:
@@ -498,13 +684,26 @@ def main():
 			print "Please try again after installing JDK."
 			sys.exit()
 
-	if args.no_update_check:
-		print "Bypassed the update checker."
-	else:
-		check_update()
+	if args.cli_mode:
+		if os.path.isdir(args.cli_mode[0]) is False:
+			print "[-] Directory does not exist:", args.cli_mode[0]
+			print "    Please specify the right directory to your target."
+			sys.exit()
+		
+		if args.cli_mode[1].isalpha():
+			if args.cli_mode[1].lower() == "on" or args.cli_mode[1].lower() == "off":
+				print "Running in CLI mode"
+				print "TARGET: " + args.cli_mode[0]
+				print "ABSTRACTION: " + args.cli_mode[1]
+				run_cli(args.cli_mode[0], args.cli_mode[1])
+			else:
+				print "[-] Bad parameter: " + args.cli_mode[1]
+				print "    Accepted parameters are ON or OFF."
+				sys.exit()
 
-	print "Running GUI"
-	run_gui()
+	else:
+		print "Running GUI"
+		run_gui()
 
 
 def resource_path(relative_path):
@@ -519,14 +718,14 @@ def resource_path(relative_path):
 
 try:
 	# Python 3.4+
-	if sys.platform.startswith('win'):
+	if sys.platform.startswith("win"):
 		import multiprocessing.popen_spawn_win32 as forking
 	else:
 		import multiprocessing.popen_fork as forking
 except ImportError:
 	import multiprocessing.forking as forking
 
-if sys.platform.startswith('win'):
+if sys.platform.startswith("win"):
 	# First define a modified version of Popen.
 	class _Popen(forking.Popen):
 		def __init__(self, *args, **kw):
