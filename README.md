@@ -1,7 +1,20 @@
 # VUDDY (a.k.a. hmark)
-This version targets IEEE S&P (submission due: Nov. 11)
+VUDDY: A Scalable Approach for Vulnerable Code Clone Discovery.
+This project is part of the international collaborative research which is being by CSSA (Center for Software Security and Assurrance).
+The implementation targeted IEEE S&P (submission due: Nov. 11, 2016)
 
-## Procedure
+## Prerequisite
+* python 2.7.x
+* Git
+
+## Crawling CVE raw data from NVD
+1. `cd NVDCVEcrawler`
+2. `$ python cveXmlDownloader.py` downloads XML files from NVD (https://nvd.nist.gov)
+3. `$ python cveXmlParser.py` parses XML files and generates `cvedata.pkl`
+4. `$ python cveXmlUpdater.py` downloades updated records from NVD and updates `cvedata.pkl`
+5. Copy or move the resulting data file (`cvedata.pkl`) to the working directory.
+
+## How to establish vulnerability database
 1. Clone git repository: `$ git clone [REPO]`
 2. Fetch diff patches: `$ python get_cvepatch_from_git.py [REPO] [-m: multimode]`
 3. Reconstruct old functions from diff: `$ python get_source_from_cvepatch.py [REPO] [-m: multimode]`
@@ -13,7 +26,6 @@ This version targets IEEE S&P (submission due: Nov. 11)
 File Name       | Description
 --------------- | -----------
 parseutility.py | Library which handles parser output
-cvedata.pkl     | Stores CVE, CVSS, CWE data (pickle)
 <!-- 
 
 1. Library
