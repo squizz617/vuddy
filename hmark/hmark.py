@@ -499,14 +499,15 @@ def run_gui():
 		print "GUI process terminated."
 
 def generate_cli(targetPath, isAbstraction):
-	directory = targetPath
-	print isAbstraction
+	directory = targetPath.rstrip('/')
+
 	if isAbstraction.lower() == "on":
 		absLevel = 4
 	else:
 		absLevel = 0
 
 	proj = directory.replace('\\', '/').split('/')[-1]
+	print "PROJ:", proj
 	timeIn = time.time()
 	numFile = 0
 	numFunc = 0
