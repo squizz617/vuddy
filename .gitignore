@@ -12,7 +12,7 @@ result-0901*
 *.tar.gz
 *.html
 *.spec
-
+*.pkl
 misc/
 experiments-related/
 codesensor2python/build/
