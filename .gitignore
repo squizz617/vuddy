@@ -11,6 +11,7 @@ hidx*/
 result-0901*
 *.tar.gz
 *.html
+*.spec
 
 misc/
 experiments-related/
