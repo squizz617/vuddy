@@ -1,10 +1,11 @@
 *.pyc
 *test.py
 tmp_*
+
 diff/
 vul/
 diff*/
-vul*/
+vul-*/
 repolists/
 hidx/
 hidx*/
@@ -13,6 +14,7 @@ result-0901*
 *.html
 *.spec
 *.pkl
+
 misc/
 experiments-related/
 codesensor2python/build/
