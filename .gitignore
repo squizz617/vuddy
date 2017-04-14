@@ -1,0 +1,5 @@
+*.pkl
+*.xml
+.idea
+
+tools/nvdcrawler/CVEXML
