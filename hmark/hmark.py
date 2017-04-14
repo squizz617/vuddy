@@ -55,7 +55,7 @@ def check_update():
 	print "Local version: " + localVersion
 
 	try:
-		response = urllib2.urlopen(urlCheck+osName)
+		response = urllib2.urlopen(urlCheck+osName[0])
 	except Exception:
 		print "[-] Update server is not responding."
 		print "    Please check your network connection or firewall and try again."
