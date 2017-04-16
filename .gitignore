@@ -1,16 +1,19 @@
 *.pyc
 *test.py
 tmp_*
+
 diff/
 vul/
 diff*/
-vul*/
+vul-*/
 repolists/
 hidx/
 hidx*/
 result-0901*
 *.tar.gz
 *.html
+*.spec
+*.pkl
 
 misc/
 experiments-related/

@@ -4,26 +4,26 @@ import version
 
 pf = platform.platform()
 if 'Windows' in pf:
-	osName = 'Win'
+	osName = 'win'
 elif 'Linux' in pf:
-	osName = 'Linux'
+	osName = 'linux'
 else:
-	osName = 'OSX'
+	osName = 'osx'
 
-bits, _ = platform.architecture()
-if '64' in bits:
-	bits = 'x64'
-else:
-	bits = 'x86'
+# bits, _ = platform.architecture()
+# if '64' in bits:
+# 	bits = 'x64'
+# else:
+# 	bits = 'x86'
 
-if osName == 'OSX':
-	bits = ''
+# if osName == 'OSX':
+# 	bits = ''
 
 version = version.version
 
-fp = open("HMark_" + version + '_' + osName + '_' + bits + ".spec", "w")
+fp = open("hmark_" + version + '_' + osName + ".spec", "w")
 cwd = os.getcwd()
-if osName == "Linux":
+if osName == "linux":
 	fp.write("\
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
@@ -39,7 +39,6 @@ a = Analysis(['hmark.py'],\n\
              win_private_assemblies=False,\n\
              cipher=block_cipher)\n\
 a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
-a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
 pyz = PYZ(a.pure, a.zipped_data,\n\
              cipher=block_cipher)\n\
 exe = EXE(pyz,\n\
@@ -47,45 +46,14 @@ exe = EXE(pyz,\n\
           a.binaries,\n\
           a.zipfiles,\n\
           a.datas,\n\
-          name='HMark_" + version + "_" + osName + "_" + bits + "',\n\
+          name='hmark_" + version + "_" + osName + "',\n\
           debug=False,\n\
           strip=False,\n\
           upx=True,\n\
           console=True )\n\
 """)
 
-elif osName == "OSX":
-		fp.write("\
-# -*- mode: python -*-\n\n\
-block_cipher = None\n\n\n\
-a = Analysis(['hmark.py'],\n\
-             pathex=['" + cwd + "'],\n\
-             binaries=None,\n\
-             datas=None,\n\
-             hiddenimports=[],\n\
-             hookspath=[],\n\
-             runtime_hooks=[],\n\
-             excludes=[],\n\
-             win_no_prefer_redirects=False,\n\
-             win_private_assemblies=False,\n\
-             cipher=block_cipher)\n\
-a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
-a.datas += [('FuncParser.jar', '" + os.path.join(cwd, 'FuncParser.jar') + "', 'DATA')]\n\
-pyz = PYZ(a.pure, a.zipped_data,\n\
-             cipher=block_cipher)\n\
-exe = EXE(pyz,\n\
-          a.scripts,\n\
-          a.binaries,\n\
-          a.zipfiles,\n\
-          a.datas,\n\
-          name='HMark_" + version + "_" + osName + "',\n\
-          debug=False,\n\
-          strip=False,\n\
-          upx=True,\n\
-          console=True )\n\
-""")
-
-elif osName == "Win":
+elif osName == "osx":
 		fp.write("\
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
@@ -108,7 +76,37 @@ exe = EXE(pyz,\n\
           a.binaries,\n\
           a.zipfiles,\n\
           a.datas,\n\
-          name='HMark_" + version + "_" + osName + "_" + bits + "',\n\
+          name='hmark_" + version + "_" + osName + "',\n\
+          debug=False,\n\
+          strip=False,\n\
+          upx=True,\n\
+          console=True )\n\
+""")
+
+elif osName == "win":
+		fp.write("\
+# -*- mode: python -*-\n\n\
+block_cipher = None\n\n\n\
+a = Analysis(['hmark.py'],\n\
+             pathex=['" + cwd + "'],\n\
+             binaries=None,\n\
+             datas=None,\n\
+             hiddenimports=[],\n\
+             hookspath=[],\n\
+             runtime_hooks=[],\n\
+             excludes=[],\n\
+             win_no_prefer_redirects=False,\n\
+             win_private_assemblies=False,\n\
+             cipher=block_cipher)\n\
+a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
+pyz = PYZ(a.pure, a.zipped_data,\n\
+             cipher=block_cipher)\n\
+exe = EXE(pyz,\n\
+          a.scripts,\n\
+          a.binaries,\n\
+          a.zipfiles,\n\
+          a.datas,\n\
+          name='hmark_" + version + "_" + osName + "',\n\
           debug=False,\n\
           strip=False,\n\
           upx=True,\n\
@@ -118,3 +116,4 @@ exe = EXE(pyz,\n\
 
 
 fp.close()
+print "Pyinstaller spec file generated: " + "hmark_" + version + '_' + osName + ".spec"
