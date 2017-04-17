@@ -5,10 +5,6 @@ Author: Seulbae Kim (seulbae@korea.ac.kr)
 http://github.com/squizz617/discovuler-advanced/hmark
 """
 
-import Tkinter
-import tkFileDialog
-import ttk
-
 import urllib2
 import platform
 import sys
@@ -30,6 +26,7 @@ import argparse
 """ GLOBALS """
 localVersion = version.version
 osName = ""
+bits = ""
 urlBase = "http://iotcube.korea.ac.kr/"
 urlCheck = urlBase + "getbinaryversion/wf1/"
 urlDownload = urlBase + "downloads"
@@ -37,14 +34,22 @@ urlDownload = urlBase + "downloads"
 
 def get_platform():
     global osName
+    global bits
 
     pf = platform.platform()
+    bits, _ = platform.architecture()
     if "Windows" in pf:
         osName = "win"
+        bits = ""
     elif "Linux" in pf:
         osName = "linux"
+        if "64" in bits:
+            bits = "64"
+        else:
+            bits = "86"
     else:
         osName = "osx"
+        bits = ""
 
 
 def check_update():
@@ -55,7 +60,13 @@ def check_update():
     print "Local version: " + localVersion
 
     try:
-        response = urllib2.urlopen(urlCheck + osName[0])
+        if osName == "win":
+            url = urlCheck + osName[0]  # ~/w
+        elif osName == "linux":
+            url = urlCheck + osName[0] + bits  # ~/l64, or ~/l86
+        elif osName == "osx":
+            url = urlCheck + osName  # ~/osx
+        response = urllib2.urlopen(url)
     except Exception:
         print "[-] Update server is not responding."
         print "    Please check your network connection or firewall and try again."
@@ -67,6 +78,13 @@ def check_update():
 
     html = response.read()
     latestVersion = html
+
+    if latestVersion == "-1":
+        print "[-] There's something wrong with the server."
+        print "    You can report this issue to cssa@korea.ac.kr, with your version info."
+        print "    To bypass update checking, run with [--no-update-check] option."
+        raw_input("Press Enter to continue...")
+        sys.exit()
 
     if len(latestVersion.split('.')) < 3:
         latestVersion += '.0'
@@ -286,7 +304,9 @@ class App:
         hashFileMap = {}
 
         self.listProcess.config(state="normal")
-        self.listProcess.insert(Tkinter.END, "Loading source files... This may take a few minutes.")
+        self.listProcess.insert(Tkinter.END,
+            "Loading source files... This may take a few minutes."
+        )
         self.listProcess.update()
 
         fileList = parseutility.loadSource(directory)
@@ -294,11 +314,16 @@ class App:
 
         if numFile == 0:
             self.listProcess.insert(Tkinter.END,
-                                    "Error: Failed loading source files. Check if you selected proper directory,\
-                                     or if your project contains .c or .cpp files.")
+                "Error: Failed loading source files."
+            )
+            self.listProcess.insert(Tkinter.END,
+                "- Check if you selected proper directory, or if your project contains .c or .cpp files."
+            )
         else:
             # self.listProcess.insert(END, "")
-            self.listProcess.insert(Tkinter.END, "Load complete. Generating hashmark...")
+            self.listProcess.insert(Tkinter.END,
+                "Load complete. Generating hashmark..."
+            )
             # self.listProcess.insert(END, "")
             # self.listProcess.insert(END, "")
 
@@ -418,10 +443,12 @@ class App:
         if osName == "win":  # this only works for windows.
             top.withdraw()  # temporarily hide widget for better UI
         aboutMessage = """
-HMark is an hash index generator for vulnerable code clone detection.
+hmark is an hash index generator for vulnerable code clone detection.
 
 Developed by CSSA.
 http://iotcube.net
+cssa@korea.ac.kr
+
 """
         msg = Tkinter.Message(top, text=aboutMessage)
         msg.pack()
@@ -451,9 +478,10 @@ http://iotcube.net
         helpMessage = """
 1. Select the root directory of your package under which source code is located.\n
 2. Choose the abstraction mode.
-- OFF: HMARK will detect only exact clones.
-- ON: HMARK will detect near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and called functions.\n
-3. Generate Hashmark."""
+- OFF: HMARK detects only exact clones.
+- ON:  HMARK detects near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and names of the called functions.\n
+3. Generate Hashmark.
+"""
         msg = Tkinter.Message(top, text=helpMessage)
         btnOkay = Tkinter.Button(top, text="Okay", command=top.destroy)
         self.master.update_idletasks()
@@ -480,6 +508,15 @@ http://iotcube.net
 def run_gui():
     global localVersion
     global icon
+
+    global Tkinter
+    global tkFileDialog
+    global ttk
+
+    import Tkinter
+    import tkFileDialog
+    import ttk
+
     root = Tkinter.Tk()
     app = App(root)
     root.title("HMark ver " + str(localVersion))
@@ -638,6 +675,10 @@ def main():
     progStr = "hmark_" + localVersion + "_" + osName
     if osName == "win":
         progStr += ".exe"
+    elif osName == "linux":
+        progStr = "./" + progStr + "_x" + bits
+    elif osName == "osx":
+        progStr = "./" + progStr
 
     ap = argparse.ArgumentParser(
         prog=progStr
@@ -672,7 +713,10 @@ def main():
     args = ap.parse_args()
 
     if args.version:
-        print "hmark " + localVersion + " for " + osName
+        versionString = "hmark" + localVersion + " for " + osName
+        if osName == "linux":
+            versionString = versionString + " (x" + bits + ")"
+        print versionString
         sys.exit()
 
     if args.no_update_check:
