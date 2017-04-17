@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Created by Squizz on April 10, 2016
 This script is for getting cve patches from git object.

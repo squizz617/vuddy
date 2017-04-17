@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module retrieves the vulnerable function from cvepatch (diff)
 Author: Seulbae Kim (seulbae@korea.ac.kr)
