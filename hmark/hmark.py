@@ -339,8 +339,8 @@ class App:
             pool = multiprocessing.Pool(processes=cpu_count)
             for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
                 f = tup[0]
+                
                 functionInstanceList = tup[1]
-
                 pathOnly = f.split(proj, 1)[1][1:]
                 progress = float(idx + 1) / numFile
 
@@ -358,6 +358,7 @@ class App:
                     f.removeListDup()
                     path = f.parentFile
                     absBody = parseutility.abstract(f, absLevel)[1]
+                    # self.listProcess.insert(Tkinter.END, absBody)
                     absBody = parseutility.normalize(absBody)
                     funcLen = len(absBody)
 
