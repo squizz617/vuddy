@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 NVD's CVE xml data processor.
 xml data is downloaded from https://nvd.nist.gov/download.cfm
@@ -7,7 +8,11 @@ Updates of the database is done in cvexmlupdater.py
 """
 
 import os
-import pickle
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import common
 
 DLDir = "CVEXML"
@@ -18,8 +23,8 @@ pwd = os.getcwd()
 os.chdir(DLDir)
 
 for xml in os.listdir("."):
-	subDict = common.parse_xml(xml)
-	cveDict.update(subDict)
+    subDict = common.parse_xml(xml)
+    cveDict.update(subDict)
 
 os.chdir(pwd)
 pickle.dump(cveDict, open("cvedata.pkl", "wb"))
