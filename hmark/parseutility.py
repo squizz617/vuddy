@@ -251,8 +251,6 @@ def parseFile_deep(srcFileName, caller):
         print "Parser Error:", e
         astString = ""
 
-    print astString
-
     funcList = astString.split(delimiter)
     for func in funcList[1:]:
         functionInstance = function(srcFileName)
