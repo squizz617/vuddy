@@ -339,7 +339,7 @@ class App:
             pool = multiprocessing.Pool(processes=cpu_count)
             for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
                 f = tup[0]
-                
+
                 functionInstanceList = tup[1]
                 pathOnly = f.split(proj, 1)[1][1:]
                 progress = float(idx + 1) / numFile
@@ -467,7 +467,7 @@ cssa@korea.ac.kr
         top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
         top.resizable(width=False, height=False)
         top.grab_set_global()
-        top.title("About HMark...")
+        top.title("About hmark...")
         if osName == "win":
             top.deiconify()  # show widget, as its position is set
 
@@ -479,8 +479,8 @@ cssa@korea.ac.kr
         helpMessage = """
 1. Select the root directory of your package under which source code is located.\n
 2. Choose the abstraction mode.
-- OFF: HMARK detects only exact clones.
-- ON:  HMARK detects near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and names of the called functions.\n
+- OFF: hmark detects only exact clones.
+- ON:  hmark detects near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and names of the called functions.\n
 3. Generate Hashmark.
 """
         msg = Tkinter.Message(top, text=helpMessage)
@@ -520,7 +520,7 @@ def run_gui():
 
     root = Tkinter.Tk()
     app = App(root)
-    root.title("HMark ver " + str(localVersion))
+    root.title("hmark ver " + str(localVersion))
 
     try:  # if icon is available
         icon = resource_path("icon.gif")

@@ -210,7 +210,6 @@ def parseFile_shallow(srcFileName, caller):
     # this does not parse body.
     global javaCallCommand
     global delimiter
-    print "IN parseFile_shallow"
     setEnvironment(caller)
     javaCallCommand += "\"" + srcFileName + "\" 0"
     functionInstanceList = []
@@ -241,7 +240,6 @@ def parseFile_shallow(srcFileName, caller):
 def parseFile_deep(srcFileName, caller):
     global javaCallCommand
     global delimiter
-    print "IN parseFile_deep"
     setEnvironment(caller)
     # this parses function definition plus body.
     javaCallCommand += "\"" + srcFileName + "\" 1"
