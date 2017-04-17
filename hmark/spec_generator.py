@@ -4,11 +4,11 @@ import version
 
 pf = platform.platform()
 if 'Windows' in pf:
-	osName = 'win'
+    osName = 'win'
 elif 'Linux' in pf:
-	osName = 'linux'
+    osName = 'linux'
 else:
-	osName = 'osx'
+    osName = 'osx'
 
 # bits, _ = platform.architecture()
 # if '64' in bits:
@@ -24,7 +24,7 @@ version = version.version
 fp = open("hmark_" + version + '_' + osName + ".spec", "w")
 cwd = os.getcwd()
 if osName == "linux":
-	fp.write("\
+    fp.write("\
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
@@ -54,7 +54,7 @@ exe = EXE(pyz,\n\
 """)
 
 elif osName == "osx":
-		fp.write("\
+    fp.write("\
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
@@ -84,7 +84,7 @@ exe = EXE(pyz,\n\
 """)
 
 elif osName == "win":
-		fp.write("\
+    fp.write("\
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
@@ -113,7 +113,6 @@ exe = EXE(pyz,\n\
           console=True,\n\
           icon='icon.ico')\
 """)
-
 
 fp.close()
 print "Pyinstaller spec file generated: " + "hmark_" + version + '_' + osName + ".spec"

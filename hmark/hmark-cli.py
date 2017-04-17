@@ -36,6 +36,7 @@ bits = ""
 urlBase = "http://iotqv.korea.ac.kr/getbinaryversion/wf1/"
 urlDownload = "http://iotqv.korea.ac.kr/downloads"
 
+
 # try:
 # 	sys.path.append(sys._MEIPASS)
 # except:
@@ -94,7 +95,7 @@ urlDownload = "http://iotqv.korea.ac.kr/downloads"
 # 	# 		latestVersion = float(bin.split('_')[0])
 # 	# 	elif osName.lower() in bin and osName == 'OSX':
 # 	# 		latestVersion = float(bin.split('_')[0])
-			
+
 # 	print 'Latest server version:', latestVersion
 
 # 	# compare version
@@ -135,12 +136,13 @@ urlDownload = "http://iotqv.korea.ac.kr/downloads"
 # 		print 'Hasher is up-to-date.'
 
 def parseFile_shallow_multi(f):
-	functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
-	return (f, functionInstanceList)
+    functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
+    return (f, functionInstanceList)
+
 
 def parseFile_deep_multi(f):
-	functionInstanceList = parseutility.parseFile_deep(f, "GUI")
-	return (f, functionInstanceList)
+    functionInstanceList = parseutility.parseFile_deep(f, "GUI")
+    return (f, functionInstanceList)
 
 
 # def __init__(self, master):
@@ -261,107 +263,108 @@ def parseFile_deep_multi(f):
 # 	print self.absLevel	# it is just a plain variable.
 
 def generate():
-	directory = sys.argv[1]
-	absLevel = int(sys.argv[2])
-	progress = 0
-	if directory.endswith('/'):
-		directory = directory[:-1]
-	proj = directory.replace('\\', '/').split('/')[-1]
-	timeIn = time.time()
-	numFile = 0
-	numFunc = 0
-	numLine = 0
+    directory = sys.argv[1]
+    absLevel = int(sys.argv[2])
+    progress = 0
+    if directory.endswith('/'):
+        directory = directory[:-1]
+    proj = directory.replace('\\', '/').split('/')[-1]
+    timeIn = time.time()
+    numFile = 0
+    numFunc = 0
+    numLine = 0
 
-	projDic = {}
-	hashFileMap = {}
+    projDic = {}
+    hashFileMap = {}
 
-	print "Loading source files... This may take a few minutes."
+    print "Loading source files... This may take a few minutes."
 
-	fileList = parseutility.loadSource(directory)
-	numFile = len(fileList)
+    fileList = parseutility.loadSource(directory)
+    numFile = len(fileList)
 
-	if numFile == 0:
-		print "Error: Failed loading source files. Check if you selected proper directory, or if your project contains .c or .cpp files."
-	else:
-		print "Load complete. Generating hashmark..."
+    if numFile == 0:
+        print "Error: Failed loading source files. Check if you selected proper directory, or if your project contains .c or .cpp files."
+    else:
+        print "Load complete. Generating hashmark..."
 
-		if absLevel == 0:
-			func = parseFile_shallow_multi
-		else:
-			func = parseFile_deep_multi
+        if absLevel == 0:
+            func = parseFile_shallow_multi
+        else:
+            func = parseFile_deep_multi
 
-		cpu_count = get_cpu_count.get_cpu_count()
-		if cpu_count != 1:
-			cpu_count -= 1
+        cpu_count = get_cpu_count.get_cpu_count()
+        if cpu_count != 1:
+            cpu_count -= 1
 
-		pool = Pool(processes = cpu_count)
-		for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
-			f = tup[0]
-			functionInstanceList = tup[1]
-			
-			fullName = proj + f.split(proj, 1)[1]
-			pathOnly = f.split(proj, 1)[1][1:]
-			progress = 100*(float)(idx + 1) / numFile
-			sys.stdout.write("\r%.2f%% %s                         " % (progress, fullName))
-			sys.stdout.flush()
+        pool = Pool(processes=cpu_count)
+        for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
+            f = tup[0]
+            functionInstanceList = tup[1]
 
+            fullName = proj + f.split(proj, 1)[1]
+            pathOnly = f.split(proj, 1)[1][1:]
+            progress = 100 * (float)(idx + 1) / numFile
+            sys.stdout.write("\r%.2f%% %s                         " % (progress, fullName))
+            sys.stdout.flush()
 
-			numFunc += len(functionInstanceList)
+            numFunc += len(functionInstanceList)
 
-			if len(functionInstanceList) > 0:
-				numLine += functionInstanceList[0].parentNumLoc
+            if len(functionInstanceList) > 0:
+                numLine += functionInstanceList[0].parentNumLoc
 
-			for f in functionInstanceList:
-				f.removeListDup()
-				path = f.parentFile
-				absBody = parseutility.abstract(f, absLevel)[1]
-				absBody = parseutility.normalize(absBody)
-				funcLen = len(absBody)
-				
-				if funcLen > 50:
-					hashValue = md5(absBody).hexdigest()
+            for f in functionInstanceList:
+                f.removeListDup()
+                path = f.parentFile
+                absBody = parseutility.abstract(f, absLevel)[1]
+                absBody = parseutility.normalize(absBody)
+                funcLen = len(absBody)
 
-					try:
-						projDic[funcLen].append(hashValue)
-					except KeyError:
-						projDic[funcLen] = [hashValue]
-					try:
-						hashFileMap[hashValue].extend([pathOnly, f.funcId])
-					except KeyError:
-						hashFileMap[hashValue] = [pathOnly, f.funcId]
-				else:
-					numFunc -= 1 # decrement numFunc by 1 if funclen is under threshold
+                if funcLen > 50:
+                    hashValue = md5(absBody).hexdigest()
 
-		print "\nHash index successfully generated."
-		print "Saving hash index to file...",
+                    try:
+                        projDic[funcLen].append(hashValue)
+                    except KeyError:
+                        projDic[funcLen] = [hashValue]
+                    try:
+                        hashFileMap[hashValue].extend([pathOnly, f.funcId])
+                    except KeyError:
+                        hashFileMap[hashValue] = [pathOnly, f.funcId]
+                else:
+                    numFunc -= 1  # decrement numFunc by 1 if funclen is under threshold
 
-		try:
-			os.mkdir("hidx")
-		except:
-			pass
-		packageInfo = str(currentVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(numLine) + '\n'
-		with open("hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
-			fp.write(packageInfo)
+        print "\nHash index successfully generated."
+        print "Saving hash index to file...",
 
-			for key in sorted(projDic):
-				fp.write(str(key) + '\t')
-				for h in list(set(projDic[key])):
-					fp.write(h + '\t')
-				fp.write('\n')
+        try:
+            os.mkdir("hidx")
+        except:
+            pass
+        packageInfo = str(currentVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(
+            numLine) + '\n'
+        with open("hidx/hashmark_" + str(absLevel) + "_" + proj + ".hidx", 'w') as fp:
+            fp.write(packageInfo)
 
-			fp.write('\n=====\n')
+            for key in sorted(projDic):
+                fp.write(str(key) + '\t')
+                for h in list(set(projDic[key])):
+                    fp.write(h + '\t')
+                fp.write('\n')
 
-			for key in sorted(hashFileMap):
-				fp.write(str(key) + '\t')
-				for f in hashFileMap[key]:
-					fp.write(str(f) + '\t')
-				fp.write('\n')
+            fp.write('\n=====\n')
 
-		timeOut = time.time()
-		print "(Done)"
-		print "Elapsed time: %.02f sec." % (timeOut - timeIn)
-		print str(numFile), "Files, ", str(numFile), "Functions, ", str(numLine), "Lines of code."
-		print ""
+            for key in sorted(hashFileMap):
+                fp.write(str(key) + '\t')
+                for f in hashFileMap[key]:
+                    fp.write(str(f) + '\t')
+                fp.write('\n')
+
+        timeOut = time.time()
+        print "(Done)"
+        print "Elapsed time: %.02f sec." % (timeOut - timeIn)
+        print str(numFile), "Files, ", str(numFile), "Functions, ", str(numLine), "Lines of code."
+        print ""
+
 
 # def selectAbst(self):
 # 	selection = str(self.absLevel.get())
@@ -460,7 +463,7 @@ def generate():
 # 		pass
 
 # 	root.mainloop()
-	
+
 # 	try:
 # 		root.destroy()
 # 	except Tkinter.TclError:
@@ -468,30 +471,28 @@ def generate():
 
 
 def main():
-	# get_version()
-	# if osName == 'l' or osName == "osx":
-	# 	try:
-	# 		msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
-	# 	except subprocess.CalledProcessError as e:
-	# 		print "Java error:", e
-	# 		print "Please try again after installing JDK."
-	# 		sys.exit()
-	# check_update()
-	# run_gui()
-	generate()
+    # get_version()
+    # if osName == 'l' or osName == "osx":
+    # 	try:
+    # 		msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
+    # 	except subprocess.CalledProcessError as e:
+    # 		print "Java error:", e
+    # 		print "Please try again after installing JDK."
+    # 		sys.exit()
+    # check_update()
+    # run_gui()
+    generate()
 
 
 def resource_path(relative_path):
-	""" Get absolute path to resource, works for dev and for PyInstaller """
-	try:
-		base_path = sys._MEIPASS
-	except Exception:
-		base_path = os.path.abspath(".")
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-	return os.path.join(base_path, relative_path)
+    return os.path.join(base_path, relative_path)
 
 
 """ EXECUTE """
 main()
-
-
