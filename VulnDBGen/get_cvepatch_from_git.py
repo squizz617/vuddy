@@ -18,16 +18,19 @@ import os
 import subprocess
 import re
 import time
-
+import argparse
+import sys
 try:
     import cPickle as pickle
 except:
     import pickle
-import argparse
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
 """ GLOBALS """
-repoName = None
+repoName = "linux"
 originalDir = os.getcwd()
 diffDir = os.path.join(originalDir, 'diff/')
 cveDict = pickle.load(open("cvedata.pkl", "rb"))
@@ -78,22 +81,21 @@ def init():
     if not repoName.endswith("/"):
         repoName += '/'
 
+    print "Retrieving CVE patch from", repoName
+    print "Multi-repo mode:",
+    if multiModeFlag:
+        print "ON."
+    else:
+        print "OFF."
 
-print "Retrieving CVE patch from", repoName
-print "Multi-repo mode:",
-if multiModeFlag:
-    print "ON."
-else:
-    print "OFF."
+    print "Initializing...",
 
-print "Initializing...",
+    try:
+        os.makedirs(diffDir + repoName)
+    except:
+        pass
 
-try:
-    os.makedirs(diffDir + repoName)
-except:
-    pass
-
-print "Done."
+    print "Done."
 
 
 def callGitLog(gitDir):

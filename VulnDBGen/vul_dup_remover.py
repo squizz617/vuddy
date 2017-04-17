@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import hashlib
-from parseutility import normalize
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from hmark.parseutility import normalize
 
 hashdict = {}
 cntdict = {}

@@ -1,21 +1,46 @@
 #!/usr/bin/env python
 
-import hmark.parseutility as parser
+import os
 import sys
 import hashlib
 import time
+import argparse
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import hmark.parseutility as parser
 
-if len(sys.argv) == 1:
-    projName = "codeaurora"
-    intendedAbsLvl = 4
-    intendedGranLvl = 4
-else:
-    projName = sys.argv[1]
-    intendedAbsLvl = int(sys.argv[2])
-    intendedGranLvl = sys.argv[3]
 
-if intendedGranLvl != 'f':
-    intendedGranLvl = int(intendedGranLvl)
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('REPO',
+                    help='''Repository name''')
+arg_parser.add_argument('-a', '--abstract-level', type=int,
+                    help='''Abstract Level''')
+arg_parser.add_argument('-g', '--gran-level',
+                    help='''Gran Level''')
+
+args = arg_parser.parse_args()
+
+projName = args.REPO
+intendedAbsLvl = 4
+intendedGranLvl = 4
+if args.abstract_level:
+    intendedAbsLvl = args.abstract_level
+    if args.gran_level:
+        if args.gran_level == 'f':
+            intendedGranLvl = 'f'
+        else:
+            intendedGranLvl = int(args.gran_level)
+
+# if len(sys.argv) == 1:
+#    projName = "codeaurora"
+#    intendedAbsLvl = 4
+#    intendedGranLvl = 4
+# else:
+#    projName = sys.argv[1]
+#    intendedAbsLvl = int(sys.argv[2])
+#    intendedGranLvl = sys.argv[3]
+# if intendedGranLvl != 'f':
+#    intendedGranLvl = int(intendedGranLvl)
 
 projDictList = []
 hashFileMapList = []
@@ -82,7 +107,9 @@ if intendedGranLvl == 'f':
 else:
     for si, srcFile in enumerate(srcFileList):
         print si + 1, '/', len(srcFileList), srcFile
-        functionInstanceList = parser.parseFile(srcFile)
+        # TODO: Use parseFile_shallow or parseFile_deep?
+        # functionInstanceList = parser.parseFile(srcFile)
+        functionInstanceList = parser.parseFile_shallow(srcFile, "")
 
         numFuncs += len(functionInstanceList)
 
@@ -118,6 +145,7 @@ for i in range(0, 5):
     if i == intendedAbsLvl:
         packageInfo = str("3.0.2") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
             numLines) + '\n'
+        os.makedirs("hidx-vul-302")
         with open("hidx-vul-302/hashmark_" + str(i) + '_' + projName + ".hidx", 'w') as fp:
             fp.write(packageInfo)
             for key in sorted(projDictList[i]):

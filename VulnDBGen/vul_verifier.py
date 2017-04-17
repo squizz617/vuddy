@@ -2,7 +2,10 @@
 
 import os
 import sys
-import parseutility as pu
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import hmark.parseutility as pu
 
 dirs = os.listdir('vul')
 for dir in dirs:

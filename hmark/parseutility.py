@@ -10,6 +10,9 @@ import subprocess
 import re
 import platform
 
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
 
 def get_version():
     global osName
@@ -38,26 +41,16 @@ def get_version():
 def setEnvironment(caller):
     get_version()
     global javaCallCommand
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    parser_jar = "FuncParser-opt"
     if caller == "GUI":
-        # try:
-        # 	base_path = sys._MEIPASS
-        # except:
-        # 	base_path = os.path.abspath(".")
-        cwd = os.getcwd()
-        if osName == 'w':
-            # full_path = os.path.join(base_path, "FuncParser.exe")
-            javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
+        parser_jar = "FuncParser"
 
-        elif osName == 'l' or osName == "osx":
-            # full_path = os.path.join(base_path, "FuncParser.jar")
-            # javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-            javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser-opt.jar") + "\" "
-
-    else:
-        if osName == 'w':
-            javaCallCommand = "FuncParser-opt.exe "
-        elif osName == 'l' or osName == "osx":
-            javaCallCommand = "java -Xmx1024m -jar \"FuncParser-opt.jar\" "
+    if osName == 'w':
+        javaCallCommand = os.path.join(base_path, "{0}.exe ".format(parser_jar))
+    elif osName == 'l' or osName == "osx":
+        full_path = os.path.join(base_path, "{0}.jar".format(parser_jar))
+        javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, full_path)
 
 
 class function:
@@ -223,7 +216,9 @@ def parseFile_shallow(srcFileName, caller):
     global delimiter
 
     setEnvironment(caller)
-    javaCallCommand += "\"" + srcFileName + "\" 0"
+    # TODO: 0 is needed for what?
+    # javaCallCommand += "\"" + srcFileName + "\" 0"
+    javaCallCommand += "\"" + srcFileName + "\""
     functionInstanceList = []
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)

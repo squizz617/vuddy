@@ -12,10 +12,14 @@ Aug 08    SBKIM    Major update: with parser (codesensor.jar)
 """
 
 import os
+import sys
 import re
-import config
 import argparse
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parseutility
+import config
 
 # GLOBALS
 originalDir = os.getcwd()
@@ -117,12 +121,13 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                     except:
                         pass
 
-                    command_show = "{1} show {2} >> {3}/tmp_old".format(gitBinary, indexHashOld, originalDir)
+                    command_show = "{0} show {1} >> {2}/tmp_old".format(gitBinary, indexHashOld, originalDir)
                     os.system(command_show)
-                    command_show = "{1} show {2} >> {3}/tmp_old".format(gitBinary, indexHashNew, originalDir)
+                    command_show = "{0} show {1} >> {2}/tmp_old".format(gitBinary, indexHashNew, originalDir)
                     os.system(command_show)
 
                     os.chdir(originalDir)
+                    # TODO: Multithreading Support
                     oldFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_old", "")
                     newFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_new", "")
 
