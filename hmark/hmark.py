@@ -261,7 +261,7 @@ class App:
 				stdout=subprocess.PIPE,
 				stderr=subprocess.PIPE
 			)
-		elif osName == "osx":	# needs testing
+		elif osName == "osx":
 			subprocess.Popen(
 				["open", "-R", path],
 				stdout=subprocess.PIPE,
