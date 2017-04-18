@@ -541,6 +541,7 @@ def run_gui():
 
 
 def generate_cli(targetPath, isAbstraction):
+    import subprocess
     directory = targetPath.rstrip('/').rstrip("\\")
 
     if isAbstraction.lower() == "on":
@@ -587,11 +588,14 @@ def generate_cli(targetPath, isAbstraction):
             fullName = proj + f.split(proj, 1)[1]
             pathOnly = f.split(proj, 1)[1][1:]
 
-            try:
-                # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
-                rows, columns = subprocess.check_output(['stty', 'size']).split()
-            except ValueError:
+            if osName == "win":
                 columns = 80
+            else:
+                try:
+                    # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
+                    rows, columns = subprocess.check_output(['stty', 'size']).split()
+                except ValueError:
+                    columns = 80
 
             progress = 100 * float(idx + 1) / numFile
             buf = "\r%.2f%% %s" % (progress, fullName)
