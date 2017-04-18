@@ -428,6 +428,8 @@ class App:
             self.listProcess.see("end")
             self.btnOpenFolder.config(state="normal")
 
+        return 0
+
     def selectAbst(self):
         selection = str(self.absLevel.get())
 
@@ -539,7 +541,7 @@ def run_gui():
 
 
 def generate_cli(targetPath, isAbstraction):
-    directory = targetPath.rstrip('/')
+    directory = targetPath.rstrip('/').rstrip("\\")
 
     if isAbstraction.lower() == "on":
         absLevel = 4
