@@ -33,7 +33,8 @@ Ubuntu 14.04 and 16.04 (32 and 64-bits) are officially supported by *hmark*.
 The execution is tested on Windows 7, 8, and 10.
 1. Execute the application.
     - In terminal:
-        - hmark_3.0.3_win.exe [-h] [-c path ON/OFF] [-n] [-V]
+        - 32-bit system: hmark_3.0.3_win_x86.exe [-h] [-c path ON/OFF] [-n] [-V]
+        - 64-bit system: hmark_3.0.3_win_x64.exe [-h] [-c path ON/OFF] [-n] [-V]
     - Graphic user interface:
         - You can launch app in GUI (e.g., in Explorer),
           but you cannot pass command line arguments.
