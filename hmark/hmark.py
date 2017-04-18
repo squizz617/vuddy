@@ -40,7 +40,10 @@ def get_platform():
     bits, _ = platform.architecture()
     if "Windows" in pf:
         osName = "win"
-        bits = ""
+        if "64" in bits:
+            bits = "64"
+        else:
+            bits = "86"
     elif "Linux" in pf:
         osName = "linux"
         if "64" in bits:
@@ -61,7 +64,7 @@ def check_update():
 
     try:
         if osName == "win":
-            url = urlCheck + osName[0]  # ~/w
+            url = urlCheck + osName[0] + bits  # ~/w64, or ~/w86
         elif osName == "linux":
             url = urlCheck + osName[0] + bits  # ~/l64, or ~/l86
         elif osName == "osx":
@@ -681,7 +684,7 @@ def main():
 
     progStr = "hmark_" + localVersion + "_" + osName
     if osName == "win":
-        progStr += ".exe"
+        progStr += "_x" + bits + ".exe"
     elif osName == "linux":
         progStr = "./" + progStr + "_x" + bits
     elif osName == "osx":
@@ -721,7 +724,7 @@ def main():
 
     if args.version:
         versionString = "hmark" + localVersion + " for " + osName
-        if osName == "linux":
+        if osName == "linux" or osName == "win":
             versionString = versionString + " (x" + bits + ")"
         print versionString
         sys.exit()

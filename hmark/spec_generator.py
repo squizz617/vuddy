@@ -7,7 +7,10 @@ bits, _ = platform.architecture()
 
 if 'Windows' in pf:
   osName = "win"
-  bits = ""
+  if "64" in bits:
+    bits = "_x64"
+  else:
+    bits = "_x86"
 elif 'Linux' in pf:
   osName = 'linux'
   if "64" in bits:
@@ -113,7 +116,7 @@ exe = EXE(pyz,\n\
           a.binaries,\n\
           a.zipfiles,\n\
           a.datas,\n\
-          name='hmark_" + version + "_" + osName + "',\n\
+          name='hmark_" + version + "_" + osName + bits + "',\n\
           debug=False,\n\
           strip=False,\n\
           upx=True,\n\
