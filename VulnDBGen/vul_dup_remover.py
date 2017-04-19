@@ -13,8 +13,10 @@ cntdict = {}
 vulcntlist = []
 repolist = []
 
-dirs = os.listdir("./vul")
-os.chdir("vul")
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
+vulsDir = os.path.join(originalDir, "vul")
+dirs = os.listdir(vulsDir)
+os.chdir(vulsDir)
 for d in dirs:
     if os.path.isdir(d):
         repolist.append(d)

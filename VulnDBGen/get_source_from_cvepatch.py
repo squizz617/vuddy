@@ -22,7 +22,7 @@ import hmark.parseutility as parseutility
 import config
 
 # GLOBALS
-originalDir = os.getcwd()
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 diffDir = os.path.join(originalDir, "diff")
 chunksCnt = 0  # number of DIFF patches
 resultList = []
@@ -44,7 +44,7 @@ repoName = args.REPO  # name of the directory that holds DIFF patches
 if args.multimode:
     multiModeFlag = 1
 
-print "Retrive vulnerable functions from " + repoName + "\nMulti-repo mode: ",
+print "Retrive vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
 if multimodeFlag:
     print "On"
 else:
@@ -123,7 +123,7 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
 
                     command_show = "{0} show {1} >> {2}/tmp_old".format(gitBinary, indexHashOld, originalDir)
                     os.system(command_show)
-                    command_show = "{0} show {1} >> {2}/tmp_old".format(gitBinary, indexHashNew, originalDir)
+                    command_show = "{0} show {1} >> {2}/tmp_new".format(gitBinary, indexHashNew, originalDir)
                     os.system(command_show)
 
                     os.chdir(originalDir)

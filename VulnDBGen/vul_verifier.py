@@ -7,9 +7,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as pu
 
-dirs = os.listdir('vul')
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
+vulsDir = os.path.join(originalDir, "vul")
+dirs = os.listdir(vulsDir)
 for dir in dirs:
-    for vul in os.listdir(os.path.join('vul', dir)):
+    for vul in os.listdir(os.path.join(vulsDir, dir)):
         if vul.endswith("OLD.vul"):
             if not vul.endswith(
                     "CVE-2009-0029_7.2_CWE-020_836f92adf121f806e9beb5b6b88bd5c9c4ea3f24_splice.c_33_OLD.vul"):
@@ -23,7 +25,7 @@ for dir in dirs:
                 if len(line.strip()) > 0:
                     cnt += 1
 
-            with open(os.path.join('vul', dir, vul[:-8] + "_NEW.vul"), 'r') as fp:
+            with open(os.path.join(vulsDir, dir, vul[:-8] + "_NEW.vul"), 'r') as fp:
                 raw = ''.join(fp.readlines())
                 newbody = pu.getBody(pu.removeComment(raw))
 

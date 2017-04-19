@@ -31,7 +31,7 @@ import config
 
 """ GLOBALS """
 repoName = "linux"
-originalDir = os.getcwd()
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 diffDir = os.path.join(originalDir, 'diff/')
 cveDict = pickle.load(open("cvedata.pkl", "rb"))
 multiModeFlag = 0
