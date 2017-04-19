@@ -14,43 +14,52 @@ import platform
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
-def get_version():
+
+def get_platform():
     global osName
     global bits
 
     pf = platform.platform()
-    if 'Windows' in pf:
-        osName = 'w'
-    elif 'Linux' in pf:
-        osName = 'l'
-    else:
-        osName = 'osx'
-
     bits, _ = platform.architecture()
-    if '64' in bits:
-        bits = '64'
+    if "Windows" in pf:
+        osName = "win"
+        bits = ""
+    elif "Linux" in pf:
+        osName = "linux"
+        if "64" in bits:
+            bits = "64"
+        else:
+            bits = "86"
     else:
-        bits = '86'
-
-    if osName == 'osx':
-        bits = ''
+        osName = "osx"
+        bits = ""
 
 
 # sys.path.append(sys._MEIPASS)
 
 def setEnvironment(caller):
-    get_version()
+    get_platform()
     global javaCallCommand
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    parser_jar = "FuncParser-opt"
     if caller == "GUI":
-        parser_jar = "FuncParser"
+        # try:
+        #   base_path = sys._MEIPASS
+        # except:
+        #   base_path = os.path.abspath(".")
+        cwd = os.getcwd()
+        if osName == "win":
+            # full_path = os.path.join(base_path, "FuncParser.exe")
+            javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
 
-    if osName == 'w':
-        javaCallCommand = os.path.join(base_path, "{0}.exe ".format(parser_jar))
-    elif osName == 'l' or osName == "osx":
-        full_path = os.path.join(base_path, "{0}.jar".format(parser_jar))
-        javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, full_path)
+        elif osName == "linux" or osName == "osx":
+            # full_path = os.path.join(base_path, "FuncParser.jar")
+            # javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
+            javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser-opt.jar") + "\" "
+
+    else:
+        if osName == "win":
+            javaCallCommand = "FuncParser-opt.exe "
+        elif osName == "linux" or osName == "osx":
+            javaCallCommand = "java -Xmx1024m -jar \"FuncParser-opt.jar\" "
 
 
 class function:
@@ -80,12 +89,12 @@ class function:
         self.dataTypeList = list(set(self.dataTypeList))
         self.funcCalleeList = list(set(self.funcCalleeList))
 
-    # def getOriginalFunction(self):
-    # 	# returns the original function back from the instance.
-    # 	fp = open(self.parentFile, 'r')
-    # 	srcFileRaw = fp.readlines()
-    # 	fp.close()
-    # 	return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
+        # def getOriginalFunction(self):
+        #   # returns the original function back from the instance.
+        #   fp = open(self.parentFile, 'r')
+        #   srcFileRaw = fp.readlines()
+        #   fp.close()
+        #   return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
 
 
 def loadSource(rootDirectory):
@@ -110,7 +119,7 @@ def loadSource(rootDirectory):
 def loadVul(rootDirectory):
     # returns the list of .vul files under the specified root directory.
     maxFileSizeInBytes = None
-    # maxFileSizeInBytes = 2097152	# remove this line if you don't want to restrict
+    # maxFileSizeInBytes = 2097152  # remove this line if you don't want to restrict
     # the maximum file size that you process.
     walkList = os.walk(rootDirectory)
     srcFileList = []
@@ -135,8 +144,8 @@ def removeComment(string):
 
 
 # def getBody(originalFunction):
-# 	# returns the function's body as a string.
-# 	return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
+#   # returns the function's body as a string.
+#   return originalFunction[originalFunction.find('{')+1:originalFunction.rfind('}')]
 
 
 def normalize(string):
@@ -151,8 +160,6 @@ def abstract(instance, level):
     # Applies abstraction on the function instance,
     # and then returns a tuple consisting of the original body and abstracted body.
     originalFunctionBody = instance.funcBody
-    # print "FROM PARSER"
-    # print originalFunctionBody
     # print "==================="
     originalFunctionBody = removeComment(originalFunctionBody)
     # print originalFunctionBody
@@ -214,11 +221,8 @@ def parseFile_shallow(srcFileName, caller):
     # this does not parse body.
     global javaCallCommand
     global delimiter
-
     setEnvironment(caller)
-    # TODO: 0 is needed for what?
-    # javaCallCommand += "\"" + srcFileName + "\" 0"
-    javaCallCommand += "\"" + srcFileName + "\""
+    javaCallCommand += "\"" + srcFileName + "\" 0"
     functionInstanceList = []
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
@@ -248,11 +252,9 @@ def parseFile_shallow(srcFileName, caller):
 def parseFile_deep(srcFileName, caller):
     global javaCallCommand
     global delimiter
-
     setEnvironment(caller)
     # this parses function definition plus body.
     javaCallCommand += "\"" + srcFileName + "\" 1"
-
     functionInstanceList = []
 
     try:

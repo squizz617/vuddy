@@ -3,14 +3,24 @@ import platform
 import version
 
 pf = platform.platform()
+bits, _ = platform.architecture()
+
 if 'Windows' in pf:
-    osName = 'win'
+    osName = "win"
+    if "64" in bits:
+        bits = "_x64"
+    else:
+        bits = "_x86"
 elif 'Linux' in pf:
     osName = 'linux'
+    if "64" in bits:
+        bits = "_x64"
+    else:
+        bits = "_x86"
 else:
-    osName = 'osx'
+    osName = "osx"
+    bits = ""
 
-# bits, _ = platform.architecture()
 # if '64' in bits:
 # 	bits = 'x64'
 # else:
@@ -21,7 +31,7 @@ else:
 
 version = version.version
 
-fp = open("hmark_" + version + '_' + osName + ".spec", "w")
+fp = open("hmark_" + version + '_' + osName + bits + ".spec", "w")
 cwd = os.getcwd()
 if osName == "linux":
     fp.write("\
@@ -46,7 +56,7 @@ exe = EXE(pyz,\n\
           a.binaries,\n\
           a.zipfiles,\n\
           a.datas,\n\
-          name='hmark_" + version + "_" + osName + "',\n\
+          name='hmark_" + version + "_" + osName + bits + "',\n\
           debug=False,\n\
           strip=False,\n\
           upx=True,\n\
@@ -106,7 +116,7 @@ exe = EXE(pyz,\n\
           a.binaries,\n\
           a.zipfiles,\n\
           a.datas,\n\
-          name='hmark_" + version + "_" + osName + "',\n\
+          name='hmark_" + version + "_" + osName + bits + "',\n\
           debug=False,\n\
           strip=False,\n\
           upx=True,\n\
@@ -115,4 +125,4 @@ exe = EXE(pyz,\n\
 """)
 
 fp.close()
-print "Pyinstaller spec file generated: " + "hmark_" + version + '_' + osName + ".spec"
+print "Pyinstaller spec file generated: " + "hmark_" + version + '_' + osName + bits + ".spec"

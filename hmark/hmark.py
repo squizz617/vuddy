@@ -5,10 +5,6 @@ Author: Seulbae Kim (seulbae@korea.ac.kr)
 http://github.com/squizz617/discovuler-advanced/hmark
 """
 
-import Tkinter
-import tkFileDialog
-import ttk
-
 import urllib2
 import platform
 import sys
@@ -16,6 +12,8 @@ import os
 import time
 from re import compile, findall
 import webbrowser
+import Tkinter
+import ttk
 from hashlib import md5
 
 import multiprocessing
@@ -30,6 +28,7 @@ import argparse
 """ GLOBALS """
 localVersion = version.version
 osName = ""
+bits = ""
 urlBase = "http://iotcube.korea.ac.kr/"
 urlCheck = urlBase + "getbinaryversion/wf1/"
 urlDownload = urlBase + "downloads"
@@ -37,14 +36,25 @@ urlDownload = urlBase + "downloads"
 
 def get_platform():
     global osName
+    global bits
 
     pf = platform.platform()
+    bits, _ = platform.architecture()
     if "Windows" in pf:
         osName = "win"
+        if "64" in bits:
+            bits = "64"
+        else:
+            bits = "86"
     elif "Linux" in pf:
         osName = "linux"
+        if "64" in bits:
+            bits = "64"
+        else:
+            bits = "86"
     else:
         osName = "osx"
+        bits = ""
 
 
 def check_update():
@@ -55,7 +65,13 @@ def check_update():
     print "Local version: " + localVersion
 
     try:
-        response = urllib2.urlopen(urlCheck + osName[0])
+        if osName == "win":
+            url = urlCheck + osName[0] + bits  # ~/w64, or ~/w86
+        elif osName == "linux":
+            url = urlCheck + osName[0] + bits  # ~/l64, or ~/l86
+        elif osName == "osx":
+            url = urlCheck + osName  # ~/osx
+        response = urllib2.urlopen(url)
     except Exception:
         print "[-] Update server is not responding."
         print "    Please check your network connection or firewall and try again."
@@ -67,6 +83,13 @@ def check_update():
 
     html = response.read()
     latestVersion = html
+
+    if latestVersion == "-1":
+        print "[-] There's something wrong with the server."
+        print "    You can report this issue to cssa@korea.ac.kr, with your version info."
+        print "    To bypass update checking, run with [--no-update-check] option."
+        raw_input("Press Enter to continue...")
+        sys.exit()
 
     if len(latestVersion.split('.')) < 3:
         latestVersion += '.0'
@@ -264,7 +287,7 @@ class App:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
-        elif osName == "osx":  # needs testing
+        elif osName == "osx":
             subprocess.Popen(
                 ["open", "-R", path],
                 stdout=subprocess.PIPE,
@@ -286,7 +309,9 @@ class App:
         hashFileMap = {}
 
         self.listProcess.config(state="normal")
-        self.listProcess.insert(Tkinter.END, "Loading source files... This may take a few minutes.")
+        self.listProcess.insert(Tkinter.END,
+                                "Loading source files... This may take a few minutes."
+                                )
         self.listProcess.update()
 
         fileList = parseutility.loadSource(directory)
@@ -294,10 +319,16 @@ class App:
 
         if numFile == 0:
             self.listProcess.insert(Tkinter.END,
-                                    "Error: Failed loading source files. Check if you selected proper directory, or if your project contains .c or .cpp files.")
+                                    "Error: Failed loading source files."
+                                    )
+            self.listProcess.insert(Tkinter.END,
+                                    "- Check if you selected proper directory, or if your project contains .c or .cpp files."
+                                    )
         else:
             # self.listProcess.insert(END, "")
-            self.listProcess.insert(Tkinter.END, "Load complete. Generating hashmark...")
+            self.listProcess.insert(Tkinter.END,
+                                    "Load complete. Generating hashmark..."
+                                    )
             # self.listProcess.insert(END, "")
             # self.listProcess.insert(END, "")
 
@@ -313,15 +344,14 @@ class App:
             pool = multiprocessing.Pool(processes=cpu_count)
             for idx, tup in enumerate(pool.imap_unordered(func, fileList)):
                 f = tup[0]
-                functionInstanceList = tup[1]
 
-                fullName = proj + f.split(proj, 1)[1]
+                functionInstanceList = tup[1]
                 pathOnly = f.split(proj, 1)[1][1:]
-                progress = (float)(idx + 1) / numFile
+                progress = float(idx + 1) / numFile
 
                 self.progressbar["value"] = progress
                 self.progressbar.update()
-                a = self.listProcess.insert(Tkinter.END, "[+] " + f)
+                self.listProcess.insert(Tkinter.END, "[+] " + f)
                 self.listProcess.see("end")
 
                 numFunc += len(functionInstanceList)
@@ -333,6 +363,7 @@ class App:
                     f.removeListDup()
                     path = f.parentFile
                     absBody = parseutility.abstract(f, absLevel)[1]
+                    # self.listProcess.insert(Tkinter.END, absBody)
                     absBody = parseutility.normalize(absBody)
                     funcLen = len(absBody)
 
@@ -402,6 +433,8 @@ class App:
             self.listProcess.see("end")
             self.btnOpenFolder.config(state="normal")
 
+        return 0
+
     def selectAbst(self):
         selection = str(self.absLevel.get())
 
@@ -418,10 +451,12 @@ class App:
         if osName == "win":  # this only works for windows.
             top.withdraw()  # temporarily hide widget for better UI
         aboutMessage = """
-HMark is an hash index generator for vulnerable code clone detection.
+hmark is an hash index generator for vulnerable code clone detection.
 
 Developed by CSSA.
 http://iotcube.net
+cssa@korea.ac.kr
+
 """
         msg = Tkinter.Message(top, text=aboutMessage)
         msg.pack()
@@ -439,7 +474,7 @@ http://iotcube.net
         top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
         top.resizable(width=False, height=False)
         top.grab_set_global()
-        top.title("About HMark...")
+        top.title("About hmark...")
         if osName == "win":
             top.deiconify()  # show widget, as its position is set
 
@@ -451,10 +486,10 @@ http://iotcube.net
         helpMessage = """
 1. Select the root directory of your package under which source code is located.\n
 2. Choose the abstraction mode.
-- OFF: HMARK will detect only exact clones.
-- ON: HMARK will detect near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and called functions.\n
+- OFF: hmark detects only exact clones.
+- ON:  hmark detects near-miss clones along with exact clones, by tolerating changes in parameter, variable names, types, and names of the called functions.\n
 3. Generate Hashmark.
-		"""
+"""
         msg = Tkinter.Message(top, text=helpMessage)
         btnOkay = Tkinter.Button(top, text="Okay", command=top.destroy)
         self.master.update_idletasks()
@@ -481,9 +516,17 @@ http://iotcube.net
 def run_gui():
     global localVersion
     global icon
+    global Tkinter
+    global tkFileDialog
+    global ttk
+
+    import Tkinter
+    import tkFileDialog
+    import ttk
+
     root = Tkinter.Tk()
     app = App(root)
-    root.title("HMark ver " + str(localVersion))
+    root.title("hmark ver " + str(localVersion))
 
     try:  # if icon is available
         icon = resource_path("icon.gif")
@@ -502,7 +545,8 @@ def run_gui():
 
 
 def generate_cli(targetPath, isAbstraction):
-    directory = targetPath.rstrip('/')
+    import subprocess
+    directory = targetPath.rstrip('/').rstrip("\\")
 
     if isAbstraction.lower() == "on":
         absLevel = 4
@@ -547,15 +591,17 @@ def generate_cli(targetPath, isAbstraction):
 
             fullName = proj + f.split(proj, 1)[1]
             pathOnly = f.split(proj, 1)[1][1:]
-            progress = (float)(idx + 1) / numFile
 
-            try:
-                # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
-                rows, columns = subprocess.check_output(['stty', 'size']).split()
-            except ValueError:
+            if osName == "win":
                 columns = 80
+            else:
+                try:
+                    # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
+                    rows, columns = subprocess.check_output(['stty', 'size']).split()
+                except ValueError:
+                    columns = 80
 
-            progress = 100 * (float)(idx + 1) / numFile
+            progress = 100 * float(idx + 1) / numFile
             buf = "\r%.2f%% %s" % (progress, fullName)
             buf += " " * (int(columns) - len(buf))
             sys.stdout.write(buf)
@@ -639,7 +685,11 @@ def main():
 
     progStr = "hmark_" + localVersion + "_" + osName
     if osName == "win":
-        progStr += ".exe"
+        progStr += "_x" + bits + ".exe"
+    elif osName == "linux":
+        progStr = "./" + progStr + "_x" + bits
+    elif osName == "osx":
+        progStr = "./" + progStr
 
     ap = argparse.ArgumentParser(
         prog=progStr
@@ -674,7 +724,10 @@ def main():
     args = ap.parse_args()
 
     if args.version:
-        print "hmark " + localVersion + " for " + osName
+        versionString = "hmark" + localVersion + " for " + osName
+        if osName == "linux" or osName == "win":
+            versionString = versionString + " (x" + bits + ")"
+        print versionString
         sys.exit()
 
     if args.no_update_check:
@@ -704,8 +757,12 @@ def main():
                 run_cli(args.cli_mode[0], args.cli_mode[1])
             else:
                 print "[-] Bad parameter: " + args.cli_mode[1]
-                print "    Accepted parameters are ON or OFF."
+                print "    Accepted values are ON or OFF."
                 sys.exit()
+        else:
+            print "[-] Bad parameter: " + args.cli_mode[1]
+            print "    Accepted values are ON or OFF."
+            sys.exit()
 
     else:
         print "Running GUI"
