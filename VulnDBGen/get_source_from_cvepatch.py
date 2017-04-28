@@ -15,6 +15,7 @@ import os
 import sys
 import re
 import argparse
+from multiprocessing import Pool, Value, Lock
 
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,12 +25,13 @@ import config
 # GLOBALS
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 diffDir = os.path.join(originalDir, "diff")
-chunksCnt = 0  # number of DIFF patches
 resultList = []
 dummyFunction = parseutility.function(None)
 multimodeFlag = 0
 gitStoragePath = config.gitStoragePath
 gitBinary = config.gitBinary
+
+parseutility.setEnvironment("")
 
 # ARGUMENTS
 parser = argparse.ArgumentParser()
@@ -62,19 +64,27 @@ pat_chunk = '[\n](?=@@\s[^a-zA-Z]*\s[^a-zA-Z]*\s@@)'
 pat_linenum = r"-(\d+,\d+) \+(\d+,\d+) "
 pat_linenum = re.compile(pat_linenum)
 
-diffFileCnt = 0
+""" global variables """
 total = len(os.listdir(os.path.join(diffDir, repoName)))
-for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileName holds the filename of each DIFF patch
+diffFileCnt = Value('i', 0)
+lock = Lock()
+
+
+def source_from_cvepatch(diffFileName): # diffFileName holds the filename of each DIFF patch
     # diffFileName looks like: CVE-2012-2372_7a9bc620049fed37a798f478c5699a11726b3d33.diff
-    print str(diffFileCnt+1) + '/' + str(total),
-    diffFileCnt += 1
+    global diffFileCnt
+    chunksCnt = 0  # number of DIFF patches
+
+    print str(diffFileCnt.value + 1) + '/' + str(total),
+    with lock:
+        diffFileCnt.value += 1
 
     if os.path.getsize(os.path.join(diffDir, repoName, diffFileName)) > 1000000:
         # don't do anything with big DIFFs (merges, upgrades, ...).
         print "[-]", diffFileName, "\t(file too large)"
     else:
         diffFileNameSplitted = diffFileName.split('_')
-        cveId = diffFileNameSplitted[0]    # use only one CVEid
+        cveId = diffFileNameSplitted[0]  # use only one CVEid
         commitHashValue = diffFileNameSplitted[-1].split('.')[0]
 
         print "[+]", diffFileName, "\t(proceed)"
@@ -84,29 +94,29 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
             commitLog = patchLinesSplitted[0]
             affectedFilesList = patchLinesSplitted[1:]
 
-        if multimodeFlag:    # multimode DIFFs have repoPath at the beginning.
+        if multimodeFlag:  # multimode DIFFs have repoPath at the beginning.
             repoPath = commitLog.split('\n')[0]
 
         numAffectedFiles = len(affectedFilesList)
         for aidx, affectedFile in enumerate(affectedFilesList):
-            print "\tFile # " + str(aidx+1) + '/' + str(numAffectedFiles),
-            firstLine = affectedFile.split('\n')[0]    # git --diff a/path/filename.ext b/path/filename.ext
+            print "\tFile # " + str(aidx + 1) + '/' + str(numAffectedFiles),
+            firstLine = affectedFile.split('\n')[0]  # git --diff a/path/filename.ext b/path/filename.ext
             affectedFileName = firstLine.split("--git ")[1].split(" ")[0].split("/")[-1]
-            codePath = firstLine.split(' b')[1].strip()    # path/filename.ext
+            codePath = firstLine.split(' b')[1].strip()  # path/filename.ext
 
-            if not codePath.endswith(".c") and not codePath.endswith(".cpp"):    # and not codePath.endswith('.cc'):
+            if not codePath.endswith(".c") and not codePath.endswith(".cpp"):  # and not codePath.endswith('.cc'):
                 print "\t[-]", codePath, "(wrong type)"
             else:
                 secondLine = affectedFile.split('\n')[1]
 
-                if secondLine.startswith("index") == 0:# or secondLine.endswith("100644") == 0:
-                    print "\t[-]", codePath, "(invalid metadata)"    # we are looking for "index" only.
+                if secondLine.startswith("index") == 0:  # or secondLine.endswith("100644") == 0:
+                    print "\t[-]", codePath, "(invalid metadata)"  # we are looking for "index" only.
                 else:
                     print "\t[+]", codePath
                     indexHashOld = secondLine.split(' ')[1].split('..')[0]
                     indexHashNew = secondLine.split(' ')[1].split('..')[1]
 
-                    chunksList = re.split(pat_chunk, affectedFile)[1:]    # diff file per chunk (in list)
+                    chunksList = re.split(pat_chunk, affectedFile)[1:]  # diff file per chunk (in list)
                     chunksCnt += len(chunksList)
 
                     if multimodeFlag:
@@ -127,15 +137,14 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                     os.system(command_show)
 
                     os.chdir(originalDir)
-                    # TODO: Multithreading Support
-                    oldFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_old", "")
-                    newFunctionInstanceList = parseutility.parseFile_shallow(originalDir + "/tmp_new", "")
+                    oldFunctionInstanceList = parseutility.parseFile_semiDeep(originalDir + "/tmp_old", "")
+                    newFunctionInstanceList = parseutility.parseFile_semiDeep(originalDir + "/tmp_new", "")
 
                     finalOldFunctionList = []
 
                     numChunks = len(chunksList)
                     for ci, chunk in enumerate(chunksList):
-                        print "\t\tChunk # " + str(ci+1) + "/" + str(numChunks),
+                        print "\t\tChunk # " + str(ci + 1) + "/" + str(numChunks),
 
                         chunkSplitted = chunk.split('\n')
                         chunkFirstLine = chunkSplitted[0]
@@ -145,7 +154,7 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                         lineNums = pat_linenum.search(chunkFirstLine)
                         oldLines = lineNums.group(1).split(',')
                         newLines = lineNums.group(2).split(',')
-                        
+
                         offset = int(oldLines[0])
                         pmList = []
                         lnList = []
@@ -165,21 +174,22 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                         for f in oldFunctionInstanceList:
                             # print f.lines[0], f.lines[1]
 
-                            for num in range(f.lines[0], f.lines[1]+1):
+                            for num in range(f.lines[0], f.lines[1] + 1):
                                 if num in lnList:
                                     # print "Hit at", num
-                                    hitOldFunctionList.append(f)
-                                    break    # found the function to be patched
 
-                            # if f.lines[0] <= offset <= f.lines[1]:
-                            #     print "\t\t\tOffset HIT!!", f.name
-                            # elif f.lines[0] <= bound <= f.lines[1]:
-                            #     print "\t\t\tBound  HIT!!", f.name
+                                    hitOldFunctionList.append(f)
+                                    break  # found the function to be patched
+
+                                    # if f.lines[0] <= offset <= f.lines[1]:
+                                    #     print "\t\t\tOffset HIT!!", f.name
+                                    # elif f.lines[0] <= bound <= f.lines[1]:
+                                    #     print "\t\t\tBound  HIT!!", f.name
 
                         for f in hitOldFunctionList:
                             # print "Verify hitFunction", f.name
                             # print "ln",
-                            for num in range(f.lines[0], f.lines[1]+1):
+                            for num in range(f.lines[0], f.lines[1] + 1):
                                 # print num,
                                 try:
                                     listIndex = lnList.index(num)
@@ -208,9 +218,9 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                                     else:
                                         pass
                                         # print "Not meaningful"
-                            # print "============\n"
+                                        # print "============\n"
 
-                    finalOldFunctionList = list(set(finalOldFunctionList))    # sometimes list has dups
+                    finalOldFunctionList = list(set(finalOldFunctionList))  # sometimes list has dups
 
                     finalNewFunctionList = []
                     for fold in finalOldFunctionList:
@@ -232,7 +242,15 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                     for index, f in enumerate(finalOldFunctionList):
                         os.chdir(originalDir)
                         oldFuncInstance = finalOldFunctionList[index]
-                        finalOldFunction = oldFuncInstance.funcBody
+                        oldFuncArgs = ''
+                        for ai, funcArg in enumerate(oldFuncInstance.parameterList):
+                            oldFuncArgs += "DTYPE" + funcArg
+                            if ai + 1 != len(oldFuncInstance.parameterList):
+                                oldFuncArgs += ', '
+                        finalOldFunction = "DTYPE {0} ({1})\n{{ {2}\n}}"\
+                            .format(oldFuncInstance.name, oldFuncArgs, oldFuncInstance.funcBody)
+
+                        # finalOldFunction = oldFuncInstance.funcBody
                         finalOldFuncId = str(oldFuncInstance.funcId)
                         if finalNewFunctionList[index].name is None:
                             finalNewFunction = ""
@@ -253,9 +271,16 @@ for diffFileName in os.listdir(os.path.join(diffDir, repoName)):    # diffFileNa
                                     fp.write(finalNewFunction)
                                 else:
                                     fp.write("")
-                            os.system("diff -u " + vulOldFileName + " " + vulNewFileName + " >> " + vulFileNameBase + '_' + finalOldFuncId + ".patch")
+                            os.system(
+                                "diff -u " + vulOldFileName + " " + vulNewFileName + " >> " + vulFileNameBase + '_' + finalOldFuncId + ".patch")
+
+
+pool = Pool()
+pool.map(source_from_cvepatch, os.listdir(os.path.join(diffDir, repoName)))
+pool.close()
+pool.join()
 
 print ""
 print "Done getting vulnerable functions from", repoName
 print "Reconstructed", len(
-    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt, "patches."
+    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."

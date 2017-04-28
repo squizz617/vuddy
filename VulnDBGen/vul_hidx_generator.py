@@ -5,6 +5,7 @@ import sys
 import hashlib
 import time
 import argparse
+from multiprocessing import Pool, Value, Lock
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parser
@@ -42,20 +43,34 @@ numFiles = len(srcFileList)
 numFuncs = 0
 numLines = 0
 
-for si, srcFile in enumerate(srcFileList):
-    print si + 1, '/', len(srcFileList), srcFile
+srcFileIdx = Value('i', 0)
+lock = Lock()
+
+def parallel_process(srcFile):
+    global lock
+    global srcFileIdx
+    global numFuncs
+    global numFiles
+    global numLines
+    global projDictList
+    global hashFileMapList
+
+    with lock:
+        srcFileIdx.value += 1
+        print srcFileIdx.value, '/', len(srcFileList), srcFile
+
     if intendedAbsLvl == 0:
-        # functionInstanceList = parser.parseFile_shallow(srcFile, "GUI")
         functionInstanceList = parser.parseFile_shallow(srcFile, "")
     elif intendedAbsLvl == 4:
-        # functionInstanceList = parser.parseFile_deep(srcFile, "GUI")
         functionInstanceList = parser.parseFile_deep(srcFile, "")
         # Some lines below are added by Squizz on Jan 16, for FP reduction!
         functionInstanceList_New = parser.parseFile_deep(srcFile.replace("OLD.vul", "NEW.vul"), "")
 
-    numFuncs += len(functionInstanceList)
+    with lock:
+        numFuncs += len(functionInstanceList)
     if len(functionInstanceList) > 0:
-        numLines += functionInstanceList[0].parentNumLoc
+        with lock:
+            numLines += functionInstanceList[0].parentNumLoc
 
     for fi, f in enumerate(functionInstanceList):
         f.removeListDup()
@@ -81,21 +96,32 @@ for si, srcFile in enumerate(srcFileList):
                 continue
 
         try:
-            projDictList[intendedAbsLvl][funcLen].append(hashValue)
+            with lock:
+                projDictList[intendedAbsLvl][funcLen].append(hashValue)
         except KeyError:
-            projDictList[intendedAbsLvl][funcLen] = [hashValue]
+            with lock:
+                projDictList[intendedAbsLvl][funcLen] = [hashValue]
 
         try:
-            hashFileMapList[intendedAbsLvl][hashValue].extend([f.parentFile, f.funcId])
+            with lock:
+                hashFileMapList[intendedAbsLvl][hashValue].extend([f.parentFile, f.funcId])
         except KeyError:
-            hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
+            with lock:
+                hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
+
+
+pool = Pool()
+pool.map(parallel_process, srcFileList)
+pool.close()
+pool.join()
 
 for i in range(0, 5):
     if i == intendedAbsLvl:
         packageInfo = str("3.0.2") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
             numLines) + '\n'
         hidxDir = os.path.join(vulsDir, "hidx-vul-302")
-        os.makedirs(hidxDir)
+        if os.path.exists(hidxDir) is False:
+            os.makedirs(hidxDir)
         hidxFile = os.path.join(hidxDir, "hashmark_{0}_{1}.hidx".format(i, projName))
         with open(hidxFile, 'w') as fp:
             fp.write(packageInfo)

@@ -20,6 +20,8 @@ import re
 import time
 import argparse
 import sys
+from multiprocessing import Pool
+from functools import partial
 try:
     import cPickle as pickle
 except:
@@ -205,58 +207,65 @@ def process(gitLogOutput, subRepoName):
         print subRepoName
         os.chdir(os.path.join(gitStoragePath, repoName, subRepoName))
 
-    for commitMessage in commitsList:
-        if filterCommitMessage(commitMessage):
-            continue
+    pool = Pool()
+    func = partial(parallel_process, subRepoName)
+    pool.map(func, commitsList)
+    pool.close()
+    pool.join()
+
+
+def parallel_process(subRepoName, commitMessage):
+    if filterCommitMessage(commitMessage):
+        return
+    else:
+        commitHashValue = commitMessage[7:47]
+
+        cvePattern = re.compile('CVE-20\d{2}-\d{4}')
+        cveIdList = list(set(cvePattern.findall(commitMessage)))
+
+        """    
+        Note, Aug 5
+        If multiple CVE ids are assigned to one commit,
+        store the dependency in a file which is named after
+        the repo, (e.g., ~/diff/dependency_ubuntu)    and use
+        one representative CVE that has the smallest ID number
+        for filename. 
+        A sample:
+        CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853    CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
+        """
+
+        if len(cveIdList) > 1:  # do this only if muliple CVEs are assigned to a commit
+            fp = open(diffDir + "dependency_" + repoName[:-1], "a")
+            cveIdFull = ""
+            minimum = 9999
+            for cveId in cveIdList:
+                idDigits = int(cveId.split('-')[2])
+                cveIdFull += cveId + '_'
+                if minimum > idDigits:
+                    minimum = idDigits
+                    minCve = cveId
+            fp.write(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n')
+            fp.close()
+        elif len(cveIdList) == 0:
+            return
         else:
-            commitHashValue = commitMessage[7:47]
+            minCve = cveIdList[0]
 
-            cvePattern = re.compile('CVE-20\d{2}-\d{4}')
-            cveIdList = list(set(cvePattern.findall(commitMessage)))
+        gitShowOutput = callGitShow(commitHashValue)
 
-            """    
-            Note, Aug 5
-            If multiple CVE ids are assigned to one commit,
-            store the dependency in a file which is named after
-            the repo, (e.g., ~/diff/dependency_ubuntu)    and use
-            one representative CVE that has the smallest ID number
-            for filename. 
-            A sample:
-            CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853    CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
-            """
+        finalFileName = updateCveInfo(minCve)
 
-            if len(cveIdList) > 1:  # do this only if muliple CVEs are assigned to a commit
-                fp = open(diffDir + "dependency_" + repoName[:-1], "a")
-                cveIdFull = ""
-                minimum = 9999
-                for cveId in cveIdList:
-                    idDigits = int(cveId.split('-')[2])
-                    cveIdFull += cveId + '_'
-                    if minimum > idDigits:
-                        minimum = idDigits
-                        minCve = cveId
-                fp.write(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n')
-                fp.close()
-            elif len(cveIdList) == 0:
-                continue
-            else:
-                minCve = cveIdList[0]
+        print "[+] Writing ", finalFileName + commitHashValue + ".diff",
+        try:
+            with open(diffDir + repoName + finalFileName + commitHashValue + ".diff", "w") as fp:
+                if subRepoName is None:
+                    fp.write(gitShowOutput)
+                else:  # multi-repo mode
+                    fp.write(subRepoName + '\n' + gitShowOutput)
+        except IOError as e:
+            print "Error:", e
 
-            gitShowOutput = callGitShow(commitHashValue)
-
-            finalFileName = updateCveInfo(minCve)
-
-            print "[+] Writing ", finalFileName + commitHashValue + ".diff",
-            try:
-                with open(diffDir + repoName + finalFileName + commitHashValue + ".diff", "w") as fp:
-                    if subRepoName is None:
-                        fp.write(gitShowOutput)
-                    else:  # multi-repo mode
-                        fp.write(subRepoName + '\n' + gitShowOutput)
-            except IOError as e:
-                print "Error:", e
-
-            print "Done."
+        print "Done."
 
 
 """ main """

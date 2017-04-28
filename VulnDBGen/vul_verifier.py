@@ -2,7 +2,6 @@
 
 import os
 import sys
-
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as pu

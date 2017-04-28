@@ -249,6 +249,39 @@ def parseFile_shallow(srcFileName, caller):
     return functionInstanceList
 
 
+def parseFile_semiDeep(srcFileName, caller):
+    # this does not parse body.
+    global javaCallCommand
+    global delimiter
+    setEnvironment(caller)
+    javaCallCommand += "\"" + srcFileName + "\" 0"
+    functionInstanceList = []
+    try:
+        astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as e:
+        print "Parser Error:", e
+        astString = ""
+
+    funcList = astString.split(delimiter)
+    for func in funcList[1:]:
+        functionInstance = function(srcFileName)
+        elemsList = func.split('\n')[1:-1]
+        # print elemsList
+        if len(elemsList) > 9:
+            functionInstance.parentNumLoc = int(elemsList[1])
+            functionInstance.name = elemsList[2]
+            functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+            functionInstance.funcId = int(elemsList[4])
+            functionInstance.parameterList = elemsList[5].rstrip().split('\t')
+            functionInstance.funcBody = '\n'.join(elemsList[9:])
+            # print functionInstance.funcBody
+            # print "-------------------"
+
+            functionInstanceList.append(functionInstance)
+
+    return functionInstanceList
+
+
 def parseFile_deep(srcFileName, caller):
     global javaCallCommand
     global delimiter
