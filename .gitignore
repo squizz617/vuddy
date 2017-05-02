@@ -28,3 +28,5 @@ hmark/dist/
 
 NVDCVEcrawler/*.xml
 
+# Pycharm
+.idea/

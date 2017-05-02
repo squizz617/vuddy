@@ -12,6 +12,8 @@ import os
 import time
 from re import compile, findall
 import webbrowser
+import Tkinter
+import ttk
 from hashlib import md5
 
 import multiprocessing
@@ -308,8 +310,8 @@ class App:
 
         self.listProcess.config(state="normal")
         self.listProcess.insert(Tkinter.END,
-            "Loading source files... This may take a few minutes."
-        )
+                                "Loading source files... This may take a few minutes."
+                                )
         self.listProcess.update()
 
         fileList = parseutility.loadSource(directory)
@@ -317,16 +319,16 @@ class App:
 
         if numFile == 0:
             self.listProcess.insert(Tkinter.END,
-                "Error: Failed loading source files."
-            )
+                                    "Error: Failed loading source files."
+                                    )
             self.listProcess.insert(Tkinter.END,
-                "- Check if you selected proper directory, or if your project contains .c or .cpp files."
-            )
+                                    "- Check if you selected proper directory, or if your project contains .c or .cpp files."
+                                    )
         else:
             # self.listProcess.insert(END, "")
             self.listProcess.insert(Tkinter.END,
-                "Load complete. Generating hashmark..."
-            )
+                                    "Load complete. Generating hashmark..."
+                                    )
             # self.listProcess.insert(END, "")
             # self.listProcess.insert(END, "")
 
@@ -514,7 +516,6 @@ cssa@korea.ac.kr
 def run_gui():
     global localVersion
     global icon
-
     global Tkinter
     global tkFileDialog
     global ttk
@@ -807,6 +808,7 @@ if sys.platform.startswith("win"):
                         os.unsetenv('_MEIPASS2')
                     else:
                         os.putenv('_MEIPASS2', '')
+
 
     # Second override 'Popen' class with our modified version.
     forking.Popen = _Popen

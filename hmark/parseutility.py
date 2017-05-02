@@ -10,6 +10,11 @@ import subprocess
 import re
 import platform
 
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
+
 def get_platform():
     global osName
     global bits
@@ -30,8 +35,6 @@ def get_platform():
         bits = ""
 
 
-# sys.path.append(sys._MEIPASS)
-
 def setEnvironment(caller):
     get_platform()
     global javaCallCommand
@@ -48,25 +51,27 @@ def setEnvironment(caller):
         elif osName == "linux" or osName == "osx":
             # full_path = os.path.join(base_path, "FuncParser.jar")
             # javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-            javaCallCommand = "java -Xmx1024m -jar \"" + os.path.join(cwd, "FuncParser-opt.jar") + "\" "
+            javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(cwd, "FuncParser-opt.jar"))
 
     else:
         if osName == "win":
-            javaCallCommand = "FuncParser-opt.exe "
+            base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
+            javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
         elif osName == "linux" or osName == "osx":
-            javaCallCommand = "java -Xmx1024m -jar \"FuncParser-opt.jar\" "
+            base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
+            javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(base_path, "FuncParser-opt.jar"))
 
 
 class function:
-    parentFile = None   # Absolute file which has the function
-    parentNumLoc = None # Number of LoC of the parent file
-    name = None         # Name of the function
-    lines = None        # Tuple (lineFrom, lineTo) that indicates the LoC of function
-    funcId = None       # n, indicating n-th function in the file
+    parentFile = None  # Absolute file which has the function
+    parentNumLoc = None  # Number of LoC of the parent file
+    name = None  # Name of the function
+    lines = None  # Tuple (lineFrom, lineTo) that indicates the LoC of function
+    funcId = None  # n, indicating n-th function in the file
     parameterList = []  # list of parameter variables
-    variableList = []   # list of local variables
-    dataTypeList = []   # list of data types, including user-defined types
-    funcCalleeList = [] # list of called functions' names
+    variableList = []  # list of local variables
+    dataTypeList = []  # list of data types, including user-defined types
+    funcCalleeList = []  # list of called functions' names
     funcBody = None
 
     def __init__(self, fileName):
@@ -84,24 +89,24 @@ class function:
         self.dataTypeList = list(set(self.dataTypeList))
         self.funcCalleeList = list(set(self.funcCalleeList))
 
-    # def getOriginalFunction(self):
-    #   # returns the original function back from the instance.
-    #   fp = open(self.parentFile, 'r')
-    #   srcFileRaw = fp.readlines()
-    #   fp.close()
-    #   return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
+        # def getOriginalFunction(self):
+        #   # returns the original function back from the instance.
+        #   fp = open(self.parentFile, 'r')
+        #   srcFileRaw = fp.readlines()
+        #   fp.close()
+        #   return ''.join(srcFileRaw[self.lines[0]-1:self.lines[1]])
 
 
 def loadSource(rootDirectory):
     # returns the list of .src files under the specified root directory.
     maxFileSizeInBytes = None
-    maxFileSizeInBytes = 2097152    # remove this line if you don't want to restrict
-                                    # the maximum file size that you process.
+    maxFileSizeInBytes = 2097152  # remove this line if you don't want to restrict
+    # the maximum file size that you process.
     walkList = os.walk(rootDirectory)
     srcFileList = []
     for path, dirs, files in walkList:
         for fileName in files:
-            if fileName.endswith('.c') or fileName.endswith('.cpp'):# or fileName.endswith('.cc'):
+            if fileName.endswith('.c') or fileName.endswith('.cpp'):  # or fileName.endswith('.cc'):
                 absPathWithFileName = path.replace('\\', '/') + '/' + fileName
                 if maxFileSizeInBytes is not None:
                     if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
@@ -110,11 +115,12 @@ def loadSource(rootDirectory):
                     srcFileList.append(absPathWithFileName)
     return srcFileList
 
+
 def loadVul(rootDirectory):
     # returns the list of .vul files under the specified root directory.
     maxFileSizeInBytes = None
     # maxFileSizeInBytes = 2097152  # remove this line if you don't want to restrict
-                                    # the maximum file size that you process.
+    # the maximum file size that you process.
     walkList = os.walk(rootDirectory)
     srcFileList = []
     for path, dirs, files in walkList:
@@ -131,7 +137,9 @@ def loadVul(rootDirectory):
 
 def removeComment(string):
     # Code for removing C/C++ style comments. (Imported from ReDeBug.)
-    c_regex = re.compile(r'(?P<comment>//.*?$|[{}]+)|(?P<multilinecomment>/\*.*?\*/)|(?P<noncomment>\'(\\.|[^\\\'])*\'|"(\\.|[^\\"])*"|.[^/\'"]*)', re.DOTALL | re.MULTILINE)
+    c_regex = re.compile(
+        r'(?P<comment>//.*?$|[{}]+)|(?P<multilinecomment>/\*.*?\*/)|(?P<noncomment>\'(\\.|[^\\\'])*\'|"(\\.|[^\\"])*"|.[^/\'"]*)',
+        re.DOTALL | re.MULTILINE)
     return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
 
 
@@ -144,7 +152,8 @@ def normalize(string):
     # Code for normalizing the input string.
     # LF and TAB literals, curly braces, and spaces are removed,
     # and all characters are lowercased.
-    return ''.join(string.replace('\n', '').replace('\r', '').replace('\t','').replace('{', '').replace('}', '').split(' ')).lower()
+    return ''.join(string.replace('\n', '').replace('\r', '').replace('\t', '').replace('{', '').replace('}', '').split(
+        ' ')).lower()
 
 
 def abstract(instance, level):
@@ -155,10 +164,10 @@ def abstract(instance, level):
     originalFunctionBody = removeComment(originalFunctionBody)
     # print originalFunctionBody
     # print '===================================================='
-    if int(level) >= 0: # No abstraction.
+    if int(level) >= 0:  # No abstraction.
         abstractBody = originalFunctionBody
 
-    if int(level) >= 1: # PARAM
+    if int(level) >= 1:  # PARAM
         parameterList = instance.parameterList
         for param in parameterList:
             if len(param) == 0:
@@ -169,7 +178,7 @@ def abstract(instance, level):
             except:
                 pass
 
-    if int(level) >= 2: # DTYPE
+    if int(level) >= 2:  # DTYPE
         dataTypeList = instance.dataTypeList
         for dtype in dataTypeList:
             if len(dtype) == 0:
@@ -180,7 +189,7 @@ def abstract(instance, level):
             except:
                 pass
 
-    if int(level) >= 3: # LVAR
+    if int(level) >= 3:  # LVAR
         variableList = instance.variableList
         for lvar in variableList:
             if len(lvar) == 0:
@@ -191,7 +200,7 @@ def abstract(instance, level):
             except:
                 pass
 
-    if int(level) >= 4: # FUNCCALL
+    if int(level) >= 4:  # FUNCCALL
         funcCalleeList = instance.funcCalleeList
         for fcall in funcCalleeList:
             if len(fcall) == 0:
@@ -204,7 +213,9 @@ def abstract(instance, level):
 
     return (originalFunctionBody, abstractBody)
 
+
 delimiter = "\r\0?\r?\0\r"
+
 
 def parseFile_shallow(srcFileName, caller):
     # this does not parse body.
@@ -236,6 +247,40 @@ def parseFile_shallow(srcFileName, caller):
             functionInstanceList.append(functionInstance)
 
     return functionInstanceList
+
+
+def parseFile_semiDeep(srcFileName, caller):
+    # this does not parse body.
+    global javaCallCommand
+    global delimiter
+    setEnvironment(caller)
+    javaCallCommand += "\"" + srcFileName + "\" 0"
+    functionInstanceList = []
+    try:
+        astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as e:
+        print "Parser Error:", e
+        astString = ""
+
+    funcList = astString.split(delimiter)
+    for func in funcList[1:]:
+        functionInstance = function(srcFileName)
+        elemsList = func.split('\n')[1:-1]
+        # print elemsList
+        if len(elemsList) > 9:
+            functionInstance.parentNumLoc = int(elemsList[1])
+            functionInstance.name = elemsList[2]
+            functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+            functionInstance.funcId = int(elemsList[4])
+            functionInstance.parameterList = elemsList[5].rstrip().split('\t')
+            functionInstance.funcBody = '\n'.join(elemsList[9:])
+            # print functionInstance.funcBody
+            # print "-------------------"
+
+            functionInstanceList.append(functionInstance)
+
+    return functionInstanceList
+
 
 def parseFile_deep(srcFileName, caller):
     global javaCallCommand

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 CVE data updater.
 Run cveXmlDownloader.py and cveXmlParser.py before running this module.
@@ -5,7 +6,6 @@ This module downloads "modified" data from NVD, uncompress and update the databa
 """
 
 import os
-from xml.etree.ElementTree import parse
 import pickle
 import common
 
