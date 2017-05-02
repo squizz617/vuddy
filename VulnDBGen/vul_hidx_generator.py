@@ -110,10 +110,13 @@ def parallel_process(srcFile):
                 hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
 
 
-pool = Pool()
-pool.map(parallel_process, srcFileList)
-pool.close()
-pool.join()
+#pool = Pool()
+#pool.map(parallel_process, srcFileList)
+#pool.close()
+#pool.join()
+
+for srcFile in srcFileList:
+    parallel_process(srcFile)
 
 for i in range(0, 5):
     if i == intendedAbsLvl:

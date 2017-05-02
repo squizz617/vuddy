@@ -14,6 +14,7 @@ Aug 08    SBKIM    Major update: with parser (codesensor.jar)
 import os
 import sys
 import re
+import shutil
 import argparse
 from multiprocessing import Pool, Value, Lock
 
@@ -53,6 +54,10 @@ else:
     print "Off"
 
 # try making missing directories
+try:
+    os.makedirs(os.path.join(originalDir, 'tmp'))
+except OSError as e:
+    pass
 try:
     os.makedirs(os.path.join(originalDir, 'vul', repoName))
 except OSError as e:
@@ -125,20 +130,17 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                         os.chdir(os.path.join(gitStoragePath, repoName))
                         # os.chdir(os.path.join("/home/squizz/devgit/", repoName))    #temporary change!!!! Aug 8
 
-                    try:
-                        os.remove(originalDir + "/tmp_old")
-                        os.remove(originalDir + "/tmp_new")
-                    except:
-                        pass
-
-                    command_show = "{0} show {1} >> {2}/tmp_old".format(gitBinary, indexHashOld, originalDir)
+                    tmpOldFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_old")
+                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashOld, tmpOldFileName)
                     os.system(command_show)
-                    command_show = "{0} show {1} >> {2}/tmp_new".format(gitBinary, indexHashNew, originalDir)
+
+                    tmpNewFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_new")
+                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashNew, tmpNewFileName)
                     os.system(command_show)
 
                     os.chdir(originalDir)
-                    oldFunctionInstanceList = parseutility.parseFile_semiDeep(originalDir + "/tmp_old", "")
-                    newFunctionInstanceList = parseutility.parseFile_semiDeep(originalDir + "/tmp_new", "")
+                    oldFunctionInstanceList = parseutility.parseFile_semiDeep(tmpOldFileName, "")
+                    newFunctionInstanceList = parseutility.parseFile_semiDeep(tmpNewFileName, "")
 
                     finalOldFunctionList = []
 
@@ -244,7 +246,7 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                         oldFuncInstance = finalOldFunctionList[index]
                         oldFuncArgs = ''
                         for ai, funcArg in enumerate(oldFuncInstance.parameterList):
-                            oldFuncArgs += "DTYPE" + funcArg
+                            oldFuncArgs += "DTYPE " + funcArg
                             if ai + 1 != len(oldFuncInstance.parameterList):
                                 oldFuncArgs += ', '
                         finalOldFunction = "DTYPE {0} ({1})\n{{ {2}\n}}"\
@@ -284,3 +286,6 @@ print ""
 print "Done getting vulnerable functions from", repoName
 print "Reconstructed", len(
     os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
+
+# remove temp directory
+shutil.rmtree(os.path.join(originalDir, 'tmp'))
