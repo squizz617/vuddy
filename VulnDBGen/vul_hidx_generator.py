@@ -5,7 +5,8 @@ import sys
 import hashlib
 import time
 import argparse
-from multiprocessing import Pool, Value, Lock
+from multiprocessing import Pool
+from functools import partial
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parser
@@ -43,34 +44,29 @@ numFiles = len(srcFileList)
 numFuncs = 0
 numLines = 0
 
-srcFileIdx = Value('i', 0)
-lock = Lock()
 
-def parallel_process(srcFile):
-    global lock
-    global srcFileIdx
-    global numFuncs
-    global numFiles
-    global numLines
-    global projDictList
-    global hashFileMapList
-
-    with lock:
-        srcFileIdx.value += 1
-        print srcFileIdx.value, '/', len(srcFileList), srcFile
-
-    if intendedAbsLvl == 0:
+def parse_function(absLvl, srcFile):
+    if absLvl == 0:
         functionInstanceList = parser.parseFile_shallow(srcFile, "")
-    elif intendedAbsLvl == 4:
+        return (srcFile, functionInstanceList, None)
+    elif absLvl == 4:
         functionInstanceList = parser.parseFile_deep(srcFile, "")
         # Some lines below are added by Squizz on Jan 16, for FP reduction!
         functionInstanceList_New = parser.parseFile_deep(srcFile.replace("OLD.vul", "NEW.vul"), "")
+        return (srcFile, functionInstanceList, functionInstanceList_New)
 
-    with lock:
-        numFuncs += len(functionInstanceList)
+
+pool = Pool()
+func = partial(parse_function, intendedAbsLvl)
+for srcFileIdx, returnTuple in enumerate(pool.imap(func, srcFileList)):
+    srcFile = returnTuple[0]
+    functionInstanceList = returnTuple[1]
+    functionInstanceList_New = returnTuple[2]
+
+    print srcFileIdx + 1, '/', len(srcFileList), srcFile
+    numFuncs += len(functionInstanceList)
     if len(functionInstanceList) > 0:
-        with lock:
-            numLines += functionInstanceList[0].parentNumLoc
+        numLines += functionInstanceList[0].parentNumLoc
 
     for fi, f in enumerate(functionInstanceList):
         f.removeListDup()
@@ -96,27 +92,15 @@ def parallel_process(srcFile):
                 continue
 
         try:
-            with lock:
-                projDictList[intendedAbsLvl][funcLen].append(hashValue)
+            projDictList[intendedAbsLvl][funcLen].append(hashValue)
         except KeyError:
-            with lock:
-                projDictList[intendedAbsLvl][funcLen] = [hashValue]
+            projDictList[intendedAbsLvl][funcLen] = [hashValue]
 
         try:
-            with lock:
-                hashFileMapList[intendedAbsLvl][hashValue].extend([f.parentFile, f.funcId])
+            hashFileMapList[intendedAbsLvl][hashValue].extend([f.parentFile, f.funcId])
         except KeyError:
-            with lock:
-                hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
+            hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
 
-
-#pool = Pool()
-#pool.map(parallel_process, srcFileList)
-#pool.close()
-#pool.join()
-
-for srcFile in srcFileList:
-    parallel_process(srcFile)
 
 for i in range(0, 5):
     if i == intendedAbsLvl:
