@@ -8,25 +8,30 @@ Updates of the database is done in cvexmlupdater.py
 """
 
 import os
-
+import common
 try:
     import cPickle as pickle
-except:
+except ImportError:
     import pickle
-import common
 
-DLDir = "CVEXML"
-cveDict = {}
-reference = []
 
-pwd = os.getcwd()
-os.chdir(DLDir)
+def process():
+    DLDir = "CVEXML"
+    cveDict = {}
+    reference = []
 
-for xml in os.listdir("."):
-    subDict = common.parse_xml(xml)
-    cveDict.update(subDict)
+    pwd = os.getcwd()
+    os.chdir(DLDir)
 
-os.chdir(pwd)
-pickle.dump(cveDict, open("cvedata.pkl", "wb"))
+    for xml in os.listdir("."):
+        subDict = common.parse_xml(xml)
+        cveDict.update(subDict)
 
-print "Stored " + str(len(cveDict)) + " CVE data in file 'cvedata.pkl'."
+    os.chdir(pwd)
+    pickle.dump(cveDict, open("cvedata.pkl", "wb"))
+
+    print "Stored " + str(len(cveDict)) + " CVE data in file 'cvedata.pkl'."
+
+
+if __name__ == '__main__':
+    process()

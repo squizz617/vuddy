@@ -14,10 +14,9 @@ Aug 08    SBKIM    Major update: with parser (codesensor.jar)
 import os
 import sys
 import re
-import shutil
+import glob
 import argparse
 from multiprocessing import Pool, Value, Lock
-
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parseutility
@@ -55,7 +54,7 @@ else:
 
 # try making missing directories
 try:
-    os.makedirs(os.path.join(originalDir, 'tmp'))
+    os.makedirs(os.path.join(originalDir, 'tmp'), )
 except OSError as e:
     pass
 try:
@@ -78,6 +77,7 @@ lock = Lock()
 def source_from_cvepatch(diffFileName): # diffFileName holds the filename of each DIFF patch
     # diffFileName looks like: CVE-2012-2372_7a9bc620049fed37a798f478c5699a11726b3d33.diff
     global diffFileCnt
+    global repoName
     chunksCnt = 0  # number of DIFF patches
 
     print str(diffFileCnt.value + 1) + '/' + str(total),
@@ -130,11 +130,11 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                         os.chdir(os.path.join(gitStoragePath, repoName))
                         # os.chdir(os.path.join("/home/squizz/devgit/", repoName))    #temporary change!!!! Aug 8
 
-                    tmpOldFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_old")
+                    tmpOldFileName = os.path.join(originalDir, "tmp", "{}_{}_old".format(repoName, diffFileCnt.value))
                     command_show = "{0} show {1} > {2}".format(gitBinary, indexHashOld, tmpOldFileName)
                     os.system(command_show)
 
-                    tmpNewFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_new")
+                    tmpNewFileName = os.path.join(originalDir, "tmp", "{}_{}_new".format(repoName, diffFileCnt.value))
                     command_show = "{0} show {1} > {2}".format(gitBinary, indexHashNew, tmpNewFileName)
                     os.system(command_show)
 
@@ -279,13 +279,16 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
 
 pool = Pool()
 pool.map(source_from_cvepatch, os.listdir(os.path.join(diffDir, repoName)))
-pool.close()
 pool.join()
+
+# delete temp source files
+wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
+for f in glob.glob(wildcard_temp):
+    os.remove(f)
 
 print ""
 print "Done getting vulnerable functions from", repoName
 print "Reconstructed", len(
     os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
 
-# remove temp directory
-shutil.rmtree(os.path.join(originalDir, 'tmp'))
+
