@@ -15,7 +15,7 @@ for dir in dirs:
             if not vul.endswith(
                     "CVE-2009-0029_7.2_CWE-020_836f92adf121f806e9beb5b6b88bd5c9c4ea3f24_splice.c_33_OLD.vul"):
                 continue
-            with open(os.path.join('vul', dir, vul), "r") as fp:
+            with open(os.path.join(dir, vul), "r") as fp:
                 raw = ''.join(fp.readlines())
                 body = pu.getBody(pu.removeComment(raw))
             # print body
