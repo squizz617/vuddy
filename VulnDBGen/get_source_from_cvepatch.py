@@ -16,7 +16,8 @@ import sys
 import re
 import glob
 import argparse
-from multiprocessing import Pool, Value, Lock
+import multiprocessing as mp
+import platform
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parseutility
@@ -32,6 +33,11 @@ gitStoragePath = config.gitStoragePath
 gitBinary = config.gitBinary
 
 parseutility.setEnvironment("")
+
+
+if __name__ == "__main__":
+    mp.freeze_support()
+
 
 # ARGUMENTS
 parser = argparse.ArgumentParser()
@@ -54,7 +60,7 @@ else:
 
 # try making missing directories
 try:
-    os.makedirs(os.path.join(originalDir, 'tmp'), )
+    os.makedirs(os.path.join(originalDir, 'tmp'))
 except OSError as e:
     pass
 try:
@@ -70,11 +76,11 @@ pat_linenum = re.compile(pat_linenum)
 
 """ global variables """
 total = len(os.listdir(os.path.join(diffDir, repoName)))
-diffFileCnt = Value('i', 0)
-lock = Lock()
+diffFileCnt = mp.Value('i', 0)
+lock = mp.Lock()
 
 
-def source_from_cvepatch(diffFileName): # diffFileName holds the filename of each DIFF patch
+def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of each DIFF patch
     # diffFileName looks like: CVE-2012-2372_7a9bc620049fed37a798f478c5699a11726b3d33.diff
     global diffFileCnt
     global repoName
@@ -131,11 +137,11 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                         # os.chdir(os.path.join("/home/squizz/devgit/", repoName))    #temporary change!!!! Aug 8
 
                     tmpOldFileName = os.path.join(originalDir, "tmp", "{}_{}_old".format(repoName, diffFileCnt.value))
-                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashOld, tmpOldFileName)
+                    command_show = "\"{0}\" show {1} > {2}".format(gitBinary, indexHashOld, tmpOldFileName)
                     os.system(command_show)
 
                     tmpNewFileName = os.path.join(originalDir, "tmp", "{}_{}_new".format(repoName, diffFileCnt.value))
-                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashNew, tmpNewFileName)
+                    command_show = "\"{0}\" show {1} > {2}".format(gitBinary, indexHashNew, tmpNewFileName)
                     os.system(command_show)
 
                     os.chdir(originalDir)
@@ -273,13 +279,23 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                                     fp.write(finalNewFunction)
                                 else:
                                     fp.write("")
-                            os.system(
-                                "diff -u " + vulOldFileName + " " + vulNewFileName + " >> " + vulFileNameBase + '_' + finalOldFuncId + ".patch")
+                            diffCommand = "\"{0}\" -u {1} {2} >> {3}_{4}.patch".format(config.diffBinary,
+                                                                                       vulOldFileName,
+                                                                                       vulNewFileName,
+                                                                                       vulFileNameBase,
+                                                                                       finalOldFuncId)
+                            os.system(diffCommand)
 
 
-pool = Pool()
-pool.map(source_from_cvepatch, os.listdir(os.path.join(diffDir, repoName)))
-pool.join()
+diffList = os.listdir(os.path.join(diffDir, repoName))
+if "Windows" in platform.platform():
+    # Windows - do not use multiprocessing
+    # Using multiprocessing will lower performance
+    for diffFile in diffList:
+        source_from_cvepatch(diffFile)
+else:  # POSIX - use multiprocessing
+    pool = mp.Pool()
+    pool.map(source_from_cvepatch, diffList)
 
 # delete temp source files
 wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
