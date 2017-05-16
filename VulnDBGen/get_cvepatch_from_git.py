@@ -44,12 +44,9 @@ class InfoStruct:
     GitStoragePath = config.gitStoragePath
     CveDict = {}
 
-    def __init__(self, repoName, multiModeFlag, multiRepoList, originalDir, CveDataPath):
-        self.RepoName = repoName
+    def __init__(self, originalDir, CveDataPath):
         self.OriginalDir = originalDir
         self.DiffDir = os.path.join(originalDir, 'diff')
-        self.MultiModeFlag = multiModeFlag
-        self.MultiRepoList = multiRepoList
         with open(CveDataPath, "rb") as f:
             self.CveDict = pickle.load(f)
 
@@ -57,7 +54,7 @@ class InfoStruct:
 """ GLOBALS """
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 cveDataPath = os.path.join(originalDir, "cvedata.pkl")
-info = InfoStruct("linux", 0, [], originalDir, cveDataPath)  # first three arg is dummy for now
+info = InfoStruct(originalDir, cveDataPath)  # first three arg is dummy for now
 printLock = mp.Lock()
 #repoName = "linux"
 #originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
@@ -118,7 +115,7 @@ def init():
     print "Initializing...",
 
     try:
-        os.makedirs(os.path.join(info.DiffDir + info.RepoName))
+        os.makedirs(os.path.join(info.DiffDir, info.RepoName))
     except OSError:
         pass
 
