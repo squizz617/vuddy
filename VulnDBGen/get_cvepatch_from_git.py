@@ -38,11 +38,12 @@ class InfoStruct:
     RepoName = ''  # repository name
     OriginalDir = ''  # vuddy root directory
     DiffDir = ''
-    MultiModeFlag = 0
+    MultimodeFlag = 0
     MultiRepoList = []
     GitBinary = config.gitBinary
     GitStoragePath = config.gitStoragePath
     CveDict = {}
+    DebugMode = False
 
     def __init__(self, originalDir, CveDataPath):
         self.OriginalDir = originalDir
@@ -56,25 +57,6 @@ originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vud
 cveDataPath = os.path.join(originalDir, "cvedata.pkl")
 info = InfoStruct(originalDir, cveDataPath)  # first three arg is dummy for now
 printLock = mp.Lock()
-#repoName = "linux"
-#originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
-#diffDir = os.path.join(originalDir, 'diff/')
-#multiModeFlag = 0
-#multiRepoList = []
-#gitStoragePath = config.gitStoragePath
-#gitBinary = config.gitBinary
-#cveDict = pickle.load(open(os.path.join(originalDir, "cvedata.pkl"), "rb"))
-#printLock = Lock()
-# try:
-#    cveDict = pickle.load(open("cvedata.pkl", "rb"))
-# except IOError:  # generate
-#    import NVDCVEcrawler.cveXmlDownloader as Downloader
-#    import NVDCVEcrawler.cveXmlDownloader as Parser
-#    import NVDCVEcrawler.cveXmlDownloader as Updater
-#    print("cvedata.pkl not found, downloading automatically...")
-#    Downloader.process()
-#    Parser.process()
-#    Updater.process()
 
 
 """ FUNCTIONS """
@@ -85,19 +67,22 @@ def parse_argument():
     parser.add_argument('REPO',
                         help='''Repository name''')
     parser.add_argument('-m', '--multimode', action="store_true",
-                        help='''Multimode''')
+                        help='''Turn on Multimode''')
+    parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
 
     args = parser.parse_args()
 
     info.RepoName = args.REPO
-    info.MultiModeFlag = 0
+    info.MultimodeFlag = 0
     info.MultiRepoList = []
     if args.multimode:
-        info.MultiModeFlag = 1
-        with open(os.path.join('repolists', 'list_' + info.RepoName)) as fp:
+        info.MultimodeFlag = 1
+        with open(os.path.join(originalDir, 'repolists', 'list_' + info.RepoName)) as fp:
             for repoLine in fp.readlines():
                 if len(repoLine) > 2:
                     info.MultiRepoList.append(repoLine.rstrip())
+    if args.debug:
+        info.DebugMode = True
 
 
 def init():
@@ -107,7 +92,7 @@ def init():
 
     print "Retrieving CVE patch from", info.RepoName
     print "Multi-repo mode:",
-    if info.MultiModeFlag:
+    if info.MultimodeFlag:
         print "ON."
     else:
         print "OFF."
@@ -130,40 +115,17 @@ def callGitLog(gitDir):
     :return:
     """
     # print "Calling git log...",
-    pattern = re.compile('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)')
-
     commitsList = []
-    if "Windows" in platform.platform():
-        # --grep not works in Windows.
-        # Use regex instead
-        command_log = "\"{0}\" log --all --pretty=fuller".format(info.GitBinary)
-        os.chdir(gitDir)
+    command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"CVE-20\"".format(info.GitBinary)
+    os.chdir(gitDir)
+    try:
         try:
-            try:
-                rawLogOutput = subprocess.check_output(command_log, shell=True)
-                # commitsRawList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)', rawLogOutput)
-                commitsRawList = re.split(pattern, rawLogOutput)
-
-                for commit in commitsRawList:
-                    if 'CVE-20' in commit:
-                        commitsList.append(commit)
-            except subprocess.CalledProcessError as e:
-                print "[-] Git log error:", e
-        except UnicodeDecodeError as err:
-            print "[-] Unicode error:", err
-    else:
-        grepKeyword = r"'CVE-20'"
-        command_log = "\"{0}\" log --all --pretty=fuller --grep={1}".format(info.GtBinary, grepKeyword)
-        os.chdir(gitDir)
-        try:
-            try:
-                gitLogOutput = subprocess.check_output(command_log, shell=True)
-                # commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
-                commitsList = re.split(pattern, gitLogOutput)
-            except subprocess.CalledProcessError as e:
-                print "[-] Git log error:", e
-        except UnicodeDecodeError as err:
-            print "[-] Unicode error:", err
+            gitLogOutput = subprocess.check_output(command_log, shell=True)
+            commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
+        except subprocess.CalledProcessError as e:
+            print "[-] Git log error:", e
+    except UnicodeDecodeError as err:
+        print "[-] Unicode error:", err
 
     # print "Done."
     return commitsList
@@ -251,7 +213,7 @@ def process(commitsList, subRepoName):
         print subRepoName
         os.chdir(os.path.join(info.GitStoragePath, info.RepoName, subRepoName))
 
-    if "Windows" in platform.platform():
+    if info.DebugMode or "Windows" in platform.platform():
         # Windows - do not use multiprocessing
         # Using multiprocessing will lower performance
         for commitMessage in commitsList:
@@ -328,7 +290,7 @@ def main():
 
     t1 = time.time()
     init()
-    if info.MultiModeFlag:
+    if info.MultimodeFlag:
         for sidx, subRepoName in enumerate(info.MultiRepoList):
             gitDir = os.path.join(info.GitStoragePath, info.RepoName, subRepoName)  # where .git exists
             commitsList = callGitLog(gitDir)

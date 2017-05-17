@@ -101,31 +101,29 @@ def main():
             except KeyError:
                 hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
 
-    for i in range(0, 5):
-        if i == intendedAbsLvl:
-            packageInfo = str("3.0.2") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
-                numLines) + '\n'
-            hidxDir = os.path.join(vulsDir, "hidx-vul-302")
-            if os.path.exists(hidxDir) is False:
-                os.makedirs(hidxDir)
-            hidxFile = os.path.join(hidxDir, "hashmark_{0}_{1}.hidx".format(i, projName))
-            with open(hidxFile, 'w') as fp:
-                fp.write(packageInfo)
-                for key in sorted(projDictList[i]):
-                    fp.write(str(key) + '\t')
-                    for h in list(set(projDictList[i][key])):
-                        fp.write(h + '\t')
-                    fp.write('\n')
+    packageInfo = str("3.0.2") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
+        numLines) + '\n'
+    hidxDir = os.path.join(vulsDir, "hidx-vul")
+    if os.path.exists(hidxDir) is False:
+        os.makedirs(hidxDir)
+    hidxFile = os.path.join(hidxDir, "hashmark_{0}_{1}.hidx".format(intendedAbsLvl, projName))
+    with open(hidxFile, 'w') as fp:
+        fp.write(packageInfo)
+        for key in sorted(projDictList[intendedAbsLvl]):
+            fp.write(str(key) + '\t')
+            for h in list(set(projDictList[intendedAbsLvl][key])):
+                fp.write(h + '\t')
+            fp.write('\n')
 
-                fp.write('\n=====\n')
+        fp.write('\n=====\n')
 
-                for key in sorted(hashFileMapList[i]):
-                    fp.write(str(key) + '\t')
-                    for f in hashFileMapList[i][key]:
-                        fp.write(str(f) + '\t')
-                    fp.write('\n')
+        for key in sorted(hashFileMapList[intendedAbsLvl]):
+            fp.write(str(key) + '\t')
+            for f in hashFileMapList[intendedAbsLvl][key]:
+                fp.write(str(f) + '\t')
+            fp.write('\n')
 
-    print os.path.join(vulsDir, "hidx-vul-302", "hashmark_{0}_{1}.hidx".format(i, projName))
+    print os.path.join(vulsDir, "hidx-vul", "hashmark_{0}_{1}.hidx".format(i, projName))
     time1 = time.time()
     print "Elapsed time:", time1 - time0
 

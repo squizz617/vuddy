@@ -10,19 +10,16 @@ Ex) gitStoragePath = "D:\\Source\\gitrepos"
 [Note for POSIX]
 - Use '/' for path
 Ex) gitStoragePath = "/home/ubuntu/gitrepos/"
-- Java binary is only needed in Linux
+- Java binary is only needed in POSIX
 """
 
 gitStoragePath = "/home/ubuntu/gitrepos/"
-gitBinary = "git"
-diffBinary = "diff"
-javaBinary = "java"
 
 pf = platform.platform()
-if "Windows" in pf:
+if "Windows" in pf:  # Windows
     gitBinary = "C:\\Program Files\\Git\\bin\\git.exe"
     diffBinary = "C:\\Program Files\\Git\\usr\\bin\\diff.exe"
-elif "Linux" in pf:
+else:  # POSIX
     gitBinary = "git"
     diffBinary = "diff"
     javaBinary = "java"
