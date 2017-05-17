@@ -3,34 +3,15 @@
 import os
 import sys
 import hashlib
-from multiprocessing import Pool, Lock
 
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from hmark.parseutility import normalize
 
-lock = Lock()
 hashdict = {}
 cntdict = {}
 vulcntlist = []
 repolist = []
-
-
-def parallel_process(vul):
-    global hashdict
-    global lock
-
-    if vul.endswith("OLD.vul"):
-        with open(os.path.join(d, vul), "r") as fp:
-            text = '\n'.join(fp.readlines())
-            text = normalize(text)
-            checksum = hashlib.md5(text).hexdigest()
-            with lock:
-                try:
-                    hashdict[checksum].append(d + ' ' + vul)
-                except:
-                    hashdict[checksum] = [d + ' ' + vul]
-
 
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 vulsDir = os.path.join(originalDir, "vul")
@@ -44,11 +25,16 @@ for d in dirs:
         # print repolist
         vulcntlist.append(len(os.listdir(d)))
         # print vulcntlist
-        pool = Pool()
-        pool.map(parallel_process, os.listdir(d))
-        pool.close()
-        pool.join()
-
+        for vul in os.listdir(d):
+            if vul.endswith("OLD.vul"):
+                with open(os.path.join(d, vul), "r") as fp:
+                    text = '\n'.join(fp.readlines())
+                    text = normalize(text)
+                    checksum = hashlib.md5(text).hexdigest()
+                    try:
+                        hashdict[checksum].append(d + ' ' + vul)
+                    except:
+                        hashdict[checksum] = [d + ' ' + vul]
 
 cnt = 0
 

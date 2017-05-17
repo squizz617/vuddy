@@ -51,7 +51,7 @@ def setEnvironment(caller):
         elif osName == "linux" or osName == "osx":
             # full_path = os.path.join(base_path, "FuncParser.jar")
             # javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-            javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(cwd, "FuncParser-opt.jar"))
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(cwd, "FuncParser-opt.jar"))
 
     else:
         if osName == "win":
@@ -59,7 +59,7 @@ def setEnvironment(caller):
             javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
         elif osName == "linux" or osName == "osx":
             base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
-            javaCallCommand = "{0} -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(base_path, "FuncParser-opt.jar"))
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(base_path, "FuncParser-opt.jar"))
 
 
 class function:

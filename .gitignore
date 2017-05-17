@@ -30,3 +30,10 @@ NVDCVEcrawler/*.xml
 
 # Pycharm
 .idea/
+
+# CVE
+*.xml
+*.zip
+
+# Paper
+*.pdf

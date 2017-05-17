@@ -14,10 +14,10 @@ Aug 08    SBKIM    Major update: with parser (codesensor.jar)
 import os
 import sys
 import re
-import shutil
+import glob
 import argparse
-from multiprocessing import Pool, Value, Lock
-
+import multiprocessing as mp
+import platform
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as parseutility
@@ -29,29 +29,39 @@ diffDir = os.path.join(originalDir, "diff")
 resultList = []
 dummyFunction = parseutility.function(None)
 multimodeFlag = 0
-gitStoragePath = config.gitStoragePath
-gitBinary = config.gitBinary
+debugMode = False
 
 parseutility.setEnvironment("")
+
+
+if __name__ == "__main__":
+    mp.freeze_support()
+
 
 # ARGUMENTS
 parser = argparse.ArgumentParser()
 parser.add_argument('REPO',
                     help='''Repository name''')
 parser.add_argument('-m', '--multimode', action="store_true",
-                    help='''Multimode''')
+                    help='''Turn on Multimode''')
+parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
 
 args = parser.parse_args()
 
+if args.REPO is None:
+    parser.print_help()
+    exit()
 repoName = args.REPO  # name of the directory that holds DIFF patches
 if args.multimode:
-    multiModeFlag = 1
+    multimodeFlag = 1
+if args.debug:
+    debugMode = True
 
-print "Retrive vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
+msg = "Retrieve vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
 if multimodeFlag:
-    print "On"
+    print msg + "On"
 else:
-    print "Off"
+    print msg + "Off"
 
 # try making missing directories
 try:
@@ -71,17 +81,26 @@ pat_linenum = re.compile(pat_linenum)
 
 """ global variables """
 total = len(os.listdir(os.path.join(diffDir, repoName)))
-diffFileCnt = Value('i', 0)
-lock = Lock()
+diffFileCnt = mp.Value('i', 0)
+diffFileCntLock = mp.Lock()
+functionCnt = mp.Value('i', 0)
+functionCntLock = mp.Lock()
 
-
-def source_from_cvepatch(diffFileName): # diffFileName holds the filename of each DIFF patch
+def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of each DIFF patch
     # diffFileName looks like: CVE-2012-2372_7a9bc620049fed37a798f478c5699a11726b3d33.diff
+    global repoName
     global diffFileCnt
+    global diffFileCntLock
+    global functionCnt
+    global functionCntLock
+    global debugMode
+    global total
+    global multimodeFlag
+
     chunksCnt = 0  # number of DIFF patches
 
     print str(diffFileCnt.value + 1) + '/' + str(total),
-    with lock:
+    with diffFileCntLock:
         diffFileCnt.value += 1
 
     if os.path.getsize(os.path.join(diffDir, repoName, diffFileName)) > 1000000:
@@ -99,25 +118,30 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
             commitLog = patchLinesSplitted[0]
             affectedFilesList = patchLinesSplitted[1:]
 
+        repoPath = ''
         if multimodeFlag:  # multimode DIFFs have repoPath at the beginning.
             repoPath = commitLog.split('\n')[0]
 
         numAffectedFiles = len(affectedFilesList)
         for aidx, affectedFile in enumerate(affectedFilesList):
-            print "\tFile # " + str(aidx + 1) + '/' + str(numAffectedFiles),
+            if debugMode:
+                print "\tFile # " + str(aidx + 1) + '/' + str(numAffectedFiles),
             firstLine = affectedFile.split('\n')[0]  # git --diff a/path/filename.ext b/path/filename.ext
             affectedFileName = firstLine.split("--git ")[1].split(" ")[0].split("/")[-1]
             codePath = firstLine.split(' b')[1].strip()  # path/filename.ext
 
             if not codePath.endswith(".c") and not codePath.endswith(".cpp"):  # and not codePath.endswith('.cc'):
-                print "\t[-]", codePath, "(wrong type)"
+                if debugMode:
+                    print "\t[-]", codePath, "(wrong type)"
             else:
                 secondLine = affectedFile.split('\n')[1]
 
                 if secondLine.startswith("index") == 0:  # or secondLine.endswith("100644") == 0:
-                    print "\t[-]", codePath, "(invalid metadata)"  # we are looking for "index" only.
+                    if debugMode:
+                        print "\t[-]", codePath, "(invalid metadata)"  # we are looking for "index" only.
                 else:
-                    print "\t[+]", codePath
+                    if debugMode:
+                        print "\t[+]", codePath
                     indexHashOld = secondLine.split(' ')[1].split('..')[0]
                     indexHashNew = secondLine.split(' ')[1].split('..')[1]
 
@@ -125,17 +149,16 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                     chunksCnt += len(chunksList)
 
                     if multimodeFlag:
-                        os.chdir(os.path.join(gitStoragePath, repoName, repoPath))
+                        os.chdir(os.path.join(config.gitStoragePath, repoName, repoPath))
                     else:
-                        os.chdir(os.path.join(gitStoragePath, repoName))
-                        # os.chdir(os.path.join("/home/squizz/devgit/", repoName))    #temporary change!!!! Aug 8
+                        os.chdir(os.path.join(config.gitStoragePath, repoName))
 
-                    tmpOldFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_old")
-                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashOld, tmpOldFileName)
+                    tmpOldFileName = os.path.join(originalDir, "tmp", "{}_{}_old".format(repoName, diffFileCnt.value))
+                    command_show = "\"{0}\" show {1} > {2}".format(config.gitBinary, indexHashOld, tmpOldFileName)
                     os.system(command_show)
 
-                    tmpNewFileName = os.path.join(originalDir, "tmp", str(diffFileCnt.value) + "_new")
-                    command_show = "{0} show {1} > {2}".format(gitBinary, indexHashNew, tmpNewFileName)
+                    tmpNewFileName = os.path.join(originalDir, "tmp", "{}_{}_new".format(repoName, diffFileCnt.value))
+                    command_show = "\"{0}\" show {1} > {2}".format(config.gitBinary, indexHashNew, tmpNewFileName)
                     os.system(command_show)
 
                     os.chdir(originalDir)
@@ -146,13 +169,15 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
 
                     numChunks = len(chunksList)
                     for ci, chunk in enumerate(chunksList):
-                        print "\t\tChunk # " + str(ci + 1) + "/" + str(numChunks),
+                        if debugMode:
+                            print "\t\tChunk # " + str(ci + 1) + "/" + str(numChunks),
 
                         chunkSplitted = chunk.split('\n')
                         chunkFirstLine = chunkSplitted[0]
                         chunkLines = chunkSplitted[1:]
 
-                        print chunkFirstLine
+                        if debugMode:
+                            print chunkFirstLine
                         lineNums = pat_linenum.search(chunkFirstLine)
                         oldLines = lineNums.group(1).split(',')
                         newLines = lineNums.group(2).split(',')
@@ -206,7 +231,7 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                                     if pmList[listIndex] == '+' or pmList[listIndex] == '-':
                                         # print "Maybe meaningful",
                                         flag = 0
-                                        for commentKeyword in ["/*", "*/", "//", "*"]:
+                                        for commentKeyword in ["/`", "*/", "//", "*"]:
                                             if chunkLines[listIndex][1:].lstrip().startswith(commentKeyword):
                                                 flag = 1
                                                 break
@@ -235,8 +260,8 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                         if not flag:
                             finalNewFunctionList.append(dummyFunction)
 
-                    # print "\t\t\t", finalOldFunctionList
-                    print "\t\t\t", len(finalNewFunctionList), "functions found."
+                    if debugMode:
+                        print "\t\t\t", len(finalNewFunctionList), "functions found."
                     vulFileNameBase = diffFileName.split('.diff')[0] + '_' + affectedFileName
 
                     # os.chdir(os.path.join(originalDir, "vul", repoName))
@@ -263,6 +288,8 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
 
                         if tmpold != tmpnew:
                             # if two are same, it means nothing but comment is patched.
+                            with functionCntLock:
+                                functionCnt.value += 1
                             os.chdir(os.path.join(originalDir, "vul", repoName))
                             vulOldFileName = vulFileNameBase + '_' + finalOldFuncId + "_OLD.vul"
                             vulNewFileName = vulFileNameBase + '_' + finalOldFuncId + "_NEW.vul"
@@ -273,19 +300,37 @@ def source_from_cvepatch(diffFileName): # diffFileName holds the filename of eac
                                     fp.write(finalNewFunction)
                                 else:
                                     fp.write("")
-                            os.system(
-                                "diff -u " + vulOldFileName + " " + vulNewFileName + " >> " + vulFileNameBase + '_' + finalOldFuncId + ".patch")
+                            diffCommand = "\"{0}\" -u {1} {2} >> {3}_{4}.patch".format(config.diffBinary,
+                                                                                       vulOldFileName,
+                                                                                       vulNewFileName,
+                                                                                       vulFileNameBase,
+                                                                                       finalOldFuncId)
+                            os.system(diffCommand)
 
 
-pool = Pool()
-pool.map(source_from_cvepatch, os.listdir(os.path.join(diffDir, repoName)))
-pool.close()
-pool.join()
+diffList = os.listdir(os.path.join(diffDir, repoName))
+if "Windows" in platform.platform():
+    # Windows - do not use multiprocessing
+    # Using multiprocessing will lower performance
+    for diffFile in diffList:
+        source_from_cvepatch(diffFile)
+else:  # POSIX - use multiprocessing
+    if debugMode:  # turn off multiprocessing, verbose print
+        for diffFile in diffList:
+            source_from_cvepatch(diffFile)
+    else:
+        pool = mp.Pool()
+        pool.map(source_from_cvepatch, diffList)
+
+# delete temp source files
+wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
+for f in glob.glob(wildcard_temp):
+    os.remove(f)
 
 print ""
 print "Done getting vulnerable functions from", repoName
-print "Reconstructed", len(
-    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
+#print "Reconstructed", len(
+#    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
+print "Reconstructed", functionCnt.value, "vulnerable functions from", diffFileCnt.value, "patches."
 
-# remove temp directory
-shutil.rmtree(os.path.join(originalDir, 'tmp'))
+

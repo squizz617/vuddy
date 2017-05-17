@@ -6,18 +6,21 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import hmark.parseutility as pu
 
+
+def getBody(original):
+    return original[original.find('{')+1:original.rfind('}')]
+
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 vulsDir = os.path.join(originalDir, "vul")
 dirs = os.listdir(vulsDir)
+rmcntDict = {}
 for dir in dirs:
+    print dir
     for vul in os.listdir(os.path.join(vulsDir, dir)):
         if vul.endswith("OLD.vul"):
-            if not vul.endswith(
-                    "CVE-2009-0029_7.2_CWE-020_836f92adf121f806e9beb5b6b88bd5c9c4ea3f24_splice.c_33_OLD.vul"):
-                continue
-            with open(os.path.join('vul', dir, vul), "r") as fp:
+            with open(os.path.join(vulsDir, dir, vul), "r") as fp:
                 raw = ''.join(fp.readlines())
-                body = pu.getBody(pu.removeComment(raw))
+                body = getBody(pu.removeComment(raw))
             # print body
             cnt = 0
             for line in body.split('\n'):
@@ -26,19 +29,24 @@ for dir in dirs:
 
             with open(os.path.join(vulsDir, dir, vul[:-8] + "_NEW.vul"), 'r') as fp:
                 raw = ''.join(fp.readlines())
-                newbody = pu.getBody(pu.removeComment(raw))
+                newbody = getBody(pu.removeComment(raw))
 
-            print pu.normalize(body)
-            print pu.normalize(newbody)
-            print "----------------------------------------------"
-            if pu.normalize(body) == pu.normalize(newbody):
-                print vul
+            # print pu.normalize(body)
+            # print pu.normalize(newbody)
+            # print "----------------------------------------------"
 
-            if cnt == 1:
+            if cnt == 1 or pu.normalize(body) == pu.normalize(newbody):
                 vulBase = vul[:-8]
-                print vulBase
-                print raw
-                print "======"
-            # os.remove(os.path.join('vul', dir, vulBase + "_OLD.vul"))
-            # os.remove(os.path.join('vul', dir, vulBase + "_NEW.vul"))
-            # os.remove(os.path.join('vul', dir, vulBase + ".patch"))
+                # print vulBase
+                # print raw
+                # print "======"
+                os.remove(os.path.join(vulsDir, dir, vulBase + "_OLD.vul"))
+                os.remove(os.path.join(vulsDir, dir, vulBase + "_NEW.vul"))
+                os.remove(os.path.join(vulsDir, dir, vulBase + ".patch"))
+                try:
+                    rmcntDict[dir] += 1
+                except:
+                    rmcntDict[dir] = 1
+
+for dir in rmcntDict:
+    print "removed", rmcntDict[dir], "FP records from", dir
