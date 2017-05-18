@@ -17,6 +17,7 @@ import re
 import glob
 import argparse
 import multiprocessing as mp
+from functools import partial
 import platform
 # Import from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,7 +27,7 @@ import config
 # GLOBALS
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 diffDir = os.path.join(originalDir, "diff")
-resultList = []
+# resultList = []
 dummyFunction = parseutility.function(None)
 multimodeFlag = 0
 debugMode = False
@@ -81,27 +82,32 @@ pat_linenum = re.compile(pat_linenum)
 
 """ global variables """
 total = len(os.listdir(os.path.join(diffDir, repoName)))
-diffFileCnt = mp.Value('i', 0)
-diffFileCntLock = mp.Lock()
-functionCnt = mp.Value('i', 0)
-functionCntLock = mp.Lock()
 
-def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of each DIFF patch
+
+class Counter:
+    diffFileCnt = mp.Value('i', 0)
+    diffFileCntLock = mp.Manager().Lock()
+    functionCnt = mp.Value('i', 0)
+    functionCntLock = mp.Manager().Lock()
+
+
+def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename of each DIFF patch
     # diffFileName looks like: CVE-2012-2372_7a9bc620049fed37a798f478c5699a11726b3d33.diff
     global repoName
-    global diffFileCnt
-    global diffFileCntLock
-    global functionCnt
-    global functionCntLock
     global debugMode
     global total
     global multimodeFlag
+    global dummyFunction
+    global diffDir
+    global originalDir
 
     chunksCnt = 0  # number of DIFF patches
+    currentCounter = 0
 
-    print str(diffFileCnt.value + 1) + '/' + str(total),
-    with diffFileCntLock:
-        diffFileCnt.value += 1
+    with ctr.diffFileCntLock:
+        currentCounter = ctr.diffFileCnt.value
+        print str(ctr.diffFileCnt.value + 1) + '/' + str(total),
+        ctr.diffFileCnt.value += 1
 
     if os.path.getsize(os.path.join(diffDir, repoName, diffFileName)) > 1000000:
         # don't do anything with big DIFFs (merges, upgrades, ...).
@@ -153,11 +159,11 @@ def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of ea
                     else:
                         os.chdir(os.path.join(config.gitStoragePath, repoName))
 
-                    tmpOldFileName = os.path.join(originalDir, "tmp", "{}_{}_old".format(repoName, diffFileCnt.value))
+                    tmpOldFileName = os.path.join(originalDir, "tmp", "{0}_{1}_old".format(repoName, currentCounter))
                     command_show = "\"{0}\" show {1} > {2}".format(config.gitBinary, indexHashOld, tmpOldFileName)
                     os.system(command_show)
 
-                    tmpNewFileName = os.path.join(originalDir, "tmp", "{}_{}_new".format(repoName, diffFileCnt.value))
+                    tmpNewFileName = os.path.join(originalDir, "tmp", "{0}_{1}_new".format(repoName, currentCounter))
                     command_show = "\"{0}\" show {1} > {2}".format(config.gitBinary, indexHashNew, tmpNewFileName)
                     os.system(command_show)
 
@@ -288,8 +294,8 @@ def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of ea
 
                         if tmpold != tmpnew:
                             # if two are same, it means nothing but comment is patched.
-                            with functionCntLock:
-                                functionCnt.value += 1
+                            with ctr.functionCntLock:
+                                ctr.functionCnt.value += 1
                             os.chdir(os.path.join(originalDir, "vul", repoName))
                             vulOldFileName = vulFileNameBase + '_' + finalOldFuncId + "_OLD.vul"
                             vulNewFileName = vulFileNameBase + '_' + finalOldFuncId + "_NEW.vul"
@@ -308,19 +314,17 @@ def source_from_cvepatch(diffFileName):  # diffFileName holds the filename of ea
                             os.system(diffCommand)
 
 
+ctr = Counter()
 diffList = os.listdir(os.path.join(diffDir, repoName))
-if "Windows" in platform.platform():
+if debugMode or "Windows" in platform.platform():
     # Windows - do not use multiprocessing
     # Using multiprocessing will lower performance
     for diffFile in diffList:
-        source_from_cvepatch(diffFile)
+        source_from_cvepatch(ctr, diffFile)
 else:  # POSIX - use multiprocessing
-    if debugMode:  # turn off multiprocessing, verbose print
-        for diffFile in diffList:
-            source_from_cvepatch(diffFile)
-    else:
-        pool = mp.Pool()
-        pool.map(source_from_cvepatch, diffList)
+    pool = mp.Pool()
+    parallel_partial = partial(source_from_cvepatch, ctr)
+    pool.map(parallel_partial, diffList)
 
 # delete temp source files
 wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
@@ -331,6 +335,6 @@ print ""
 print "Done getting vulnerable functions from", repoName
 #print "Reconstructed", len(
 #    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
-print "Reconstructed", functionCnt.value, "vulnerable functions from", diffFileCnt.value, "patches."
+print "Reconstructed", ctr.functionCnt.value, "vulnerable functions from", ctr.diffFileCnt.value, "patches."
 
 
