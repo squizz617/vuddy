@@ -1,5 +1,10 @@
 *.pkl
 *.xml
+*.pyc
 .idea
 
+diff
+vul
+tmp
+xx
 tools/nvdcrawler/CVEXML

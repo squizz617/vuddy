@@ -1,61 +1,98 @@
+#!/usr/bin/env python
 """
 Created by Squizz on April 10, 2016
 This script is for getting cve patches from git object.
+Last modified: August 5, 2016
 
 CHANGES
-AUG 5	SB KIM	(*IMPORTANT*) To maintain the full cve-ids,
+AUG 5   SB KIM  (*IMPORTANT*) To maintain the full cve-ids,
                 while keeping the filename structure as is,
                 I chose to store the mapping in a separate file.
-AUG 5	SB KIM	Also, filter the "merge" and "revert" commits first
+AUG 5   SB KIM  Also, filter the "merge" and "revert" commits first
                 in this process.
-AUG 15	SB KIM	For multi-repo mode, added the path to the .git object
+AUG 15  SB KIM  For multi-repo mode, added the path to the .git object
                 at the beginning of each .diff file.
 """
 
 import os
 import subprocess
 import re
-import sys
 import time
-import pickle
+import argparse
+import sys
+import platform
+import multiprocessing as mp
+from functools import partial
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
+
+class InfoStruct:
+    RepoName = ''  # repository name
+    OriginalDir = ''  # vuddy root directory
+    DiffDir = ''
+    MultimodeFlag = 0
+    MultiRepoList = []
+    GitBinary = config.gitBinary
+    GitStoragePath = config.gitStoragePath
+    CveDict = {}
+    DebugMode = False
+
+    def __init__(self, originalDir, CveDataPath):
+        self.OriginalDir = originalDir
+        self.DiffDir = os.path.join(originalDir, 'diff')
+        with open(CveDataPath, "rb") as f:
+            self.CveDict = pickle.load(f)
+
 
 """ GLOBALS """
-repoName = None
-originalDir = os.getcwd()
-diffDir = os.path.join(originalDir, 'diff/')
-gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/"
-cveDict = pickle.load(open("cvedata.pkl", "rb"))
-multiModeFlag = 0
-multiRepoList = []
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
+cveDataPath = os.path.join(originalDir, "src", "cvedata.pkl")
+info = InfoStruct(originalDir, cveDataPath)  # first three arg is dummy for now
+printLock = mp.Lock()
+
 
 """ FUNCTIONS """
+def parse_argument():
+    global info
+
+    parser = argparse.ArgumentParser(prog='get_cvepatch_from_git.py')
+    parser.add_argument('REPO',
+                        help='''Repository name''')
+    parser.add_argument('-m', '--multimode', action="store_true",
+                        help='''Turn on Multimode''')
+    parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
+
+    args = parser.parse_args()
+
+    info.RepoName = args.REPO
+    info.MultimodeFlag = 0
+    info.MultiRepoList = []
+    if args.multimode:
+        info.MultimodeFlag = 1
+        with open(os.path.join(originalDir, 'repolists', 'list_' + info.RepoName)) as fp:
+            for repoLine in fp.readlines():
+                if len(repoLine) > 2:
+                    info.MultiRepoList.append(repoLine.rstrip())
+    if args.debug:
+        info.DebugMode = True
 
 
 def init():
-    # parse arguments, make directories
-    global repoName
-    global multiModeFlag
-    global multiRepoList
+    global info
 
-    if len(sys.argv) < 2:
-        repoName = "linux"
-        multiModeFlag = 0
-    else:
-        repoName = sys.argv[1]
-        if len(sys.argv) > 2 and sys.argv[2] == "-m":
-            multiModeFlag = 1
-            with open("repolists/list_" + repoName) as fp:
-                for repoLine in fp.readlines():
-                    if len(repoLine) > 2:
-                        multiRepoList.append(repoLine.rstrip())
-        else:
-            multiModeFlag = 0
-    if not repoName.endswith("/"):
-        repoName += '/'
+    parse_argument()
 
-    print "Retrieving CVE patch from", repoName
+    print "Retrieving CVE patch from", info.RepoName
     print "Multi-repo mode:",
-    if multiModeFlag:
+    if info.MultimodeFlag:
         print "ON."
     else:
         print "OFF."
@@ -63,33 +100,44 @@ def init():
     print "Initializing...",
 
     try:
-        os.makedirs(diffDir + repoName)
-    except:
+        os.makedirs(os.path.join(info.DiffDir, info.RepoName))
+    except OSError:
         pass
 
     print "Done."
 
 
 def callGitLog(gitDir):
+    global info
+    """
+    Collect CVE commit log from repository
+    :param gitDir: repository path
+    :return:
+    """
     # print "Calling git log...",
-    grepKeyword = r"'CVE-20'"
-    command_log = "git log --all --pretty=fuller --grep=" + grepKeyword
-
-    gitLogOutput = ""
+    commitsList = []
+    command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"CVE-20\"".format(info.GitBinary)
     os.chdir(gitDir)
     try:
         try:
             gitLogOutput = subprocess.check_output(command_log, shell=True)
+            commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
         except subprocess.CalledProcessError as e:
             print "[-] Git log error:", e
     except UnicodeDecodeError as err:
         print "[-] Unicode error:", err
 
     # print "Done."
-    return gitLogOutput
+    return commitsList
 
 
 def filterCommitMessage(commitMessage):
+    """
+    Filter false positive commits 
+    Will remove 'Merge', 'Revert', 'Upgrade' commit log
+    :param commitMessage: commit message
+    :return: 
+    """
     filterKeywordList = ["merge", "revert", "upgrade"]
     matchCnt = 0
     for kwd in filterKeywordList:
@@ -107,10 +155,16 @@ def filterCommitMessage(commitMessage):
         return 0
 
 
-def callGitShow(commitHashValue):
+def callGitShow(gitBinary, commitHashValue):
+    """
+    Grep data of git show
+    :param commitHashValue: 
+    :return: 
+    """
     # print "Calling git show...",
-    command_show = "git show --pretty=fuller " + commitHashValue
+    command_show = "\"{0}\" show --pretty=fuller {1}".format(gitBinary, commitHashValue)
 
+    gitShowOutput = ''
     try:
         gitShowOutput = subprocess.check_output(command_show, shell=True)
     except subprocess.CalledProcessError as e:
@@ -120,10 +174,13 @@ def callGitShow(commitHashValue):
     return gitShowOutput
 
 
-def updateCveInfo(cveId):
+def updateCveInfo(cveDict, cveId):
+    """
+    Get CVSS score and CWE id from CVE id
+    :param cveId: 
+    :return: 
+    """
     # print "Updating CVE metadata...",
-    global cveDict
-
     try:
         cvss = cveDict[cveId][0]
     except:
@@ -145,38 +202,57 @@ def updateCveInfo(cveId):
     return cveId + '_' + cvss + '_' + cwe + '_'
 
 
-def process(gitLogOutput, subRepoName):
-    commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
-    print len(commitsList), "commits in", repoName,
+def process(commitsList, subRepoName):
+    global info
+
+    # commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
+    print len(commitsList), "commits in", info.RepoName,
     if subRepoName is None:
         print "\n"
     else:
         print subRepoName
-        os.chdir(os.path.join(gitStoragePath, repoName, subRepoName))
+        os.chdir(os.path.join(info.GitStoragePath, info.RepoName, subRepoName))
 
-    for commitMessage in commitsList:
-        if filterCommitMessage(commitMessage):
-            continue
-        else:
-            commitHashValue = commitMessage[7:47]
+    if info.DebugMode or "Windows" in platform.platform():
+        # Windows - do not use multiprocessing
+        # Using multiprocessing will lower performance
+        for commitMessage in commitsList:
+            parallel_process(subRepoName, commitMessage)
+    else:  # POSIX - use multiprocessing
+        pool = mp.Pool()
+        parallel_partial = partial(parallel_process, subRepoName)
+        pool.map(parallel_partial, commitsList)
 
-            cvePattern = re.compile('CVE-20\d{2}-\d{4}')
-            cveIdList = list(set(cvePattern.findall(commitMessage)))
 
-            """	
-            Note, Aug 5
-            If multiple CVE ids are assigned to one commit,
-            store the dependency in a file which is named after
-            the repo, (e.g., ~/diff/dependency_ubuntu) and use
-            one representative CVE that has the smallest ID number
-            for filename.
-            A sample:
-            CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853	CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
-            """
+def parallel_process(subRepoName, commitMessage):
+    global info
+    global printLock
 
-            if len(cveIdList) > 1:  # do this only if muliple CVEs are assigned to a commit
-                fp = open(diffDir + "dependency_" + repoName[:-1], "a")
+    if filterCommitMessage(commitMessage):
+        return
+    else:
+        commitHashValue = commitMessage[7:47]
+
+        cvePattern = re.compile('CVE-20\d{2}-\d{4,5}') # note: CVE id can have 5 digits
+        cveIdList = list(set(cvePattern.findall(commitMessage)))
+
+        """    
+        Note, Aug 5
+        If multiple CVE ids are assigned to one commit,
+        store the dependency in a file which is named after
+        the repo, (e.g., ~/diff/dependency_ubuntu)    and use
+        one representative CVE that has the smallest ID number
+        for filename. 
+        A sample:
+        CVE-2014-6416_2e9466c84e5beee964e1898dd1f37c3509fa8853    CVE-2014-6418_CVE-2014-6417_CVE-2014-6416_
+        """
+
+        if len(cveIdList) > 1:  # do this only if muliple CVEs are assigned to a commit
+            dependency = os.path.join(info.DiffDir, "dependency_" + info.RepoName)
+            with open(dependency, "a") as fp:
+                # fp = open(diffDir + "dependency_" + repoName[:-1], "a")
                 cveIdFull = ""
+                minCve = ""
                 minimum = 9999
                 for cveId in cveIdList:
                     idDigits = int(cveId.split('-')[2])
@@ -184,44 +260,53 @@ def process(gitLogOutput, subRepoName):
                     if minimum > idDigits:
                         minimum = idDigits
                         minCve = cveId
-                fp.write(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n')
-                fp.close()
-            elif len(cveIdList) == 0:
-                continue
-            else:
-                minCve = cveIdList[0]
+                fp.write(str(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n'))
+        elif len(cveIdList) == 0:
+            return
+        else:
+            minCve = cveIdList[0]
 
-            gitShowOutput = callGitShow(commitHashValue)
+        gitShowOutput = callGitShow(info.GitBinary, commitHashValue)
 
-            finalFileName = updateCveInfo(minCve)
+        finalFileName = updateCveInfo(info.CveDict, minCve)
 
-            print "[+] Writing ", finalFileName + commitHashValue + ".diff",
-            try:
-                with open(diffDir + repoName + finalFileName + commitHashValue + ".diff", "w") as fp:
-                    if subRepoName is None:
-                        fp.write(gitShowOutput)
-                    else:  # multi-repo mode
-                        fp.write(subRepoName + '\n' + gitShowOutput)
-            except IOError as e:
-                print "Error:", e
-
-            print "Done."
+        diffFileName = "{0}{1}.diff".format(finalFileName, commitHashValue)
+        try:
+            with open(os.path.join(info.DiffDir, info.RepoName, diffFileName), "w") as fp:
+                if subRepoName is None:
+                    fp.write(gitShowOutput)
+                else:  # multi-repo mode
+                    fp.write(subRepoName + '\n' + gitShowOutput)
+            with printLock:
+                print "[+] Writing {0} Done.".format(diffFileName)
+        except IOError as e:
+            with printLock:
+                print "[+] Writing {0} Error:".format(diffFileName), e
 
 
 """ main """
-t1 = time.time()
-init()
-if multiModeFlag:
-    for sidx, subRepoName in enumerate(multiRepoList):
-        gitDir = os.path.join(gitStoragePath, repoName, subRepoName)  # where .git exists
-        gitLogOutput = callGitLog(gitDir)
-        print str(sidx + 1) + '/' + str(len(multiRepoList))
-        if gitLogOutput != "":
-            process(gitLogOutput, subRepoName)
-else:
-    gitDir = os.path.join(gitStoragePath, repoName)  # where .git exists
-    gitLogOutput = callGitLog(gitDir)
-    process(gitLogOutput, None)
+def main():
+    global info
 
-print str(len(os.listdir(diffDir + repoName))) + " patches saved in", diffDir + repoName
-print "Done. (" + str(time.time() - t1) + " sec)"
+    t1 = time.time()
+    init()
+    if info.MultimodeFlag:
+        for sidx, subRepoName in enumerate(info.MultiRepoList):
+            gitDir = os.path.join(info.GitStoragePath, info.RepoName, subRepoName)  # where .git exists
+            commitsList = callGitLog(gitDir)
+            print os.path.join(str(sidx + 1), str(len(info.MultiRepoList)))
+            if 0 < len(commitsList):
+                process(commitsList, subRepoName)
+    else:
+        gitDir = os.path.join(info.GitStoragePath, info.RepoName)  # where .git exists
+        commitsList = callGitLog(gitDir)
+        process(commitsList, None)
+
+    repoDiffDir = os.path.join(info.DiffDir, info.RepoName)
+    print str(len(os.listdir(repoDiffDir))) + " patches saved in", repoDiffDir
+    print "Done. (" + str(time.time() - t1) + " sec)"
+
+
+if __name__ == '__main__':
+    mp.freeze_support()
+    main()

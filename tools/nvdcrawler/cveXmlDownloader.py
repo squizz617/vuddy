@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Download and store NVD's CVE data in XML.
 See https://nvd.nist.gov/vuln/data-feeds#CVE_FEED for information.
@@ -7,22 +8,30 @@ import os
 import datetime
 import common
 
-DLDir = "CVEXML"
 
-try:
-    os.mkdir("CVEXML")
-except OSError:
-    pass
+def process():
+    DLDir = "CVEXML"
 
-urlBase = "https://static.nvd.nist.gov/feeds/xml/cve/"
+    try:
+        os.mkdir("CVEXML")
+    except OSError:
+        pass
 
-pwd = os.getcwd()
-os.chdir(DLDir)
+    urlBase = "https://static.nvd.nist.gov/feeds/xml/cve/"
 
-for year in range(2002, datetime.datetime.now().year + 1):
-    fileName = "nvdcve-2.0-" + str(year) + ".xml.zip"
-    url = urlBase + fileName
+    pwd = os.getcwd()
+    os.chdir(DLDir)
 
-    common.download_url(url, fileName)
-    common.unzip(fileName)
-    os.remove(fileName)
+    for year in range(2002, datetime.datetime.now().year + 1):
+        fileName = "nvdcve-2.0-" + str(year) + ".xml.zip"
+        url = urlBase + fileName
+
+        common.download_url(url, fileName)
+        common.unzip(fileName)
+        os.remove(fileName)
+
+    os.chdir(pwd)
+
+
+if __name__ == '__main__':
+    process()

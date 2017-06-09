@@ -1,14 +1,25 @@
+#!/usr/bin/env python
+
 import os
+import sys
 import hashlib
-from parseutility import normalize
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    from hmark.parseutility import normalize
+except ImportError:
+    from tools.parseutility import normalize
 
 hashdict = {}
 cntdict = {}
 vulcntlist = []
 repolist = []
 
-dirs = os.listdir("./vul")
-os.chdir("vul")
+originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
+vulsDir = os.path.join(originalDir, "vul")
+dirs = os.listdir(vulsDir)
+os.chdir(vulsDir)
 for d in dirs:
     if os.path.isdir(d):
         repolist.append(d)
