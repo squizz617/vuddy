@@ -253,7 +253,7 @@ def parallel_process(subRepoName, commitMessage):
                 # fp = open(diffDir + "dependency_" + repoName[:-1], "a")
                 cveIdFull = ""
                 minCve = ""
-                minimum = 9999
+                minimum = 99999
                 for cveId in cveIdList:
                     idDigits = int(cveId.split('-')[2])
                     cveIdFull += cveId + '_'
