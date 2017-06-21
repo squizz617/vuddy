@@ -2,6 +2,10 @@ import os
 
 originalDir = os.path.dirname(os.path.abspath(__file__))  # vuddy root directory
 
+
+
+
+
 try:
     import tools.cvedatagen.cveXmlDownloader as Downloader
 except ImportError:
@@ -17,6 +21,9 @@ except ImportError:
 
 
 def main():
+    dataDir = os.path.join(originalDir, "data")
+    if os.path.exists(dataDir)) is False:
+        os.makedirs(dataDir)
     print "Running CVE data generator..."
 
     os.chdir(os.path.join(originalDir, "data")) 
