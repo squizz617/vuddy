@@ -22,7 +22,7 @@ except ImportError:
 
 def main():
     dataDir = os.path.join(originalDir, "data")
-    if os.path.exists(dataDir)) is False:
+    if os.path.exists(dataDir) is False:
         os.makedirs(dataDir)
     print "Running CVE data generator..."
 
