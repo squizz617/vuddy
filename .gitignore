@@ -8,3 +8,5 @@ vul
 tmp
 xx
 tools/nvdcrawler/CVEXML
+data/CVEXML
+hidx/

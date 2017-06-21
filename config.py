@@ -13,7 +13,8 @@ Ex) gitStoragePath = "/home/ubuntu/gitrepos/"
 - Java binary is only needed in POSIX
 """
 
-gitStoragePath = "/media/squizz/VM-mount/data/gitrepos/"
+gitStoragePath = "/home/squizz/gitrepos"
+version = "3.0.3" # for use in IoTcube.
 
 pf = platform.platform()
 if "Windows" in pf:  # Windows

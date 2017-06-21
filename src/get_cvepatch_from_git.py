@@ -1,18 +1,4 @@
 #!/usr/bin/env python
-"""
-Created by Squizz on April 10, 2016
-This script is for getting cve patches from git object.
-Last modified: August 5, 2016
-
-CHANGES
-AUG 5   SB KIM  (*IMPORTANT*) To maintain the full cve-ids,
-                while keeping the filename structure as is,
-                I chose to store the mapping in a separate file.
-AUG 5   SB KIM  Also, filter the "merge" and "revert" commits first
-                in this process.
-AUG 15  SB KIM  For multi-repo mode, added the path to the .git object
-                at the beginning of each .diff file.
-"""
 
 import os
 import subprocess
@@ -54,7 +40,7 @@ class InfoStruct:
 
 """ GLOBALS """
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
-cveDataPath = os.path.join(originalDir, "src", "cvedata.pkl")
+cveDataPath = os.path.join(originalDir, "data", "cvedata.pkl")
 info = InfoStruct(originalDir, cveDataPath)  # first three arg is dummy for now
 printLock = mp.Lock()
 
@@ -233,7 +219,7 @@ def parallel_process(subRepoName, commitMessage):
     else:
         commitHashValue = commitMessage[7:47]
 
-        cvePattern = re.compile('CVE-20\d{2}-\d{4,5}') # note: CVE id can have 5 digits
+        cvePattern = re.compile('CVE-20\d{2}-\d{4,5}')  # note: CVE id can be 5 digit numbers
         cveIdList = list(set(cvePattern.findall(commitMessage)))
 
         """    
@@ -284,7 +270,6 @@ def parallel_process(subRepoName, commitMessage):
                 print "[+] Writing {0} Error:".format(diffFileName), e
 
 
-""" main """
 def main():
     global info
 

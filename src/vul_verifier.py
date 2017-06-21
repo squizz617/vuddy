@@ -18,7 +18,7 @@ vulsDir = os.path.join(originalDir, "vul")
 dirs = os.listdir(vulsDir)
 rmcntDict = {}
 for dir in dirs:
-    print dir
+    # print dir
     for vul in os.listdir(os.path.join(vulsDir, dir)):
         if vul.endswith("OLD.vul"):
             with open(os.path.join(vulsDir, dir, vul), "r") as fp:

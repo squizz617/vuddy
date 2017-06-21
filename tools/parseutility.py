@@ -1,9 +1,3 @@
-"""
-Parser utility.
-Author: Seulbae Kim
-Created: August 03, 2016
-"""
-
 import os
 import sys
 import subprocess

@@ -13,6 +13,7 @@ try:
     import hmark.parseutility as parser
 except ImportError:
     import tools.parseutility as parser
+import config
 
 
 def parse_function(absLvl, srcFile):
@@ -104,9 +105,9 @@ def main():
             except KeyError:
                 hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
 
-    packageInfo = str("3.0.2") + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
+    packageInfo = config.version + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
         numLines) + '\n'
-    hidxDir = os.path.join(vulsDir, "hidx-vul")
+    hidxDir = os.path.join(originalDir, "hidx")
     if os.path.exists(hidxDir) is False:
         os.makedirs(hidxDir)
     hidxFile = os.path.join(hidxDir, "hashmark_{0}_{1}.hidx".format(intendedAbsLvl, projName))
@@ -126,7 +127,7 @@ def main():
                 fp.write(str(f) + '\t')
             fp.write('\n')
 
-    print os.path.join(vulsDir, "hidx-vul", "hashmark_{0}_{1}.hidx".format(i, projName))
+    print "Hash index saved to:", os.path.join(originalDir, "hidx", "hashmark_{0}_{1}.hidx".format(intendedAbsLvl, projName))
     time1 = time.time()
     print "Elapsed time:", time1 - time0
 

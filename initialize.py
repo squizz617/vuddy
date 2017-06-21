@@ -1,24 +1,25 @@
 import os
-import shutil
+
+originalDir = os.path.dirname(os.path.abspath(__file__))  # vuddy root directory
 
 try:
-    import tools.nvdcrawler.cveXmlDownloader as Downloader
+    import tools.cvedatagen.cveXmlDownloader as Downloader
 except ImportError:
     import cveXmlDownloader as Downloader
 try:
-    import tools.nvdcrawler.cveXmlParser as Parser
+    import tools.cvedatagen.cveXmlParser as Parser
 except ImportError:
     import cveXmlParser as Parser
 try:
-    import tools.nvdcrawler.cveXmlUpdater as Updater
+    import tools.cvedatagen.cveXmlUpdater as Updater
 except ImportError:
     import cveXmlUpdater as Updater
 
-def main():
-    cwd = os.getcwd()
-    print "Running NVD CVE Crawler..."
 
-    os.chdir("tools/nvdcrawler")
+def main():
+    print "Running CVE data generator..."
+
+    os.chdir(os.path.join(originalDir, "data")) 
     if "cvedata.pkl" not in os.listdir("./"):
         print "cvedata.pkl not found. Proceeding to download.."
         print "[+] cveXmlDownloader"
@@ -32,13 +33,9 @@ def main():
     print "[+] cveXmlUpdater"
     Updater.process()
 
-    print "[+] Copying CVE data file...",
-    shutil.copy("cvedata.pkl", os.path.join(cwd, "src", "cvedata.pkl"))
-
-    os.chdir(cwd)
-
-    print "(CVE data ready)\n"
-    print "*Please modify config.py before running scripts.*"
+    os.chdir(originalDir)
+    print "cvedata.pkl is now up-to-date.\n"
+    print "*** Please modify config.py before running scripts in src/ ***"
 
 
 if __name__ == '__main__':
