@@ -1,12 +1,14 @@
 *.pkl
 *.xml
 *.pyc
+*.exe
 .idea
 
 diff
 vul
 tmp
 xx
+tools/rt
 tools/nvdcrawler/CVEXML
 data/CVEXML
 hidx/

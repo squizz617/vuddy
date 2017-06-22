@@ -1,10 +1,9 @@
 import os
+import sys
+import platform
 
 originalDir = os.path.dirname(os.path.abspath(__file__))  # vuddy root directory
-
-
-
-
+pf = platform.platform()
 
 try:
     import tools.cvedatagen.cveXmlDownloader as Downloader
@@ -18,6 +17,8 @@ try:
     import tools.cvedatagen.cveXmlUpdater as Updater
 except ImportError:
     import cveXmlUpdater as Updater
+
+import tools.cvedatagen.common as common
 
 
 def main():
@@ -42,8 +43,19 @@ def main():
 
     os.chdir(originalDir)
     print "cvedata.pkl is now up-to-date.\n"
-    print "*** Please modify config.py before running scripts in src/ ***"
+    
 
+    if "Windows" in pf:  # Windows
+        if os.path.exists(os.path.join(originalDir, "tools", "FuncParser-opt.exe")) is False:
+            print "Downloading function parser for Windows..."
+            os.chdir(os.path.join(originalDir, "tools"))
+            url = "https://github.com/squizz617/FuncParser-opt/raw/master/FuncParser-opt.zip"
+            fileName = "FuncParser-opt.zip"
+            common.download_url(url, fileName)
+            common.unzip(fileName)
+            os.remove(fileName)
+
+    print "*** Please modify config.py before running scripts in src/ ***"
 
 if __name__ == '__main__':
     main()
