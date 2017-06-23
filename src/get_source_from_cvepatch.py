@@ -30,60 +30,54 @@ parseutility.setEnvironment("")
 
 t1 = time.time()
 
-if __name__ == "__main__":
-    mp.freeze_support()
-
-
-# ARGUMENTS
-parser = argparse.ArgumentParser()
-parser.add_argument('REPO',
-                    help='''Repository name''')
-parser.add_argument('-m', '--multimode', action="store_true",
-                    help='''Turn on Multimode''')
-parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
-
-args = parser.parse_args()
-
-if args.REPO is None:
-    parser.print_help()
-    exit()
-repoName = args.REPO  # name of the directory that holds DIFF patches
-if args.multimode:
-    multimodeFlag = 1
-if args.debug:
-    debugMode = True
-
-msg = "Retrieve vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
-if multimodeFlag:
-    print msg + "On"
-else:
-    print msg + "Off"
-
-# try making missing directories
-try:
-    os.makedirs(os.path.join(originalDir, 'tmp'))
-except OSError as e:
-    pass
-try:
-    os.makedirs(os.path.join(originalDir, 'vul', repoName))
-except OSError as e:
-    pass
-
 """ re patterns """
 pat_src = '[\n](?=diff --git a/)'
 pat_chunk = '[\n](?=@@\s[^a-zA-Z]*\s[^a-zA-Z]*\s@@)'
 pat_linenum = r"-(\d+,\d+) \+(\d+,\d+) "
 pat_linenum = re.compile(pat_linenum)
 
-""" global variables """
-total = len(os.listdir(os.path.join(diffDir, repoName)))
 
+def init():
+    # ARGUMENTS
+    global repoName
+    global multimodeFlag
+    global total
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('REPO',
+                        help='''Repository name''')
+    parser.add_argument('-m', '--multimode', action="store_true",
+                        help='''Turn on Multimode''')
+    parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
 
-class Counter:
-    diffFileCnt = mp.Value('i', 0)
-    diffFileCntLock = mp.Manager().Lock()
-    functionCnt = mp.Value('i', 0)
-    functionCntLock = mp.Manager().Lock()
+    args = parser.parse_args()
+
+    if args.REPO is None:
+        parser.print_help()
+        exit()
+    repoName = args.REPO  # name of the directory that holds DIFF patches
+    if args.multimode:
+        multimodeFlag = 1
+    if args.debug:
+        debugMode = True
+
+    msg = "Retrieve vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
+    if multimodeFlag:
+        print msg + "On"
+    else:
+        print msg + "Off"
+
+    # try making missing directories
+    try:
+        os.makedirs(os.path.join(originalDir, 'tmp'))
+    except OSError as e:
+        pass
+    try:
+        os.makedirs(os.path.join(originalDir, 'vul', repoName))
+    except OSError as e:
+        pass
+
+    total = len(os.listdir(os.path.join(diffDir, repoName)))
 
 
 def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename of each DIFF patch
@@ -325,26 +319,39 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
                             os.system(diffCommand)
 
 
-ctr = Counter()
-diffList = os.listdir(os.path.join(diffDir, repoName))
-if debugMode or "Windows" in platform.platform():
-    # Windows - do not use multiprocessing
-    # Using multiprocessing will lower performance
-    for diffFile in diffList:
-        source_from_cvepatch(ctr, diffFile)
-else:  # POSIX - use multiprocessing
-    pool = mp.Pool()
-    parallel_partial = partial(source_from_cvepatch, ctr)
-    pool.map(parallel_partial, diffList)
+def main():
+    
+    ctr = Counter()
+    diffList = os.listdir(os.path.join(diffDir, repoName))
+    if debugMode or "Windows" in platform.platform():
+        # Windows - do not use multiprocessing
+        # Using multiprocessing will lower performance
+        for diffFile in diffList:
+            source_from_cvepatch(ctr, diffFile)
+    else:  # POSIX - use multiprocessing
+        pool = mp.Pool()
+        parallel_partial = partial(source_from_cvepatch, ctr)
+        pool.map(parallel_partial, diffList)
 
-# delete temp source files
-wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
-for f in glob.glob(wildcard_temp):
-    os.remove(f)
+    # delete temp source files
+    wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")
+    for f in glob.glob(wildcard_temp):
+        os.remove(f)
 
-print ""
-print "Done getting vulnerable functions from", repoName
-#print "Reconstructed", len(
-#    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
-print "Reconstructed", ctr.functionCnt.value, "vulnerable functions from", ctr.diffFileCnt.value, "patches."
-print "Elapsed: %.2f sec" % (time.time()-t1)
+    print ""
+    print "Done getting vulnerable functions from", repoName
+    #print "Reconstructed", len(
+    #    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
+    print "Reconstructed", ctr.functionCnt.value, "vulnerable functions from", ctr.diffFileCnt.value, "patches."
+    print "Elapsed: %.2f sec" % (time.time()-t1)
+
+
+if __name__ == "__main__":
+    mp.freeze_support()
+    class Counter:
+        diffFileCnt = mp.Value('i', 0)
+        diffFileCntLock = mp.Manager().Lock()
+        functionCnt = mp.Value('i', 0)
+        functionCntLock = mp.Manager().Lock()
+    init()
+    main()
