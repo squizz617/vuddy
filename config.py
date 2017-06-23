@@ -13,13 +13,13 @@ Ex) gitStoragePath = "/home/ubuntu/gitrepos/"
 - Java binary is only needed in POSIX
 """
 
-gitStoragePath = "/home/squizz/gitrepos"
+gitStoragePath = r"/home/squizz/gitrepos"
 version = "3.0.3" # for use in IoTcube.
 
 pf = platform.platform()
 if "Windows" in pf:  # Windows
-    gitBinary = "C:\\Program Files\\Git\\bin\\git.exe"
-    diffBinary = "C:\\Program Files\\Git\\usr\\bin\\diff.exe"
+    gitBinary = r"C:\Program Files\Git\bin\git.exe"
+    diffBinary = r"C:\Program Files\Git\usr\bin\diff.exe"
 else:  # POSIX
     gitBinary = "git"
     diffBinary = "diff"
