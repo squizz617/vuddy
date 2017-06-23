@@ -63,7 +63,7 @@ def parse_argument():
     info.MultiRepoList = []
     if args.multimode:
         info.MultimodeFlag = 1
-        with open(os.path.join(originalDir, 'repolists', 'list_' + info.RepoName)) as fp:
+        with open(os.path.join(originalDir, 'data', 'repolists', 'list_' + info.RepoName)) as fp:
             for repoLine in fp.readlines():
                 if len(repoLine) > 2:
                     info.MultiRepoList.append(repoLine.rstrip())
@@ -191,8 +191,10 @@ def updateCveInfo(cveDict, cveId):
 def process(commitsList, subRepoName):
     global info
 
-    # commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
-    print len(commitsList), "commits in", info.RepoName,
+    if len(commitsList) > 0 and commitsList[0] == '':
+        print "No commit in", info.RepoName,
+    else:
+        print len(commitsList), "commits in", info.RepoName,
     if subRepoName is None:
         print "\n"
     else:
