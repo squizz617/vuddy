@@ -2,15 +2,11 @@ import platform
 
 """
 [Note for Windows]
-- Use '\\' or '/' in path
-Ex) gitStoragePath = "D:\\Source\\gitrepos"
-- Install 'Git for Windows'
-- Windows version of VUDDY use its own JRE
+- Install 'Git for Windows'.
 
 [Note for POSIX]
-- Use '/' for path
-Ex) gitStoragePath = "/home/ubuntu/gitrepos/"
-- Java binary is only needed in POSIX
+- Use '/' for path.
+Ex) gitStoragePath = "/home/ubuntu/gitrepos"
 """
 
 gitStoragePath = r"/home/squizz/gitrepos"
