@@ -22,9 +22,21 @@ import tools.cvedatagen.common as common
 
 
 def main():
-    dataDir = os.path.join(originalDir, "data")
+    print "Making directories..."
+    dataDir = os.path.join(originalDir, "data", "repolists")
     if os.path.exists(dataDir) is False:
         os.makedirs(dataDir)
+    diffDir = os.path.join(originalDir, "diff")
+    if os.path.exists(diffDir) is False:
+        os.makedirs(diffDir)
+    vulDir = os.path.join(originalDir, "vul")
+    if os.path.exists(vulDir) is False:
+        os.makedirs(vulDir)
+    hidxDir = os.path.join(originalDir, "hidx")
+    if os.path.exists(hidxDir) is False:
+        os.makedirs(hidxDir)
+
+
     print "Running CVE data generator..."
 
     os.chdir(os.path.join(originalDir, "data")) 
