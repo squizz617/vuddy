@@ -24,25 +24,21 @@ for dir in dirs:
             with open(os.path.join(vulsDir, dir, vul), "r") as fp:
                 raw = ''.join(fp.readlines())
                 body = getBody(pu.removeComment(raw))
-            # print body
+            
+            if body.count(";") == 1:
+                kill = 1  # this function must be single-line
+
             cnt = 0
             for line in body.split('\n'):
                 if len(line.strip()) > 0:
-                    cnt += 1
+                    cnt += 1  # cnt will be 1 for single lined functions
 
             with open(os.path.join(vulsDir, dir, vul[:-8] + "_NEW.vul"), 'r') as fp:
-                raw = ''.join(fp.readlines())
-                newbody = getBody(pu.removeComment(raw))
+                newraw = ''.join(fp.readlines())
+                newbody = getBody(pu.removeComment(newraw))
 
-            # print pu.normalize(body)
-            # print pu.normalize(newbody)
-            # print "----------------------------------------------"
-
-            if cnt == 1 or pu.normalize(body) == pu.normalize(newbody) or len(raw) == 0:
+            if kill == 1 or cnt == 1 or pu.normalize(body) == pu.normalize(newbody) or len(newraw) == 0:
                 vulBase = vul[:-8]
-                # print vulBase
-                # print raw
-                # print "======"
                 os.remove(os.path.join(vulsDir, dir, vulBase + "_OLD.vul"))
                 os.remove(os.path.join(vulsDir, dir, vulBase + "_NEW.vul"))
                 os.remove(os.path.join(vulsDir, dir, vulBase + ".patch"))
