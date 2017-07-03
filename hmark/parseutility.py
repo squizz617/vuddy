@@ -106,7 +106,7 @@ def loadSource(rootDirectory):
     srcFileList = []
     for path, dirs, files in walkList:
         for fileName in files:
-            if fileName.endswith('.c') or fileName.endswith('.cpp'):  # or fileName.endswith('.cc'):
+            if fileName.endswith('.c') or fileName.endswith('.cpp') or fileName.endswith('.cc') or fileName.endswith('.c++') or fileName.endswith('.cxx'):
                 absPathWithFileName = path.replace('\\', '/') + '/' + fileName
                 if maxFileSizeInBytes is not None:
                     if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
