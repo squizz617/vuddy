@@ -100,13 +100,14 @@ class function:
 def loadSource(rootDirectory):
     # returns the list of .src files under the specified root directory.
     maxFileSizeInBytes = None
-    maxFileSizeInBytes = 2097152  # remove this line if you don't want to restrict
+    maxFileSizeInBytes = 2*1024*1024  # remove this line if you don't want to restrict
     # the maximum file size that you process.
     walkList = os.walk(rootDirectory)
     srcFileList = []
     for path, dirs, files in walkList:
         for fileName in files:
-            if fileName.endswith('.c') or fileName.endswith('.cpp') or fileName.endswith('.cc') or fileName.endswith('.c++') or fileName.endswith('.cxx'):
+            ext = fileName.lower()
+            if ext.endswith('.c') or ext.endswith('.cpp') or ext.endswith('.cc') or ext.endswith('.c++') or ext.endswith('.cxx'):
                 absPathWithFileName = path.replace('\\', '/') + '/' + fileName
                 if maxFileSizeInBytes is not None:
                     if os.path.getsize(absPathWithFileName) < maxFileSizeInBytes:
