@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 """
 Version 3.0~ of Hashmarker (CSSA)
 Author: Seulbae Kim (seulbae@korea.ac.kr)
@@ -9,21 +9,22 @@ import urllib2
 import platform
 import sys
 import os
+
 import time
 from re import compile, findall
 import webbrowser
-import Tkinter
-import ttk
+# import Tkinter
+# import ttk
 from hashlib import md5
 
 import multiprocessing
 import subprocess
-
-import parseutility
+import parseutility2 as pu
 import version
 import get_cpu_count
 
 import argparse
+from distutils.version import LooseVersion
 
 """ GLOBALS """
 localVersion = version.version
@@ -59,18 +60,18 @@ def get_platform():
 
 def check_update():
     global localVersion
+    global osName
 
     if len(localVersion.split('.')) < 3:
         localVersion += ".0"
-    print "Local version: " + localVersion
 
+    if osName == "win":
+        url = urlCheck + osName[0] + bits  # ~/w64, or ~/w86
+    elif osName == "linux":
+        url = urlCheck + osName[0] + bits  # ~/l64, or ~/l86
+    elif osName == "osx":
+        url = urlCheck + osName  # ~/osx
     try:
-        if osName == "win":
-            url = urlCheck + osName[0] + bits  # ~/w64, or ~/w86
-        elif osName == "linux":
-            url = urlCheck + osName[0] + bits  # ~/l64, or ~/l86
-        elif osName == "osx":
-            url = urlCheck + osName  # ~/osx
         response = urllib2.urlopen(url)
     except Exception:
         print "[-] Update server is not responding."
@@ -94,38 +95,10 @@ def check_update():
     if len(latestVersion.split('.')) < 3:
         latestVersion += '.0'
 
-    print "Latest version: " + latestVersion,
+    print "Latest server version: " + latestVersion
+    print "Current local version: " + localVersion,
 
-    # compare version
-    cvList = localVersion.split('.')
-    c1 = int(cvList[0])
-    c2 = int(cvList[1])
-    c3 = int(cvList[2])
-    lvList = latestVersion.split('.')
-    l1 = int(lvList[0])
-    l2 = int(lvList[1])
-    l3 = int(lvList[2])
-
-    updateFlag = 0
-
-    if localVersion == latestVersion:
-        updateFlag = 0
-    elif c1 < l1:
-        updateFlag = 1
-    elif c1 == l1:
-        if c2 < l2:
-            updateFlag = 1
-        elif c2 == l2:
-            if c3 < l3:
-                updateFlag = 1
-            else:
-                updateFlag = 0
-        else:
-            updateFlag = 0
-    else:
-        updateFlag = 0
-
-    if updateFlag:
+    if LooseVersion(localVersion) < LooseVersion(latestVersion):
         print "(out-of-date)"
         print "[-] Your Hasher is not up-to-date."
         print "    Please download and run the latest version."
@@ -140,12 +113,12 @@ def check_update():
 
 
 def parseFile_shallow_multi(f):
-    functionInstanceList = parseutility.parseFile_shallow(f, "GUI")
+    functionInstanceList = pu.parseFile_shallow(f, "GUI")
     return (f, functionInstanceList)
 
 
 def parseFile_deep_multi(f):
-    functionInstanceList = parseutility.parseFile_deep(f, "GUI")
+    functionInstanceList = pu.parseFile_deep(f, "GUI")
     return (f, functionInstanceList)
 
 
@@ -314,7 +287,7 @@ class App:
                                 )
         self.listProcess.update()
 
-        fileList = parseutility.loadSource(directory)
+        fileList = pu.loadSource(directory)
         numFile = len(fileList)
 
         if numFile == 0:
@@ -362,9 +335,9 @@ class App:
                 for f in functionInstanceList:
                     f.removeListDup()
                     path = f.parentFile
-                    absBody = parseutility.abstract(f, absLevel)[1]
+                    absBody = pu.abstract(f, absLevel)[1]
                     # self.listProcess.insert(Tkinter.END, absBody)
-                    absBody = parseutility.normalize(absBody)
+                    absBody = pu.normalize(absBody)
                     funcLen = len(absBody)
 
                     if funcLen > 50:
@@ -565,7 +538,7 @@ def generate_cli(targetPath, isAbstraction):
 
     print "[+] Loading source files... This may take a few minutes."
 
-    fileList = parseutility.loadSource(directory)
+    fileList = pu.loadSource(directory)
     numFile = len(fileList)
 
     if numFile == 0:
@@ -615,9 +588,11 @@ def generate_cli(targetPath, isAbstraction):
             for f in functionInstanceList:
                 f.removeListDup()
                 path = f.parentFile
-                absBody = parseutility.abstract(f, absLevel)[1]
-                absBody = parseutility.normalize(absBody)
+                # print "\nORIGINALLY:", f.funcBody
+                absBody = pu.abstract(f, absLevel)[1]
+                absBody = pu.normalize(absBody)
                 funcLen = len(absBody)
+                # print "\n", funcLen, absBody
 
                 if funcLen > 50:
                     hashValue = md5(absBody).hexdigest()
