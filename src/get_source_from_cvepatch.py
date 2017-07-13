@@ -42,6 +42,7 @@ def init():
     global repoName
     global multimodeFlag
     global total
+    global debugMode
     
     parser = argparse.ArgumentParser()
     parser.add_argument('REPO',
@@ -157,8 +158,8 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
                     os.system(command_show)
 
                     os.chdir(originalDir)
-                    oldFunctionInstanceList = parseutility.parseFile_semiDeep(tmpOldFileName, "")
-                    newFunctionInstanceList = parseutility.parseFile_semiDeep(tmpNewFileName, "")
+                    oldFunctionInstanceList = parseutility.parseFile_shallow(tmpOldFileName, "")
+                    newFunctionInstanceList = parseutility.parseFile_shallow(tmpNewFileName, "")
 
                     finalOldFunctionList = []
 
