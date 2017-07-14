@@ -1,17 +1,7 @@
 import platform
 
-"""
-[Note for Windows]
-- Install 'Git for Windows'.
-
-[Note for POSIX]
-- Use '/' for path.
-Ex) gitStoragePath = "/home/ubuntu/gitrepos"
-"""
-
 gitStoragePath = r"/home/squizz/gitrepos"
 version = "3.0.3" # for use in IoTcube.
-
 pf = platform.platform()
 if "Windows" in pf:  # Windows
     gitBinary = r"C:\Program Files\Git\bin\git.exe"
