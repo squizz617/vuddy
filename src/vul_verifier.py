@@ -27,6 +27,8 @@ for dir in dirs:
             
             if body.count(";") == 1:
                 kill = 1  # this function must be single-line
+            else:
+                kill = 0
 
             cnt = 0
             for line in body.split('\n'):
