@@ -19,7 +19,7 @@ You're going to need:
 
 You can see the help message below by passing an `-h` (or `--help`) argument.
 ```
-usage: ./hmark_3.0.3_linux_x64 [-h] [-c path ON/OFF] [-n] [-V]
+usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 
 - optional arguments:
     -h, --help            show this help message and exit
