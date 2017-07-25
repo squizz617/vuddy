@@ -1,78 +1,40 @@
 # VUDDY (a.k.a. hmark)
-VUDDY: A Scalable Approach for Vulnerable Code Clone Discovery.
-This project is part of the international collaborative research which is being by CSSA (Center for Software Security and Assurrance).
-The implementation targeted IEEE S&P (submission due: Nov. 11, 2016)
+VUDDY is an approach for **scalable** and **accurate** vulnerable code clone detection. This approach is specifically designed to accurately find vulnerabilities in massive code bases (e.g., Linux kernel, 25 MLoC). Principles and results are discussed in our [paper](https://github.com/squizz617/vuddy/blob/master/paper/SNP17.pdf), which was published in 38th IEEE Symposium on Security and Privacy (S&P'17).
 
-## Prerequisite
-* python 2.7.x
-* Git
+*hmark* is the implementation of VUDDY, which is also the client-side preprocessing tool for "Vulnerable Code Clone Detection" testing provided by [IoTcube](https://iotcube.net), an automated vulnerability testing platform. Details are available [here](https://iotcube.net/userguide/manual/hmark).
 
-## Crawling CVE raw data from NVD
-1. `cd NVDCVEcrawler`
-2. `$ python cveXmlDownloader.py` downloads XML files from NVD (https://nvd.nist.gov)
-3. `$ python cveXmlParser.py` parses XML files and generates `cvedata.pkl`
-4. `$ python cveXmlUpdater.py` downloades updated records from NVD and updates `cvedata.pkl`
-5. Copy or move the resulting data file (`cvedata.pkl`) to the working directory.
+This project is part of the international collaborative research which is being conducted by [CSSA](https://cssa.korea.ac.kr) (Center for Software Security and Assurrance).
 
-## How to establish vulnerability database
-1. Clone git repository: `$ git clone [REPO]`
-2. Fetch diff patches: `$ python get_cvepatch_from_git.py [REPO] [-m: multimode]`
-3. Reconstruct old functions from diff: `$ python get_source_from_cvepatch.py [REPO] [-m: multimode]`
-4. Remove duplicate old functions: `$ python vul_dup_remover.py`
-5. Filter out wrong functions: `$ python verify_vul.py`
-6. Generate hidx of old fuenctions: `$ python hidxgen_vul.py [REPO] [ABSTRACTION LEVEL]`
+## Getting Started with hmark
 
-## Other key modules
-File Name       | Description
---------------- | -----------
-parseutility.py | Library which handles parser output
-<!-- 
+### Prerequisites
+You're going to need:
+- **Linux or OS X** - *hmark* is designed to work on any of the operating systems. Tested OS distributions include Ubuntu 14.04 and 16.04, Fedora 25, and OS X. Let me know if your OS is not supported.
+- **Python 2**, version 2.7.10 or newer - earlier versions may work, but unsupported.
+- **Java Runtime Environment (JRE)** - We recommend openjdk-8-jre.
 
-1. Library
-  + parseutility.py
-2. Vulnerability Retrievers
-  + get_cvepatch_from_git.py
-  + get_source_from_cvepatch.py
-3. Hash-index Generators
-  + hidxgen_src.py
-  + hidxgen_vul.py
+### Usage
+1. `cd hmark`
+2. `python hmark.py [-h] [-c path ON/OFF] [-n] [-V]`
 
-You don't have to worry about the rest of the files.
+You can see the help message below by passing an `-h` (or `--help`) argument.
+```
+usage: ./hmark_3.0.3_linux_x64 [-h] [-c path ON/OFF] [-n] [-V]
 
-I just don't wanna be bothered by cleanups. -->
+- optional arguments:
+    -h, --help            show this help message and exit
+    
+  -c path ON/OFF, --cli-mode path ON/OFF
+                        run hmark without GUI by specifying the path to the
+                        target directory, and the abstraction mode
+  -n, --no-updatecheck  bypass update checking (not recommended)
+  -V, --version         print hmark version and exit
+```
+3. Upload the resulting `hidx` file on IoTcube's [Vulnerable Code Clone Detection](https://iotcube.net/process/type/wf1) testing.
 
-## Documentation
-### parseutility.py
+## Reporting Bugs
+For reporting bugs, you can [submit an issue](https://github.com/squizz617/vuddy/issues) to the VUDDY GitHub, or send me a <a href="mailto:seulbae@korea.ac.kr">mail</a>. Feel free to send pull requests if you have suggestions or bugfixes!
 
-#### loadSource()
-Load every C/C++/C# files.
-* Input: (string) Path to the root directory
-* Output: (list) List of every source files
-
-#### loadVul()
-Load every .vul files.
-* Input: (string) Path to the root directory
-* Output: (list) List of every .vul files
-
-#### parseFile()
-Parse functions from the specified file.
-* Input: (string) Name and path to the file
-* Output: (list) of function class instances
-
-#### removeComment()
-Removes C/C++ style comments from a given string.
-* Input: (string) source code
-* Output: (string) source code w/o comments
-
-#### normalize()
-Normalizes the input string: LF, TABs, curly braces, spaces are removed.
-Then, all characters are lowercased.
-* Input: (string) original string
-* Output: (string) normalized string
-
-#### abstract()
-Apply abstraction on the function instance, and then return a tuple of the original body and abstracted body.
-* Input: (class instance) instance, (int) abstraction level
-* Output: tuple ( (string) originalFunctionBody, (string) abstractBody )
-
-
+## About
+This program is authored and maintained by **Seulbae Kim**
+> GitHub [@squizz617](https://github.com/squizz617)
