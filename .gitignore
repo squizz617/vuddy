@@ -15,6 +15,7 @@ result-0901*
 *.spec
 *.pkl
 
+testcode/
 misc/
 experiments-related/
 codesensor2python/build/
@@ -35,5 +36,3 @@ NVDCVEcrawler/*.xml
 *.xml
 *.zip
 
-# Paper
-*.pdf
