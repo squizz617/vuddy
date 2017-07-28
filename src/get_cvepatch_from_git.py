@@ -29,6 +29,8 @@ class InfoStruct:
     GitBinary = config.gitBinary
     GitStoragePath = config.gitStoragePath
     CveDict = {}
+    keyword = "CVE-20"
+    cveID = None 
     DebugMode = False
 
     def __init__(self, originalDir, CveDataPath):
@@ -54,11 +56,16 @@ def parse_argument():
                         help='''Repository name''')
     parser.add_argument('-m', '--multimode', action="store_true",
                         help='''Turn on Multimode''')
+    parser.add_argument('-k', '--keyword',
+                        help="Keyword to GREP, default: CVE-20")
+    parser.add_argument('-c', '--cveid', help="CVE id to assign (Only when doing manual keyword search)")
     parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
-
+ 
     args = parser.parse_args()
 
     info.RepoName = args.REPO
+    info.keyword = args.keyword
+    info.cveID = args.cveid
     info.MultimodeFlag = 0
     info.MultiRepoList = []
     if args.multimode:
@@ -102,7 +109,7 @@ def callGitLog(gitDir):
     """
     # print "Calling git log...",
     commitsList = []
-    command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"CVE-20\"".format(info.GitBinary)
+    command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"{1}\"".format(info.GitBinary, info.keyword)
     os.chdir(gitDir)
     try:
         try:
@@ -250,7 +257,7 @@ def parallel_process(subRepoName, commitMessage):
                         minCve = cveId
                 fp.write(str(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n'))
         elif len(cveIdList) == 0:
-            return
+            minCve = info.cveID  # when CVE ID is given manually through command line argument
         else:
             minCve = cveIdList[0]
 
