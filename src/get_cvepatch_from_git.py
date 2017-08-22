@@ -57,7 +57,7 @@ def parse_argument():
     parser.add_argument('-m', '--multimode', action="store_true",
                         help='''Turn on Multimode''')
     parser.add_argument('-k', '--keyword',
-                        help="Keyword to GREP, default: CVE-20")
+                        help="Keyword to GREP, default: CVE-20", default="CVE-20")
     parser.add_argument('-c', '--cveid', help="CVE id to assign (Only when doing manual keyword search)")
     parser.add_argument('-d', '--debug', action="store_true", help=argparse.SUPPRESS)  # Hidden Debug Mode
  
@@ -109,7 +109,9 @@ def callGitLog(gitDir):
     """
     # print "Calling git log...",
     commitsList = []
+    gitLogOutput = ""
     command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"{1}\"".format(info.GitBinary, info.keyword)
+    print gitDir
     os.chdir(gitDir)
     try:
         try:
@@ -198,7 +200,9 @@ def updateCveInfo(cveDict, cveId):
 def process(commitsList, subRepoName):
     global info
 
+    flag = 0
     if len(commitsList) > 0 and commitsList[0] == '':
+        flag = 1
         print "No commit in", info.RepoName,
     else:
         print len(commitsList), "commits in", info.RepoName,
@@ -207,6 +211,9 @@ def process(commitsList, subRepoName):
     else:
         print subRepoName
         os.chdir(os.path.join(info.GitStoragePath, info.RepoName, subRepoName))
+
+    if flag:
+        return
 
     if info.DebugMode or "Windows" in platform.platform():
         # Windows - do not use multiprocessing
