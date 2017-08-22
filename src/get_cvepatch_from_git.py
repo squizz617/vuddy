@@ -264,7 +264,10 @@ def parallel_process(subRepoName, commitMessage):
                         minCve = cveId
                 fp.write(str(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n'))
         elif len(cveIdList) == 0:
-            minCve = info.cveID  # when CVE ID is given manually through command line argument
+            if info.cveID is None:
+                return
+            else:
+                minCve = info.cveID  # when CVE ID is given manually through command line argument
         else:
             minCve = cveIdList[0]
 

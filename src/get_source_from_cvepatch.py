@@ -126,7 +126,7 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
             affectedFileName = firstLine.split("--git ")[1].split(" ")[0].split("/")[-1]
             codePath = firstLine.split(' b')[1].strip()  # path/filename.ext
 
-            if not codePath.endswith(".c") and not codePath.endswith(".cpp") and not codePath.endswith(".cc") and not codePath.endswith(".c++") and not codePath.endswith(".cxx")
+            if not codePath.endswith(".c") and not codePath.endswith(".cpp") and not codePath.endswith(".cc") and not codePath.endswith(".c++") and not codePath.endswith(".cxx"):
                 if debugMode:
                     print "\t[-]", codePath, "(wrong extension)"
             else:
