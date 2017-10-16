@@ -38,7 +38,7 @@ if osName == "linux":
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
-             pathex=['" + cwd + "'],\n\
+             pathex=[r'" + cwd + "'],\n\
              binaries=None,\n\
              datas=None,\n\
              hiddenimports=[],\n\
@@ -48,7 +48,7 @@ a = Analysis(['hmark.py'],\n\
              win_no_prefer_redirects=False,\n\
              win_private_assemblies=False,\n\
              cipher=block_cipher)\n\
-a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
+a.datas += [('icon.gif', r'" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
 pyz = PYZ(a.pure, a.zipped_data,\n\
              cipher=block_cipher)\n\
 exe = EXE(pyz,\n\
@@ -68,7 +68,7 @@ elif osName == "osx":
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
-             pathex=['" + cwd + "'],\n\
+             pathex=[r'" + cwd + "'],\n\
              binaries=None,\n\
              datas=None,\n\
              hiddenimports=[],\n\
@@ -78,7 +78,7 @@ a = Analysis(['hmark.py'],\n\
              win_no_prefer_redirects=False,\n\
              win_private_assemblies=False,\n\
              cipher=block_cipher)\n\
-a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
+a.datas += [('icon.gif', r'" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
 pyz = PYZ(a.pure, a.zipped_data,\n\
              cipher=block_cipher)\n\
 exe = EXE(pyz,\n\
@@ -98,7 +98,7 @@ elif osName == "win":
 # -*- mode: python -*-\n\n\
 block_cipher = None\n\n\n\
 a = Analysis(['hmark.py'],\n\
-             pathex=['" + cwd + "'],\n\
+             pathex=[r'" + cwd + "'],\n\
              binaries=None,\n\
              datas=None,\n\
              hiddenimports=[],\n\
@@ -108,7 +108,7 @@ a = Analysis(['hmark.py'],\n\
              win_no_prefer_redirects=False,\n\
              win_private_assemblies=False,\n\
              cipher=block_cipher)\n\
-a.datas += [('icon.gif', '" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
+a.datas += [('icon.gif', r'" + os.path.join(cwd, 'icon.gif') + "', 'DATA')]\n\
 pyz = PYZ(a.pure, a.zipped_data,\n\
              cipher=block_cipher)\n\
 exe = EXE(pyz,\n\
