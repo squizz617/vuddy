@@ -116,7 +116,7 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
 
         repoPath = ''
         if multimodeFlag:  # multimode DIFFs have repoPath at the beginning.
-            repoPath = commitLog.split('\n')[0]
+            repoPath = commitLog.split('\n')[0].rstrip()
 
         numAffectedFiles = len(affectedFilesList)
         for aidx, affectedFile in enumerate(affectedFilesList):
