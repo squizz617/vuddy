@@ -75,6 +75,7 @@ def main():
         for fi, f in enumerate(functionInstanceList):
             f.removeListDup()
             path = f.parentFile
+            path = "." + path[f.parentFile.find("/vul/"):]
             absBody = parser.abstract(f, intendedAbsLvl)[1]
             absBody = parser.normalize(absBody)
             # print absBody
@@ -101,9 +102,9 @@ def main():
                 projDictList[intendedAbsLvl][funcLen] = [hashValue]
 
             try:
-                hashFileMapList[intendedAbsLvl][hashValue].extend([f.parentFile, f.funcId])
+                hashFileMapList[intendedAbsLvl][hashValue].extend([path, f.funcId])
             except KeyError:
-                hashFileMapList[intendedAbsLvl][hashValue] = [f.parentFile, f.funcId]
+                hashFileMapList[intendedAbsLvl][hashValue] = [path, f.funcId]
 
     packageInfo = config.version + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
         numLines) + '\n'
