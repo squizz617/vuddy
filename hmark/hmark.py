@@ -76,7 +76,7 @@ def check_update():
     except Exception:
         print "[-] Update server is not responding."
         print "    Please check your network connection or firewall and try again."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
         raw_input("Press Enter to continue...")
         sys.exit()
 
