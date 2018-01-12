@@ -27,10 +27,19 @@ if repo_name.lower() == "android":
     response = urllib2.urlopen(url_list)
     repo_list = response.read().rstrip().split("\n")
     repo_base = os.path.join(git_dir, repo_name) 
+elif repo_name.lower() == "chromium":
+    url_base = "https://chromium.googlesource.com/"
+    url_list = url_base + "?format=TEXT"
+    response = urllib2.urlopen(url_list)
+    repo_list = response.read().rstrip().split("\n")
+    repo_base = os.path.join(git_dir, repo_name)
+
+if not os.path.isdir(repo_base):
+    os.mkdir(repo_base)
 
 for ri, repo in enumerate(repo_list):
     target_dir = os.path.join(repo_base, repo)
-    print ri+1, "/", len(repo_list), "\t", repo,
+    print ri+1, "/", len(repo_list), "\t", target_dir,
     if os.path.isdir(target_dir):
         print "exists. PULL"
         os.chdir(target_dir)
@@ -38,8 +47,6 @@ for ri, repo in enumerate(repo_list):
         os.chdir(cwd)
     else:
         print "NULL. CLONE."
-        os.chdir(repo_base)
-        os.system("git clone {0}{1}".format(url_base, repo))
-        os.chdir(cwd)
+        os.system("git clone {0}{1} {2}".format(url_base, repo, target_dir))
     
 
