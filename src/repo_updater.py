@@ -2,8 +2,17 @@ import os
 import sys
 import argparse
 import urllib2
+import git
 import json
 import logging
+
+
+def is_git_repo(path):
+    try:
+        _ = git.Repo(path).git_dir
+        return True
+    except git.exc.InvalidGitRepositoryError:
+        return False
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,7 +55,7 @@ if not os.path.isdir(repo_base):
 for ri, repo in enumerate(repo_list):
     target_dir = os.path.join(repo_base, repo)
     infostr = str(ri+1) + "/" + str(len(repo_list)) + "\t" + repo
-    if os.path.isdir(target_dir):
+    if os.path.isdir(target_dir) and is_git_repo(target_dir):
         infostr += " EXISTS (PULL)"
         logger.info(infostr)
         os.chdir(target_dir)
