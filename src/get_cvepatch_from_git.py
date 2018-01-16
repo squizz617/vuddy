@@ -145,9 +145,9 @@ def filterCommitMessage(commitMessage):
             matchCnt += 1
 
     if matchCnt > 0:
-        return 1
-    else:
         return 0
+    else:
+        return 0 
 
 
 def callGitShow(gitBinary, commitHashValue):
@@ -235,11 +235,11 @@ def parallel_process(subRepoName, commitMessage):
     else:
         commitHashValue = commitMessage[7:47]
 
-        cvePattern = re.compile('CVE-20\d{2}-\d{4,5}')  # note: CVE id can be 5 digit numbers
+        cvePattern = re.compile('CVE-20\d{2}-\d{4,7}')  # note: CVE id can now be 7 digit numbers
         cveIdList = list(set(cvePattern.findall(commitMessage)))
 
         """    
-        Note, Aug 5
+        Note: Aug 5, 2016
         If multiple CVE ids are assigned to one commit,
         store the dependency in a file which is named after
         the repo, (e.g., ~/diff/dependency_ubuntu)    and use
@@ -252,10 +252,9 @@ def parallel_process(subRepoName, commitMessage):
         if len(cveIdList) > 1:  # do this only if muliple CVEs are assigned to a commit
             dependency = os.path.join(info.DiffDir, "dependency_" + info.RepoName)
             with open(dependency, "a") as fp:
-                # fp = open(diffDir + "dependency_" + repoName[:-1], "a")
                 cveIdFull = ""
                 minCve = ""
-                minimum = 99999
+                minimum = 9999999
                 for cveId in cveIdList:
                     idDigits = int(cveId.split('-')[2])
                     cveIdFull += cveId + '_'
