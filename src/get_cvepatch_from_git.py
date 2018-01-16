@@ -70,10 +70,16 @@ def parse_argument():
     info.MultiRepoList = []
     if args.multimode:
         info.MultimodeFlag = 1
-        with open(os.path.join(originalDir, 'data', 'repolists', 'list_' + info.RepoName)) as fp:
-            for repoLine in fp.readlines():
-                if len(repoLine) > 2:
-                    info.MultiRepoList.append(repoLine.rstrip())
+        if "Windows" in platform.platform():
+            with open(os.path.join(originalDir, 'data', 'repolists', 'list_' + info.RepoName)) as fp:
+                for repoLine in fp.readlines():
+                    if len(repoLine) > 2:
+                        info.MultiRepoList.append(repoLine.rstrip())
+        else:
+            repoBaseDir = os.path.join(info.GitStoragePath, info.RepoName)
+            command_find = "find " + repoBaseDir + " -type d -exec test -e '{}/.git' ';' -print -prune"
+            findOutput = subprocess.check_output(command_find, shell=True)
+            info.MultiRepoList = findOutput.replace(repoBaseDir + "/", "").rstrip().split("\n")
     if args.debug:
         info.DebugMode = True
 
