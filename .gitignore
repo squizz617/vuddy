@@ -4,6 +4,7 @@
 *.exe
 .idea
 
+nohup.out
 diff
 vul
 tmp
