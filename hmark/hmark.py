@@ -571,7 +571,7 @@ def generate_cli(targetPath, isAbstraction):
                 try:
                     # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
                     rows, columns = subprocess.check_output(['stty', 'size']).split()
-                except ValueError:
+                except:
                     columns = 80
 
             progress = 100 * float(idx + 1) / numFile
