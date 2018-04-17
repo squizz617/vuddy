@@ -88,7 +88,7 @@ def check_update():
     if latestVersion == "-1":
         print "[-] There's something wrong with the server."
         print "    You can report this issue to cssa@korea.ac.kr, with your version info."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
         raw_input("Press Enter to continue...")
         sys.exit()
 
@@ -103,7 +103,7 @@ def check_update():
         print "[-] Your hmark is not up-to-date."
         print "    Please download and run the latest version."
         print "    Proceeding to the download page."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
 
         webbrowser.open(urlDownload)
         raw_input("Press Enter to continue...")
