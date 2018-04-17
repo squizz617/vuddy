@@ -100,7 +100,7 @@ def check_update():
 
     if LooseVersion(localVersion) < LooseVersion(latestVersion):
         print "(out-of-date)"
-        print "[-] Your Hasher is not up-to-date."
+        print "[-] Your hmark is not up-to-date."
         print "    Please download and run the latest version."
         print "    Proceeding to the download page."
         print "    To bypass update checking, run with [--no-update-check] option."
@@ -426,8 +426,8 @@ class App:
         aboutMessage = """
 hmark is an hash index generator for vulnerable code clone detection.
 
-Developed by CSSA.
-http://iotcube.net
+Developed by Seulbae Kim @CSSA.
+https://iotcube.net
 cssa@korea.ac.kr
 
 """
