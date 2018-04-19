@@ -116,7 +116,7 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
 
         repoPath = ''
         if multimodeFlag:  # multimode DIFFs have repoPath at the beginning.
-            repoPath = commitLog.split('\n')[0].rstrip()
+            repoPath = commitLog.split('\n')[0].rstrip().lstrip("\xef\xbb\xbf")
 
         numAffectedFiles = len(affectedFilesList)
         for aidx, affectedFile in enumerate(affectedFilesList):
@@ -333,6 +333,8 @@ def main():
         pool = mp.Pool()
         parallel_partial = partial(source_from_cvepatch, ctr)
         pool.map(parallel_partial, diffList)
+        pool.close()
+        pool.join()
 
     # delete temp source files
     wildcard_temp = os.path.join(originalDir, "tmp", repoName + "_*")

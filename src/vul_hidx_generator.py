@@ -106,6 +106,9 @@ def main():
             except KeyError:
                 hashFileMapList[intendedAbsLvl][hashValue] = [path, f.funcId]
 
+    pool.close()
+    pool.join()
+
     packageInfo = config.version + ' ' + str(projName) + ' ' + str(numFiles) + ' ' + str(numFuncs) + ' ' + str(
         numLines) + '\n'
     hidxDir = os.path.join(originalDir, "hidx")

@@ -230,6 +230,8 @@ def process(commitsList, subRepoName):
         pool = mp.Pool()
         parallel_partial = partial(parallel_process, subRepoName)
         pool.map(parallel_partial, commitsList)
+        pool.close()
+        pool.join()
 
 
 def parallel_process(subRepoName, commitMessage):

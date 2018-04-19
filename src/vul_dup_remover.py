@@ -50,8 +50,11 @@ for key in hashdict:
             base = rest[:-8]
             cntdict[repo] += 1
             os.remove(os.path.join(repo, rest))
-            os.remove(os.path.join(repo, base + "_NEW.vul"))
-            os.remove(os.path.join(repo, base + ".patch"))
+            try:
+                os.remove(os.path.join(repo, base + "_NEW.vul"))
+                os.remove(os.path.join(repo, base + ".patch"))
+            except:
+                pass
 
 print "[RESULT]"
 for idx, r in enumerate(repolist):
