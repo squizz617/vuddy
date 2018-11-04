@@ -33,10 +33,10 @@ usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 3. Upload the resulting `hidx` file on IoTcube's [Vulnerable Code Clone Detection](https://iotcube.net/process/type/wf1) testing.
 
 ### Binary Release
-Instead of running *hmark* from source code, you can also download and execute prebuilt binaries. Binaries for Windows, Linux, and OS X are available [here](https://iotcube.net/donwloads).
+Instead of running *hmark* from source code, you can also download and execute prebuilt binaries. Binaries for Windows, Linux, and OS X are available [here](https://iotcube.net/downloads).
 
 ## Reporting Bugs
-For reporting bugs, you can [submit an issue](https://github.com/iotcube/hmark/issues) to the VUDDY GitHub, or send me a <a href="mailto:seulbae@korea.ac.kr">mail</a>. Feel free to send pull requests if you have suggestions or bugfixes!
+For reporting bugs, you can [submit an issue](https://github.com/iotcube/hmark/issues) to the VUDDY GitHub, or send me a <a href="mailto:seulbae@gatech.edu">mail</a>. Feel free to send pull requests if you have suggestions or bugfixes!
 
 ## About
 This program is authored and maintained by **Seulbae Kim**
