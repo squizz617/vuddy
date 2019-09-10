@@ -1,7 +1,7 @@
 import platform
 
-gitStoragePath = r"/home/squizz/gitrepos"
-version = "3.0.3" # for use in IoTcube.
+gitStoragePath = r"/home/whiteboxDB/gitrepos"
+version = "3.1.0" # for use in IoTcube.
 pf = platform.platform()
 if "Windows" in pf:  # Windows
     gitBinary = r"C:\Program Files\Git\bin\git.exe"

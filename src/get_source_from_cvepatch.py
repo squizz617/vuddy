@@ -312,7 +312,7 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
                                     fp.write(finalNewFunction)
                                 else:
                                     fp.write("")
-                            diffCommand = "\"{0}\" -u {1} {2} >> {3}_{4}.patch".format(config.diffBinary,
+                            diffCommand = "\"{0}\" -u {1} {2} > {3}_{4}.patch".format(config.diffBinary,
                                                                                        vulOldFileName,
                                                                                        vulNewFileName,
                                                                                        vulFileNameBase,

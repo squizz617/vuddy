@@ -19,6 +19,7 @@ repolist = []
 originalDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # vuddy root directory
 vulsDir = os.path.join(originalDir, "vul")
 dirs = os.listdir(vulsDir)
+dirs.sort()
 os.chdir(vulsDir)
 for d in dirs:
     if os.path.isdir(d):
