@@ -76,7 +76,7 @@ def check_update():
     except Exception:
         print "[-] Update server is not responding."
         print "    Please check your network connection or firewall and try again."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
         raw_input("Press Enter to continue...")
         sys.exit()
 
@@ -88,7 +88,7 @@ def check_update():
     if latestVersion == "-1":
         print "[-] There's something wrong with the server."
         print "    You can report this issue to cssa@korea.ac.kr, with your version info."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
         raw_input("Press Enter to continue...")
         sys.exit()
 
@@ -100,10 +100,10 @@ def check_update():
 
     if LooseVersion(localVersion) < LooseVersion(latestVersion):
         print "(out-of-date)"
-        print "[-] Your Hasher is not up-to-date."
+        print "[-] Your hmark is not up-to-date."
         print "    Please download and run the latest version."
         print "    Proceeding to the download page."
-        print "    To bypass update checking, run with [--no-update-check] option."
+        print "    To bypass update checking, run with [--no-updatecheck] option."
 
         webbrowser.open(urlDownload)
         raw_input("Press Enter to continue...")
@@ -426,8 +426,8 @@ class App:
         aboutMessage = """
 hmark is an hash index generator for vulnerable code clone detection.
 
-Developed by CSSA.
-http://iotcube.net
+Developed by Seulbae Kim @CSSA.
+https://iotcube.net
 cssa@korea.ac.kr
 
 """
@@ -571,7 +571,7 @@ def generate_cli(targetPath, isAbstraction):
                 try:
                     # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
                     rows, columns = subprocess.check_output(['stty', 'size']).split()
-                except ValueError:
+                except:
                     columns = 80
 
             progress = 100 * float(idx + 1) / numFile
