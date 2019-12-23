@@ -11,6 +11,7 @@ originalDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 
 def process():
+    return
     DLDir = os.path.join(originalDir, "data", "CVEXML")
 
     try:
@@ -18,12 +19,14 @@ def process():
     except OSError:
         pass
 
-    urlBase = "https://static.nvd.nist.gov/feeds/xml/cve/"
+    # NVD's XML Vulnerability Feeds have been deprecated. Use JSON instead..
+    # https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-2002.json.zip
+    urlBase = "https://nvd.nist.gov/feeds/json/cve/1.1/"
 
     os.chdir(DLDir)
 
     for year in range(2002, datetime.datetime.now().year + 1):
-        fileName = "nvdcve-2.0-" + str(year) + ".xml.zip"
+        fileName = "nvdcve-1.1-{0}.json.zip".format(year)
         url = urlBase + fileName
 
         common.download_url(url, fileName)

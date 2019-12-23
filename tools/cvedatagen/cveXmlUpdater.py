@@ -14,8 +14,8 @@ originalDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 def process():
     # first download the modified cve data from NVD
-    fileName = "nvdcve-2.0-modified.xml.zip"
-    url = "http://static.nvd.nist.gov/feeds/xml/cve/" + fileName
+    fileName = "nvdcve-1.1-modified.json.zip"
+    url = "https://nvd.nist.gov/feeds/json/cve/1.1/" + fileName
 
     common.download_url(url, fileName)
     common.unzip(fileName)

@@ -2,6 +2,7 @@ import urllib2
 import sys
 from zipfile import ZipFile
 from xml.etree.ElementTree import parse
+import json
 import os
 
 
@@ -44,40 +45,40 @@ def unzip(fileName):
 
 def parse_xml(xmlFile):
     print "Processing: " + xmlFile,
+    if not xmlFile.endswith(".json"):
+        return {}
+
     update_count = 0
     new_count = 0
     subDict = {}
-    tree = parse(xmlFile)
-    root = tree.getroot()
-
     cveid = ""
     cvss = ""
     cweid = ""
     reference = []
     summary = ""
 
-    for element in root.iter():
-        tag = element.tag
-        text = element.text
-        attrib = element.attrib
+    with open(xmlFile) as f:
+        json_obj = json.load(f)
 
-        if "cve-id" in tag:
-            cveid = text
-        elif "score" in tag:
-            cvss = text
-        elif "cwe" in tag:
-            cweid = attrib["id"]
-        elif "reference" == tag[-9:]:
-            reference.append(attrib["href"])
-        elif "summary" in tag:
-            summary = text.encode('utf-8')
+    cve_dict = json_obj["CVE_Items"]
+    for cve in cve_dict:
+        cveid = cve["cve"]["CVE_data_meta"]["ID"]
+        try:
+            cweid = cve["cve"]["problemtype"]["problemtype_data"][0]["description"][0]["value"]
+        except:
+            cweid = "CWE-000"
 
-            if cveid in subDict:
-                update_count += 1
-            else:
-                new_count += 1
+        try:
+            cvss = cve["impact"]["baseMetricV2"]["cvssV2"]["baseScore"]
+        except:
+            cvss = "0.0"
 
-            subDict[cveid] = [cvss, cweid, reference, summary]
+        if cveid in subDict:
+            update_count += 1
+        else:
+            new_count += 1
+
+        subDict[cveid] = [cvss, cweid, reference, summary]
 
     print "[Updated %s records, added %s new records]" % (update_count, new_count)
     return subDict
