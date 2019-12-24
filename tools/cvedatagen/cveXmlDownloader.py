@@ -11,7 +11,6 @@ originalDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 
 def process():
-    return
     DLDir = os.path.join(originalDir, "data", "CVEXML")
 
     try:
