@@ -32,7 +32,7 @@ Security and Assurrance).
 2. `python hmark.py [-h] [-c path ON/OFF] [-n] [-V]`
 
 You can see the help message below by passing an `-h` (or `--help`) argument.
-
+```
 usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 
 - optional arguments:
