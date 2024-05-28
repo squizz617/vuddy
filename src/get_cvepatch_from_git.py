@@ -182,18 +182,18 @@ def updateCveInfo(cveDict, cveId):
     :return: 
     """
     # print "Updating CVE metadata...",
+    cvss = "0.0"
     try:
-        cvss = cveDict[cveId][0]
+        cvss = str(cveDict[cveId][0])
     except:
         cvss = "0.0"
-    if len(cvss) == 0:
-        cvss = "0.0"
 
+    cwe = "CWE-000"
     try:
         cwe = cveDict[cveId][1]
     except:
         cwe = "CWE-000"
-    if len(cwe) == 0:
+    if "NVD-CWE-noinfo" in cwe:
         cwe = "CWE-000"
     else:
         cweNum = cwe.split('-')[1].zfill(3)
