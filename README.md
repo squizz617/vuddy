@@ -22,12 +22,15 @@ Security and Assurrance).
 - **Linux or OS X** - *hmark* is designed to work on any of the operating
   systems. Tested OS distributions include Ubuntu 14.04, 16.04, and 18.04,
   Fedora 25, and OS X. Let me know if your OS is not supported.
+  - Confirmed in May 2024: VUDDY works seamlessly on Ubuntu 22.04, but you need
+    to install Python 2
 - **Python 2**, version 2.7.10 or newer - earlier versions may work, but not
   tested.
-- **python-tk** package - install from your package manager.
+- **python-tk** package - (only required if you want GUI) install from your
+  package manager
 - **Java Runtime Environment (JRE)** - We recommend openjdk-8-jre.
 
-### Running hmark
+### Running hmark and checking the result on IoTcube (our web service)
 1. `cd hmark`
 2. `python hmark.py [-h] [-c path ON/OFF] [-n] [-V]`
 
@@ -47,22 +50,26 @@ usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 3. Upload the resulting `hidx` file on IoTcube's [Vulnerable Code Clone
    Detection](https://iotcube.net/process/type/wf1) testing.
 
-4. If you want to build your own vulnerability database, please checkout
-`vulnDBGen`, which is a subrepo of this repository and follow the guidelines
-to build a vulnerability database locally.
-```
-$ git submodule update --init
-$ cd vulnDBGen
-$ cat docs/examples.md
-```
+### Running hmark and checking the result locally
+Follow steps 1 and 2 above to generate the `hidx` of the target program.
+Skip step 3.
+
+4. To build your own vulnerability database, checkout `vulnDBGen`,
+  which is a subrepo of this repository and follow the guidelines
+  to build a vulnerability database locally.
+  ```
+  $ git submodule update --init
+  $ cd vulnDBGen
+  $ cat docs/examples.md
+  ```
 
 5. After building your own vulnerability database, you can locally run the
    vulnerable clone checker:
-```
-$ cd ..
-$ python3 checker/check_clones.py --help
-$ python3 checker/check_clones.py --target path_to_target_hidx --database path_to_vulndb
-```
+  ```
+  $ cd ..
+  $ python3 checker/check_clones.py --help
+  $ python3 checker/check_clones.py --target path_to_target_hidx --database path_to_vulndb
+  ```
 
 ### Binary Release
 Instead of running *hmark* from source code, you can also download and execute
@@ -77,5 +84,10 @@ requests if you have suggestions or bugfixes!
 
 ## About
 This program is authored and maintained by **Seulbae Kim**
-> GitHub [@squizz617](https://github.com/squizz617)
+> GitHub [@seulbae-security](https://github.com/seulbae-security) / seulbae@postech.ac.kr
 
+## TODOs
+Please feel free to submit pull requests for the following items:
+* Rewrite everything in Python3
+* Use a better parser
+* Replace all code that rely on stdin/stdout for IPC (e.g., git executions) with API calls
