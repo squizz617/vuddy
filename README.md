@@ -1,22 +1,22 @@
-# VUDDY (a.k.a. hmark)
+# VUDDY (a.k.a. `hmark`)
 
 VUDDY is an approach for **scalable** and **accurate** vulnerable code clone
 detection. This approach is specifically designed to accurately find
 vulnerabilities in massive code bases (e.g., Linux kernel, 25 MLoC).
-Principles and results are discussed in our
+Its principles and results are discussed in our
 [paper](https://ccs.korea.ac.kr/pds/SNP17.pdf), which was published in 38th
 IEEE Symposium on Security and Privacy (S&P'17).
 
-*hmark* is the implementation of VUDDY, which is also the client-side
-preprocessing tool for "Vulnerable Code Clone Detection" testing provided by
+*`hmark`* is the implementation of VUDDY. It is the client-side preprocessing
+tool for "Vulnerable Code Clone Detection" testing provided by
 [IoTcube](https://iotcube.net), an automated vulnerability testing platform.
-Details are available [here](https://iotcube.net/userguide/manual/hmark).
+Detailed instructions are available [here](https://iotcube.net/userguide/manual/hmark).
 
 This project is a part of the "international collaborative research", which
 was conducted by [CSSA](https://cssa.korea.ac.kr) (Center for Software
 Security and Assurrance).
 
-## Getting Started with hmark
+## Getting Started with `hmark`
 
 ### Prerequisites
 - **Linux or OS X** - *hmark* is designed to work on any of the operating
@@ -30,7 +30,7 @@ Security and Assurrance).
   package manager
 - **Java Runtime Environment (JRE)** - We recommend openjdk-8-jre.
 
-### Running hmark and checking the result on IoTcube (our web service)
+### Running `hmark` and checking the result on IoTcube (our web service)
 1. `cd hmark`
 2. `python hmark.py [-h] [-c path ON/OFF] [-n] [-V]`
 
@@ -50,7 +50,7 @@ usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 3. Upload the resulting `hidx` file on IoTcube's [Vulnerable Code Clone
    Detection](https://iotcube.net/process/type/wf1) testing.
 
-### Running hmark and checking the result locally
+### Running `hmark` and checking the result locally
 Follow steps 1 and 2 above to generate the `hidx` of the target program.
 Skip step 3.
 
@@ -72,7 +72,7 @@ Skip step 3.
   ```
 
 ### Binary Release
-Instead of running *hmark* from source code, you can also download and execute
+Instead of running *`hmark`* from source code, you can also download and execute
 prebuilt binaries. Binaries for Windows, Linux, and OS X are available
 [here](https://iotcube.net/downloads).
 
@@ -91,3 +91,4 @@ Please feel free to submit pull requests for the following items:
 * Rewrite everything in Python3
 * Use a better parser
 * Replace all code that rely on stdin/stdout for IPC (e.g., git executions) with API calls
+
