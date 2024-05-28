@@ -47,6 +47,23 @@ usage: python hmark.py [-h] [-c path ON/OFF] [-n] [-V]
 3. Upload the resulting `hidx` file on IoTcube's [Vulnerable Code Clone
    Detection](https://iotcube.net/process/type/wf1) testing.
 
+4. If you want to build your own vulnerability database, please checkout
+`vulnDBGen`, which is a subrepo of this repository and follow the guidelines
+to build a vulnerability database locally.
+```
+$ git submodule update --init
+$ cd vulnDBGen
+$ cat docs/examples.md
+```
+
+5. After building your own vulnerability database, you can locally run the
+   vulnerable clone checker:
+```
+$ cd ..
+$ python3 checker/check_clones.py --help
+$ python3 checker/check_clones.py --target path_to_target_hidx --database path_to_vulndb
+```
+
 ### Binary Release
 Instead of running *hmark* from source code, you can also download and execute
 prebuilt binaries. Binaries for Windows, Linux, and OS X are available
