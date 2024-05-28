@@ -7,7 +7,7 @@ Its principles and results are discussed in our
 [paper](https://ccs.korea.ac.kr/pds/SNP17.pdf), which was published in 38th
 IEEE Symposium on Security and Privacy (S&P'17).
 
-*`hmark`* is the implementation of VUDDY. It is the client-side preprocessing
+`hmark` is the implementation of VUDDY. It is the client-side preprocessing
 tool for "Vulnerable Code Clone Detection" testing provided by
 [IoTcube](https://iotcube.net), an automated vulnerability testing platform.
 Detailed instructions are available [here](https://iotcube.net/userguide/manual/hmark).
@@ -72,7 +72,7 @@ Skip step 3.
   ```
 
 ### Binary Release
-Instead of running *`hmark`* from source code, you can also download and execute
+Instead of running `hmark` from source code, you can also download and execute
 prebuilt binaries. Binaries for Windows, Linux, and OS X are available
 [here](https://iotcube.net/downloads).
 
