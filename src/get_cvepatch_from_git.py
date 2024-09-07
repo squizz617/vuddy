@@ -89,21 +89,21 @@ def init():
 
     parse_argument()
 
-    print "Retrieving CVE patch from", info.RepoName
-    print "Multi-repo mode:",
+    print("Retrieving CVE patch from", info.RepoName)
+    print("Multi-repo mode:"),
     if info.MultimodeFlag:
-        print "ON."
+        print("ON.")
     else:
-        print "OFF."
+        print("OFF.")
 
-    print "Initializing...",
+    print("Initializing..."),
 
     try:
         os.makedirs(os.path.join(info.DiffDir, info.RepoName))
     except OSError:
         pass
 
-    print "Done."
+    print("Done.")
 
 
 def callGitLog(gitDir):
@@ -117,22 +117,25 @@ def callGitLog(gitDir):
     commitsList = []
     gitLogOutput = ""
     command_log = "\"{0}\" --no-pager log --all --pretty=fuller --grep=\"{1}\"".format(info.GitBinary, info.keyword)
-    print gitDir
+    print(gitDir)
     os.chdir(gitDir)
     try:
         try:
             gitLogOutput = subprocess.check_output(command_log, shell=True)
-            commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
+            #commitsList = re.split('[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
+            commitsList = re.split(b'[\n](?=commit\s\w{40}\nAuthor:\s)|[\n](?=commit\s\w{40}\nMerge:\s)', gitLogOutput)
         except subprocess.CalledProcessError as e:
-            print "[-] Git log error:", e
+            print("[-] Git log error:", e)
     except UnicodeDecodeError as err:
-        print "[-] Unicode error:", err
+        print("[-] Unicode error:", err)
 
     # print "Done."
     return commitsList
 
 
 def filterCommitMessage(commitMessage):
+    #추가
+    commitMessage = commitMessage.decode('utf-8')
     """
     Filter false positive commits 
     Will remove 'Merge', 'Revert', 'Upgrade' commit log
@@ -169,7 +172,7 @@ def callGitShow(gitBinary, commitHashValue):
     try:
         gitShowOutput = subprocess.check_output(command_show, shell=True)
     except subprocess.CalledProcessError as e:
-        print "error:", e
+        print("error:", e)
 
     # print "Done."
     return gitShowOutput
@@ -209,13 +212,13 @@ def process(commitsList, subRepoName):
     flag = 0
     if len(commitsList) > 0 and commitsList[0] == '':
         flag = 1
-        print "No commit in", info.RepoName,
+        print("No commit in", info.RepoName),
     else:
-        print len(commitsList), "commits in", info.RepoName,
+        print(len(commitsList), "commits in", info.RepoName),
     if subRepoName is None:
-        print "\n"
+        print("\n")
     else:
-        print subRepoName
+        print(subRepoName)
         os.chdir(os.path.join(info.GitStoragePath, info.RepoName, subRepoName))
 
     if flag:
@@ -242,10 +245,14 @@ def parallel_process(subRepoName, commitMessage):
         return
     else:
         commitHashValue = commitMessage[7:47]
-
+        # 바이트 문자열인 경우 UTF-8로 변환
+        if isinstance(commitHashValue, bytes):
+            commitHashValue = commitHashValue.decode('utf-8')
+        #추가
+        commitMessage = commitMessage.decode('utf-8')
         cvePattern = re.compile('CVE-20\d{2}-\d{4,7}')  # note: CVE id can now be 7 digit numbers
         cveIdList = list(set(cvePattern.findall(commitMessage)))
-
+        
         """    
         Note: Aug 5, 2016
         If multiple CVE ids are assigned to one commit,
@@ -269,6 +276,9 @@ def parallel_process(subRepoName, commitMessage):
                     if minimum > idDigits:
                         minimum = idDigits
                         minCve = cveId
+                #세 줄 추가
+                minCve = minCve.decode('utf-8') if isinstance(minCve, bytes) else minCve
+                cveIdFull = cveIdFull.decode('utf-8') if isinstance(cveIdFull, bytes) else cveIdFull
                 fp.write(str(minCve + '_' + commitHashValue + '\t' + cveIdFull + '\n'))
         elif len(cveIdList) == 0:
             if info.cveID is None:
@@ -278,22 +288,28 @@ def parallel_process(subRepoName, commitMessage):
         else:
             minCve = cveIdList[0]
 
+        #추가
+        #git_command = f"git show --pretty=fuller {commitHashValue}"
         gitShowOutput = callGitShow(info.GitBinary, commitHashValue)
+        # gitShowOutput이 바이트 문자열인 경우 문자열로 변환
+        if isinstance(gitShowOutput, bytes):
+            gitShowOutput = gitShowOutput.decode('latin-1') # latin-1 만 가능
 
         finalFileName = updateCveInfo(info.CveDict, minCve)
 
         diffFileName = "{0}{1}.diff".format(finalFileName, commitHashValue)
         try:
-            with open(os.path.join(info.DiffDir, info.RepoName, diffFileName), "w") as fp:
+            #with open(os.path.join(info.DiffDir, info.RepoName, diffFileName), "w") as fp:
+            with open(os.path.join(info.DiffDir, info.RepoName, diffFileName), "w", encoding="utf-8") as fp:
                 if subRepoName is None:
                     fp.write(gitShowOutput)
                 else:  # multi-repo mode
                     fp.write(subRepoName + '\n' + gitShowOutput)
             with printLock:
-                print "[+] Writing {0} Done.".format(diffFileName)
+                print("[+] Writing {0} Done.".format(diffFileName))
         except IOError as e:
             with printLock:
-                print "[+] Writing {0} Error:".format(diffFileName), e
+                print("[+] Writing {0} Error:".format(diffFileName), e)
 
 
 def main():
@@ -305,7 +321,7 @@ def main():
         for sidx, subRepoName in enumerate(info.MultiRepoList):
             gitDir = os.path.join(info.GitStoragePath, info.RepoName, subRepoName)  # where .git exists
             commitsList = callGitLog(gitDir)
-            print os.path.join(str(sidx + 1), str(len(info.MultiRepoList)))
+            print(os.path.join(str(sidx + 1), str(len(info.MultiRepoList))))
             if 0 < len(commitsList):
                 process(commitsList, subRepoName)
     else:
@@ -314,8 +330,8 @@ def main():
         process(commitsList, None)
 
     repoDiffDir = os.path.join(info.DiffDir, info.RepoName)
-    print str(len(os.listdir(repoDiffDir))) + " patches saved in", repoDiffDir
-    print "Done. (" + str(time.time() - t1) + " sec)"
+    print(str(len(os.listdir(repoDiffDir))) + " patches saved in", repoDiffDir)
+    print("Done. (" + str(time.time() - t1) + " sec)")
 
 
 if __name__ == '__main__':

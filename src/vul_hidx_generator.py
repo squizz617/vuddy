@@ -50,9 +50,9 @@ def main():
         projDictList.append({})
         hashFileMapList.append({})
 
-    print "loading source",
+    print("loading source"),
     srcFileList = parser.loadVul(os.path.join(vulsDir, projName))
-    print "(done)"
+    print("(done)")
 
     time0 = time.time()
 
@@ -67,7 +67,7 @@ def main():
         functionInstanceList = returnTuple[1]
         functionInstanceList_New = returnTuple[2]
 
-        print srcFileIdx + 1, '/', len(srcFileList), srcFile
+        print(srcFileIdx + 1, '/', len(srcFileList), srcFile)
         numFuncs += len(functionInstanceList)
         if len(functionInstanceList) > 0:
             numLines += functionInstanceList[0].parentNumLoc
@@ -77,6 +77,7 @@ def main():
             path = f.parentFile
             path = "." + path[f.parentFile.find("/vul/"):]
             absBody = parser.abstract(f, intendedAbsLvl)[1]
+            #absBody = parser.normalize(absBody).encode('utf-8')
             absBody = parser.normalize(absBody)
             # print absBody
             funcLen = len(absBody)
@@ -131,9 +132,9 @@ def main():
                 fp.write(str(f) + '\t')
             fp.write('\n')
 
-    print "Hash index saved to:", os.path.join(originalDir, "hidx", "hashmark_{0}_{1}.hidx".format(intendedAbsLvl, projName))
+    print("Hash index saved to:", os.path.join(originalDir, "hidx", "hashmark_{0}_{1}.hidx".format(intendedAbsLvl, projName)))
     time1 = time.time()
-    print "Elapsed time:", time1 - time0
+    print("Elapsed time:", time1 - time0)
 
 
 if __name__ == "__main__":

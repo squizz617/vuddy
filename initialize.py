@@ -1,6 +1,8 @@
 import os
 import sys
 import platform
+# cveXmlDownloader.py 파일이 있는 경로를 추가
+sys.path.append(r'E:\jnu\vuddy-demo\vulnDBGen\tools\cvedatagen')
 
 originalDir = os.path.dirname(os.path.abspath(__file__))  # vuddy root directory
 pf = platform.platform()
@@ -22,7 +24,7 @@ import tools.cvedatagen.common as common
 
 
 def main():
-    print "Making directories..."
+    print("Making directories...")
     dataDir = os.path.join(originalDir, "data", "repolists")
     if os.path.exists(dataDir) is False:
         os.makedirs(dataDir)
@@ -37,29 +39,29 @@ def main():
         os.makedirs(hidxDir)
 
 
-    print "Running CVE data generator..."
+    print("Running CVE data generator...")
 
     os.chdir(os.path.join(originalDir, "data")) 
     if "cvedata.pkl" not in os.listdir("./"):
-        print "cvedata.pkl not found. Proceeding to download.."
-        print "[+] cveXmlDownloader"
+        print("cvedata.pkl not found. Proceeding to download..")
+        print("[+] cveXmlDownloader")
         Downloader.process()
 
-        print "[+] cveXmlParser"
+        print("[+] cveXmlParser")
         Parser.process()
     else:
-        print "cvedata.pkl found. Omitting download.."
+        print("cvedata.pkl found. Omitting download..")
 
-    print "[+] cveXmlUpdater"
+    print("[+] cveXmlUpdater")
     Updater.process()
 
     os.chdir(originalDir)
-    print "cvedata.pkl is now up-to-date.\n"
+    print("cvedata.pkl is now up-to-date.\n")
     
 
     if "Windows" in pf:  # Windows
         if os.path.exists(os.path.join(originalDir, "tools", "FuncParser-opt.exe")) is False:
-            print "Downloading function parser for Windows..."
+            print("Downloading function parser for Windows...")
             os.chdir(os.path.join(originalDir, "tools"))
             url = "https://github.com/squizz617/FuncParser-opt/raw/master/FuncParser-opt.zip"
             fileName = "FuncParser-opt.zip"
@@ -67,7 +69,7 @@ def main():
             common.unzip(fileName)
             os.remove(fileName)
 
-    print "*** Please modify config.py before running scripts in src/ ***"
+    print("*** Please modify config.py before running scripts in src/ ***")
 
 if __name__ == '__main__':
     main()

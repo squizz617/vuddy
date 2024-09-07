@@ -52,4 +52,4 @@ for dir in dirs:
                     rmcntDict[dir] = 1
 
 for dir in rmcntDict:
-    print "removed", rmcntDict[dir], "FP records from", dir
+    print("removed", rmcntDict[dir], "FP records from", dir)

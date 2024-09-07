@@ -33,7 +33,8 @@ for d in dirs:
             if vul.endswith("OLD.vul"):
                 with open(os.path.join(d, vul), "r") as fp:
                     text = '\n'.join(fp.readlines())
-                    text = normalize(text)
+                    #text = normalize(text)
+                    text = normalize(text).encode('utf-8')
                     checksum = hashlib.md5(text).hexdigest()
                     try:
                         hashdict[checksum].append(d + ' ' + vul)
@@ -57,8 +58,8 @@ for key in hashdict:
             except:
                 pass
 
-print "[RESULT]"
+print("[RESULT]")
 for idx, r in enumerate(repolist):
-    print '\t' + r + ":\tdeleted " + str(cntdict[r]) + " duplicate files from " + str(vulcntlist[idx]) + " files."
+    print('\t' + r + ":\tdeleted " + str(cntdict[r]) + " duplicate files from " + str(vulcntlist[idx]) + " files.")
 
-print "Total:", cnt, "duplicate files."
+print("Total:", cnt, "duplicate files.")

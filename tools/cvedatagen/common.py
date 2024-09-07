@@ -1,4 +1,5 @@
-import urllib2
+#import urllib2
+from urllib import request
 import sys
 from zipfile import ZipFile
 from xml.etree.ElementTree import parse
@@ -7,11 +8,13 @@ import os
 
 
 def download_url(url, fileName):
-    u = urllib2.urlopen(url)
+    #u = urllib2.urlopen(url)
+    u = request.urlopen(url)
     f = open(fileName, "wb")
     meta = u.info()
-    fileSize = int(meta.getheaders("Content-Length")[0])
-    print "Downloading: %s (%s bytes)" % (fileName, fileSize)
+    #fileSize = int(meta.getheaders("Content-Length")[0])
+    fileSize = int(meta.get_all("Content-Length")[0])
+    print("Downloading: %s (%s bytes)" % (fileName, fileSize))
 
     downloadedSize = 0
     blockSize = 8192
@@ -24,9 +27,12 @@ def download_url(url, fileName):
         downloadedSize += len(buffer)
         f.write(buffer)
         status = "\r"
-        status += "#" * (downloadedSize * barSize / fileSize)
-        status += " " * (barSize - downloadedSize * barSize / fileSize)
-        status += "%10d  [%3.2f%%]" % (downloadedSize, downloadedSize * 100. / fileSize)
+        #status += "#" * (downloadedSize * barSize / fileSize)
+        #status += " " * (barSize - downloadedSize * barSize / fileSize)
+        #status += "%10d  [%3.2f%%]" % (downloadedSize, downloadedSize * 100. / fileSize)
+        status += "#" * (downloadedSize * barSize // fileSize)
+        status += " " * (barSize - downloadedSize * barSize // fileSize)
+        status += "%10d  [%3.2f%%]" % (downloadedSize, downloadedSize * 100. // fileSize)
         # status += chr(8)*(len(status)+1)
         sys.stdout.write(status)
         sys.stdout.flush()
@@ -36,15 +42,15 @@ def download_url(url, fileName):
 
 
 def unzip(fileName):
-    print "Extracting: " + fileName,
+    print("Extracting: " + fileName),
     zip = ZipFile(fileName)
     zip.extractall()
     zip.close()
-    print " [DONE]"
+    print(" [DONE]")
 
 
 def parse_xml(xmlFile):
-    print "Processing: " + xmlFile,
+    print("Processing: " + xmlFile),
     if not xmlFile.endswith(".json"):
         return {}
 
@@ -57,7 +63,8 @@ def parse_xml(xmlFile):
     reference = []
     summary = ""
 
-    with open(xmlFile) as f:
+    #with open(xmlFile) as f:
+    with open(xmlFile, 'r', encoding='utf-8') as f:
         json_obj = json.load(f)
 
     cve_dict = json_obj["CVE_Items"]
@@ -80,5 +87,5 @@ def parse_xml(xmlFile):
 
         subDict[cveid] = [cvss, cweid, reference, summary]
 
-    print "[Updated %s records, added %s new records]" % (update_count, new_count)
+    print("[Updated %s records, added %s new records]" % (update_count, new_count))
     return subDict

@@ -22,18 +22,18 @@ def process():
     os.remove(fileName)
 
     # load the pickled cve data
-    print "Reading pickled data...",
+    print("Reading pickled data..."),
     cveDict = pickle.load(open(os.path.join(originalDir, "data", "cvedata.pkl"), "rb"))
-    print "[DONE]"
+    print("[DONE]")
 
     subDict = common.parse_xml(fileName.replace(".zip", ""))
     cveDict.update(subDict)
 
     os.remove(fileName.replace(".zip", ""))
 
-    print "Dumping updated pickle...",
+    print("Dumping updated pickle..."),
     pickle.dump(cveDict, open(os.path.join(originalDir, "data", "cvedata.pkl"), "wb"))
-    print "[DONE]"
+    print("[DONE]")
 
 
 if __name__ == '__main__':

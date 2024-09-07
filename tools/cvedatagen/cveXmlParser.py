@@ -26,7 +26,7 @@ def process():
 
     pickle.dump(cveDict, open(os.path.join(originalDir, "data", "cvedata.pkl"), "wb"))
 
-    print "Stored " + str(len(cveDict)) + " CVE data in file 'cvedata.pkl'."
+    print("Stored " + str(len(cveDict)) + " CVE data in file 'cvedata.pkl'.")
 
 
 if __name__ == '__main__':

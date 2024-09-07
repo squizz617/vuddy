@@ -64,9 +64,9 @@ def init():
 
     msg = "Retrieve vulnerable functions from {0}\nMulti-repo mode: ".format(repoName)
     if multimodeFlag:
-        print msg + "On"
+        print(msg + "On")
     else:
-        print msg + "Off"
+        print(msg + "Off")
 
     # try making missing directories
     try:
@@ -96,18 +96,18 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
 
     with ctr.diffFileCntLock:
         currentCounter = ctr.diffFileCnt.value
-        print str(ctr.diffFileCnt.value + 1) + '/' + str(total),
+        print(str(ctr.diffFileCnt.value + 1) + '/' + str(total)),
         ctr.diffFileCnt.value += 1
 
     if os.path.getsize(os.path.join(diffDir, repoName, diffFileName)) > 1000000:
         # don't do anything with big DIFFs (merges, upgrades, ...).
-        print "[-]", diffFileName, "\t(file too large)"
+        print("[-]", diffFileName, "\t(file too large)")
     else:
         diffFileNameSplitted = diffFileName.split('_')
         cveId = diffFileNameSplitted[0]  # use only one CVEid
         commitHashValue = diffFileNameSplitted[-1].split('.')[0]
 
-        print "[+]", diffFileName, "\t(proceed)"
+        print("[+]", diffFileName, "\t(proceed)")
         with open(os.path.join(diffDir, repoName, diffFileName), 'r') as fp:
             patchLines = ''.join(fp.readlines())
             patchLinesSplitted = re.split(pat_src, patchLines)
@@ -121,23 +121,23 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
         numAffectedFiles = len(affectedFilesList)
         for aidx, affectedFile in enumerate(affectedFilesList):
             if debugMode:
-                print "\tFile # " + str(aidx + 1) + '/' + str(numAffectedFiles),
+                print("\tFile # " + str(aidx + 1) + '/' + str(numAffectedFiles)),
             firstLine = affectedFile.split('\n')[0]  # git --diff a/path/filename.ext b/path/filename.ext
             affectedFileName = firstLine.split("--git ")[1].split(" ")[0].split("/")[-1]
             codePath = firstLine.split(' b')[1].strip()  # path/filename.ext
 
             if not codePath.endswith(".c") and not codePath.endswith(".cpp") and not codePath.endswith(".cc") and not codePath.endswith(".c++") and not codePath.endswith(".cxx"):
                 if debugMode:
-                    print "\t[-]", codePath, "(wrong extension)"
+                    print("\t[-]", codePath, "(wrong extension)")
             else:
                 secondLine = affectedFile.split('\n')[1]
 
                 if secondLine.startswith("index") == 0:  # or secondLine.endswith("100644") == 0:
                     if debugMode:
-                        print "\t[-]", codePath, "(invalid metadata)"  # we are looking for "index" only.
+                        print("\t[-]", codePath, "(invalid metadata)")  # we are looking for "index" only.
                 else:
                     if debugMode:
-                        print "\t[+]", codePath
+                        print("\t[+]", codePath)
                     indexHashOld = secondLine.split(' ')[1].split('..')[0]
                     indexHashNew = secondLine.split(' ')[1].split('..')[1]
 
@@ -166,14 +166,14 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
                     numChunks = len(chunksList)
                     for ci, chunk in enumerate(chunksList):
                         if debugMode:
-                            print "\t\tChunk # " + str(ci + 1) + "/" + str(numChunks),
+                            print("\t\tChunk # " + str(ci + 1) + "/" + str(numChunks)),
 
                         chunkSplitted = chunk.split('\n')
                         chunkFirstLine = chunkSplitted[0]
                         chunkLines = chunkSplitted[1:]
 
                         if debugMode:
-                            print chunkFirstLine
+                            print(chunkFirstLine)
                         lineNums = pat_linenum.search(chunkFirstLine)
                         oldLines = lineNums.group(1).split(',')
                         newLines = lineNums.group(2).split(',')
@@ -257,7 +257,7 @@ def source_from_cvepatch(ctr, diffFileName):  # diffFileName holds the filename 
                             finalNewFunctionList.append(dummyFunction)
 
                     if debugMode:
-                        print "\t\t\t", len(finalNewFunctionList), "functions found."
+                        print("\t\t\t", len(finalNewFunctionList), "functions found.")
                     vulFileNameBase = diffFileName.split('.diff')[0] + '_' + affectedFileName
 
                     # os.chdir(os.path.join(originalDir, "vul", repoName))
@@ -341,12 +341,12 @@ def main():
     for f in glob.glob(wildcard_temp):
         os.remove(f)
 
-    print ""
-    print "Done getting vulnerable functions from", repoName
+    print("")
+    print("Done getting vulnerable functions from", repoName)
     #print "Reconstructed", len(
     #    os.listdir(os.path.join(originalDir, 'vul', repoName))), "vulnerable functions from", diffFileCnt.value, "patches."
-    print "Reconstructed", ctr.functionCnt.value, "vulnerable functions from", ctr.diffFileCnt.value, "patches."
-    print "Elapsed: %.2f sec" % (time.time()-t1)
+    print("Reconstructed", ctr.functionCnt.value, "vulnerable functions from", ctr.diffFileCnt.value, "patches.")
+    print("Elapsed: %.2f sec" % (time.time()-t1))
 
 
 if __name__ == "__main__":

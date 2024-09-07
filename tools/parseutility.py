@@ -222,9 +222,10 @@ def parseFile_shallow(srcFileName, caller):
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
-        print "Parser Error:", e
+        print("Parser Error:", e)
         astString = ""
-
+    # astString 문자열로 디코딩
+    astString = astString.decode('latin-1')
     funcList = astString.split(delimiter)
     for func in funcList[1:]:
         functionInstance = function(srcFileName)
@@ -288,7 +289,7 @@ def parseFile_deep(srcFileName, caller):
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
-        print "Parser Error:", e
+        print("Parser Error:", e)
         astString = ""
 
     funcList = astString.split(delimiter)
