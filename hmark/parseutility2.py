@@ -43,7 +43,9 @@ def setEnvironment(caller):
         cwd = os.getcwd()
         if osName == "win":
             # full_path = os.path.join(base_path, "FuncParser.exe")
-            javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
+            # javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
+            base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
 
         elif osName == "linux" or osName == "osx":
             # full_path = os.path.join(base_path, "FuncParser.jar")
@@ -53,7 +55,8 @@ def setEnvironment(caller):
     else:
         if osName == "win":
             base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
-            javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
+            # javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
         elif osName == "linux" or osName == "osx":
             base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
             javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
@@ -138,8 +141,8 @@ def removeComment(string):
     c_regex = re.compile(
         r'(?P<comment>//.*?$|[{}]+)|(?P<multilinecomment>/\*.*?\*/)|(?P<noncomment>\'(\\.|[^\\\'])*\'|"(\\.|[^\\"])*"|.[^/\'"]*)',
         re.DOTALL | re.MULTILINE)
-    return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
-
+    #return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
+    return ''.join([c.group('noncomment') for c in c_regex.finditer(string.decode('latin-1')) if c.group('noncomment')])
 
 # def getBody(originalFunction):
 #   # returns the function's body as a string.
@@ -225,18 +228,23 @@ def parseFile_shallow(srcFileName, caller):
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
-        print "Parser Error:", e
+        #print "Parser Error:", e
+        print("Parser Error:", e)
         astString = ""
-    funcList = astString.split(delimiter)
+    #funcList = astString.split(delimiter)
+    funcList = astString.split(delimiter.encode('utf-8'))
     for func in funcList[1:]:
         functionInstance = function(srcFileName)
-        elemsList = func.split('\n')[1:-1]
+        #elemsList = func.split('\n')[1:-1]
+        elemsList = func.split(b'\n')[1:-1]
         if len(elemsList) > 9:
             functionInstance.parentNumLoc = int(elemsList[1])
             functionInstance.name = elemsList[2]
-            functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+            #functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+            functionInstance.lines = (int(elemsList[3].split(b'\t')[0]), int(elemsList[3].split(b'\t')[1]))
             functionInstance.funcId = int(elemsList[4])
-            functionInstance.funcBody = '\n'.join(elemsList[9:])
+            #functionInstance.funcBody = '\n'.join(elemsList[9:])
+            functionInstance.funcBody = b'\n'.join(elemsList[9:])
             # print functionInstance.funcBody
             # print "-------------------"
 
@@ -256,7 +264,7 @@ def parseFile_deep(srcFileName, caller):
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
-        print "Parser Error:", e
+        print("Parser Error:", e)
         astString = ""
 
     funcList = astString.split(delimiter)
