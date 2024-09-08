@@ -174,7 +174,7 @@ def abstract(instance, level):
             if len(param) == 0:
                 continue
             try:
-                paramPattern = re.compile("(^|\W)" + param + "(\W)")
+                paramPattern = re.compile("(^|\\W)" + param + "(\\W)")
                 abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", abstractBody)
             except:
                 pass
@@ -185,8 +185,8 @@ def abstract(instance, level):
             if len(dtype) == 0:
                 continue
             try:
-                dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
-                abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
+                dtypePattern = re.compile("(^|\\W)" + dtype + "(\\W)")
+                abstractBody = dtypePattern.sub("\\g<1>DTYPE\\g<2>", abstractBody)
             except:
                 pass
 
@@ -196,8 +196,8 @@ def abstract(instance, level):
             if len(lvar) == 0:
                 continue
             try:
-                lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
-                abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
+                lvarPattern = re.compile("(^|\\W)" + lvar + "(\\W)")
+                abstractBody = lvarPattern.sub("\\g<1>LVAR\\g<2>", abstractBody)
             except:
                 pass
 
@@ -207,8 +207,8 @@ def abstract(instance, level):
             if len(fcall) == 0:
                 continue
             try:
-                fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
-                abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
+                fcallPattern = re.compile("(^|\\W)" + fcall + "(\\W)")
+                abstractBody = fcallPattern.sub("\\g<1>FUNCCALL\\g<2>", abstractBody)
             except:
                 pass
 
