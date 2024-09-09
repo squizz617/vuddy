@@ -175,7 +175,7 @@ def abstract(instance, level):
                 continue
             try:
                 paramPattern = re.compile("(^|\\W)" + param + "(\\W)")
-                abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", abstractBody)
+                abstractBody = paramPattern.sub("\\g<1>FPARAM\\g<2>", abstractBody)
             except:
                 pass
 
