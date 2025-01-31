@@ -1,15 +1,12 @@
-#! /usr/bin/env python
-"""
-Parser utility.
-Author: Seulbae Kim
-Created: August 03, 2016
-"""
-
 import os
 import sys
 import subprocess
 import re
 import platform
+
+# Import from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
 
 
 def get_platform():
@@ -43,23 +40,20 @@ def setEnvironment(caller):
         cwd = os.getcwd()
         if osName == "win":
             # full_path = os.path.join(base_path, "FuncParser.exe")
-            # javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
-            base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
-            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
+            javaCallCommand = os.path.join(cwd, "FuncParser-opt.exe ")
 
         elif osName == "linux" or osName == "osx":
             # full_path = os.path.join(base_path, "FuncParser.jar")
             # javaCallCommand = "java -Xmx1024m -jar " + full_path + " "
-            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(cwd, "FuncParser-opt.jar"))
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(cwd, "FuncParser-opt.jar"))
 
     else:
         if osName == "win":
             base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
-            # javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
-            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
+            javaCallCommand = os.path.join(base_path, "FuncParser-opt.exe ")
         elif osName == "linux" or osName == "osx":
             base_path = os.path.dirname(os.path.abspath(__file__))  # vuddy/hmark root directory
-            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format("java", os.path.join(base_path, "FuncParser-opt.jar"))
+            javaCallCommand = "\"{0}\" -Xmx1024m -jar \"{1}\" ".format(config.javaBinary, os.path.join(base_path, "FuncParser-opt.jar"))
 
 
 class function:
@@ -100,7 +94,7 @@ class function:
 def loadSource(rootDirectory):
     # returns the list of .src files under the specified root directory.
     maxFileSizeInBytes = None
-    maxFileSizeInBytes = 2*1024*1024  # remove this line if you don't want to restrict
+    maxFileSizeInBytes = 2097152  # remove this line if you don't want to restrict
     # the maximum file size that you process.
     walkList = os.walk(rootDirectory)
     srcFileList = []
@@ -141,8 +135,8 @@ def removeComment(string):
     c_regex = re.compile(
         r'(?P<comment>//.*?$|[{}]+)|(?P<multilinecomment>/\*.*?\*/)|(?P<noncomment>\'(\\.|[^\\\'])*\'|"(\\.|[^\\"])*"|.[^/\'"]*)',
         re.DOTALL | re.MULTILINE)
-    #return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
-    return ''.join([c.group('noncomment') for c in c_regex.finditer(string.decode('latin-1')) if c.group('noncomment')])
+    return ''.join([c.group('noncomment') for c in c_regex.finditer(string) if c.group('noncomment')])
+
 
 # def getBody(originalFunction):
 #   # returns the function's body as a string.
@@ -174,8 +168,8 @@ def abstract(instance, level):
             if len(param) == 0:
                 continue
             try:
-                paramPattern = re.compile("(^|\\W)" + param + "(\\W)")
-                abstractBody = paramPattern.sub("\\g<1>FPARAM\\g<2>", abstractBody)
+                paramPattern = re.compile("(^|\W)" + param + "(\W)")
+                abstractBody = paramPattern.sub("\g<1>FPARAM\g<2>", abstractBody)
             except:
                 pass
 
@@ -185,8 +179,8 @@ def abstract(instance, level):
             if len(dtype) == 0:
                 continue
             try:
-                dtypePattern = re.compile("(^|\\W)" + dtype + "(\\W)")
-                abstractBody = dtypePattern.sub("\\g<1>DTYPE\\g<2>", abstractBody)
+                dtypePattern = re.compile("(^|\W)" + dtype + "(\W)")
+                abstractBody = dtypePattern.sub("\g<1>DTYPE\g<2>", abstractBody)
             except:
                 pass
 
@@ -196,8 +190,8 @@ def abstract(instance, level):
             if len(lvar) == 0:
                 continue
             try:
-                lvarPattern = re.compile("(^|\\W)" + lvar + "(\\W)")
-                abstractBody = lvarPattern.sub("\\g<1>LVAR\\g<2>", abstractBody)
+                lvarPattern = re.compile("(^|\W)" + lvar + "(\W)")
+                abstractBody = lvarPattern.sub("\g<1>LVAR\g<2>", abstractBody)
             except:
                 pass
 
@@ -207,8 +201,8 @@ def abstract(instance, level):
             if len(fcall) == 0:
                 continue
             try:
-                fcallPattern = re.compile("(^|\\W)" + fcall + "(\\W)")
-                abstractBody = fcallPattern.sub("\\g<1>FUNCCALL\\g<2>", abstractBody)
+                fcallPattern = re.compile("(^|\W)" + fcall + "(\W)")
+                abstractBody = fcallPattern.sub("\g<1>FUNCCALL\g<2>", abstractBody)
             except:
                 pass
 
@@ -228,29 +222,60 @@ def parseFile_shallow(srcFileName, caller):
     try:
         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
-        #print "Parser Error:", e
         print("Parser Error:", e)
         astString = ""
-    #funcList = astString.split(delimiter)
-    funcList = astString.split(delimiter.encode('utf-8'))
+    # astString 문자열로 디코딩
+    astString = astString.decode('latin-1')
+    funcList = astString.split(delimiter)
     for func in funcList[1:]:
         functionInstance = function(srcFileName)
-        #elemsList = func.split('\n')[1:-1]
-        elemsList = func.split(b'\n')[1:-1]
+        elemsList = func.split('\n')[1:-1]
+        # print elemsList
         if len(elemsList) > 9:
             functionInstance.parentNumLoc = int(elemsList[1])
             functionInstance.name = elemsList[2]
-            #functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
-            functionInstance.lines = (int(elemsList[3].split(b'\t')[0]), int(elemsList[3].split(b'\t')[1]))
+            functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
             functionInstance.funcId = int(elemsList[4])
-            #functionInstance.funcBody = '\n'.join(elemsList[9:])
-            functionInstance.funcBody = b'\n'.join(elemsList[9:])
+            functionInstance.funcBody = '\n'.join(elemsList[9:])
             # print functionInstance.funcBody
             # print "-------------------"
 
             functionInstanceList.append(functionInstance)
 
     return functionInstanceList
+
+
+# def parseFile_semiDeep(srcFileName, caller):
+#     # this does not parse body.
+#     global javaCallCommand
+#     global delimiter
+#     setEnvironment(caller)
+#     javaCallCommand += "\"" + srcFileName + "\" 0"
+#     functionInstanceList = []
+#     try:
+#         astString = subprocess.check_output(javaCallCommand, stderr=subprocess.STDOUT, shell=True)
+#     except subprocess.CalledProcessError as e:
+#         print "Parser Error:", e
+#         astString = ""
+
+#     funcList = astString.split(delimiter)
+#     for func in funcList[1:]:
+#         functionInstance = function(srcFileName)
+#         elemsList = func.split('\n')[1:-1]
+#         # print elemsList
+#         if len(elemsList) > 9:
+#             functionInstance.parentNumLoc = int(elemsList[1])
+#             functionInstance.name = elemsList[2]
+#             functionInstance.lines = (int(elemsList[3].split('\t')[0]), int(elemsList[3].split('\t')[1]))
+#             functionInstance.funcId = int(elemsList[4])
+#             functionInstance.parameterList = elemsList[5].rstrip().split('\t')
+#             functionInstance.funcBody = '\n'.join(elemsList[9:])
+#             # print functionInstance.funcBody
+#             # print "-------------------"
+
+#             functionInstanceList.append(functionInstance)
+
+#     return functionInstanceList
 
 
 def parseFile_deep(srcFileName, caller):

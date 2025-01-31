@@ -1,5 +1,6 @@
-# VUDDY (a.k.a. `hmark`)
+# Vuddy 프로젝트를 기존에 Python 2와 3을 동시에 사용해야 했던 환경에서, 이제는 Python 3만으로 동작하도록 수정하였습니다.
 
+# VUDDY (a.k.a. `hmark`)
 VUDDY is an approach for **scalable** and **accurate** vulnerable code clone
 detection. This approach is specifically designed to accurately find
 vulnerabilities in massive code bases (e.g., Linux kernel, 25 MLoC).

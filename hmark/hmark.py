@@ -4,8 +4,8 @@ Version 3.0~ of Hashmarker (CSSA)
 Author: Seulbae Kim (seulbae@korea.ac.kr)
 http://github.com/squizz617/discovuler-advanced/hmark
 """
-
-import urllib2
+#import urllib2
+from urllib import request
 import platform
 import sys
 import os
@@ -72,44 +72,48 @@ def check_update():
     elif osName == "osx":
         url = urlCheck + osName  # ~/osx
     try:
-        response = urllib2.urlopen(url)
+        #response = urllib2.urlopen(url)
+        response = request.urlopen(url)
     except Exception:
-        print "[-] Update server is not responding."
-        print "    Please check your network connection or firewall and try again."
-        print "    To bypass update checking, run with [--no-updatecheck] option."
-        raw_input("Press Enter to continue...")
+        print("[-] Update server is not responding.")
+        print("    Please check your network connection or firewall and try again.")
+        print("    To bypass update checking, run with [--no-updatecheck] option.")
+        #raw_input("Press Enter to continue...")
+        input("Press Enter to continue...")
         sys.exit()
-
     latestVersion = "0.0.0"  # for exception handling
 
-    html = response.read()
+    #html = response.read()
+    html = response.read().decode('utf-8')
     latestVersion = html
 
     if latestVersion == "-1":
-        print "[-] There's something wrong with the server."
-        print "    You can report this issue to cssa@korea.ac.kr, with your version info."
-        print "    To bypass update checking, run with [--no-updatecheck] option."
-        raw_input("Press Enter to continue...")
+        print("[-] There's something wrong with the server.")
+        print("    You can report this issue to cssa@korea.ac.kr, with your version info.")
+        print("    To bypass update checking, run with [--no-updatecheck] option.")
+        #raw_input("Press Enter to continue...")
+        input("Press Enter to continue...")
         sys.exit()
 
     if len(latestVersion.split('.')) < 3:
         latestVersion += '.0'
 
-    print "Latest server version: " + latestVersion
-    print "Current local version: " + localVersion,
+    print("Latest server version: " + latestVersion)
+    print("Current local version: " + localVersion),
 
     if LooseVersion(localVersion) < LooseVersion(latestVersion):
-        print "(out-of-date)"
-        print "[-] Your hmark is not up-to-date."
-        print "    Please download and run the latest version."
-        print "    Proceeding to the download page."
-        print "    To bypass update checking, run with [--no-updatecheck] option."
+        print("(out-of-date)")
+        print("[-] Your hmark is not up-to-date.")
+        print("    Please download and run the latest version.")
+        print("    Proceeding to the download page.")
+        print("    To bypass update checking, run with [--no-updatecheck] option.")
 
         webbrowser.open(urlDownload)
-        raw_input("Press Enter to continue...")
+        #raw_input("Press Enter to continue...")
+        input("Press Enter to continue...")
         sys.exit()
     else:
-        print "(up-to-date)"
+        print("(up-to-date)")
 
 
 def parseFile_shallow_multi(f):
@@ -136,8 +140,11 @@ class App:
         self.screenWidth = master.winfo_screenwidth()  # width of the screen
         self.screenHeight = master.winfo_screenheight()  # height of the screen
 
-        self.x = (self.screenWidth / 2) - (self.mainWidth / 2)
-        self.y = (self.screenHeight / 2) - (self.mainHeight / 2)
+        #self.x = (self.screenWidth / 2) - (self.mainWidth / 2)
+        #self.y = (self.screenHeight / 2) - (self.mainHeight / 2)
+        self.x = (self.screenWidth // 2) - (self.mainWidth // 2)
+        self.y = (self.screenHeight // 2) - (self.mainHeight // 2)
+
 
         master.geometry("%dx%d+%d+%d" % (self.mainWidth, self.mainHeight, self.x, self.y))
         master.resizable(width=False, height=False)
@@ -444,7 +451,8 @@ cssa@korea.ac.kr
         parentX = int(parentGeo[1])  # X coordinate of parent (the main window)
         parentY = int(parentGeo[2])  # Y coordinate of parent
 
-        top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
+        #top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
+        top.geometry("+%d+%d" % (parentX + self.mainWidth // 2 - topw // 2, parentY + self.mainHeight // 2 - toph / 2))
         top.resizable(width=False, height=False)
         top.grab_set_global()
         top.title("About hmark...")
@@ -478,7 +486,8 @@ cssa@korea.ac.kr
         parentX = int(parentGeo[1])  # width of parent (the main window)
         parentY = int(parentGeo[2])  # height of parent
 
-        top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
+        #top.geometry("+%d+%d" % (parentX + self.mainWidth / 2 - topw / 2, parentY + self.mainHeight / 2 - toph / 2))
+        top.geometry("+%d+%d" % (parentX + self.mainWidth // 2 - topw // 2, parentY + self.mainHeight // 2 - toph // 2))
         top.resizable(width=False, height=False)
         top.grab_set_global()
         top.title("Help")
@@ -493,9 +502,13 @@ def run_gui():
     global tkFileDialog
     global ttk
 
-    import Tkinter
-    import tkFileDialog
-    import ttk
+    #import Tkinter
+    #import tkFileDialog
+    #import ttk
+    import tkinter as Tkinter
+    from tkinter import filedialog as tkFileDialog
+    from tkinter import ttk
+
 
     root = Tkinter.Tk()
     app = App(root)
@@ -512,9 +525,9 @@ def run_gui():
 
     try:
         root.destroy()
-        print "Farewell!"
+        print("Farewell!")
     except Tkinter.TclError:
-        print "GUI process terminated."
+        print("GUI process terminated.")
 
 
 def generate_cli(targetPath, isAbstraction):
@@ -527,7 +540,7 @@ def generate_cli(targetPath, isAbstraction):
         absLevel = 0
 
     proj = directory.replace('\\', '/').split('/')[-1]
-    print "PROJ:", proj
+    print("PROJ:", proj)
     timeIn = time.time()
     numFile = 0
     numFunc = 0
@@ -536,17 +549,17 @@ def generate_cli(targetPath, isAbstraction):
     projDic = {}
     hashFileMap = {}
 
-    print "[+] Loading source files... This may take a few minutes."
+    print("[+] Loading source files... This may take a few minutes.")
 
     fileList = pu.loadSource(directory)
     numFile = len(fileList)
 
     if numFile == 0:
-        print "[-] Error: Failed loading source files."
-        print "    Check if you selected proper directory, or if your project contains .c or .cpp files."
+        print("[-] Error: Failed loading source files.")
+        print("    Check if you selected proper directory, or if your project contains .c or .cpp files.")
         sys.exit()
     else:
-        print "[+] Load complete. Generating hashmark..."
+        print ("[+] Load complete. Generating hashmark...")
 
         if absLevel == 0:
             func = parseFile_shallow_multi
@@ -570,11 +583,13 @@ def generate_cli(targetPath, isAbstraction):
             else:
                 try:
                     # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
-                    rows, columns = subprocess.check_output(['stty', 'size']).split()
+                    #rows, columns = subprocess.check_output(['stty', 'size']).split()
+                    rows, columns = subprocess.check_output(['stty', 'size']).decode().split()
                 except:
                     columns = 80
 
-            progress = 100 * float(idx + 1) / numFile
+            #progress = 100 * float(idx + 1) / numFile
+            progress = 100 * (idx + 1) / float(numFile)
             buf = "\r%.2f%% %s" % (progress, fullName)
             buf += " " * (int(columns) - len(buf))
             sys.stdout.write(buf)
@@ -595,7 +610,8 @@ def generate_cli(targetPath, isAbstraction):
                 # print "\n", funcLen, absBody
 
                 if funcLen > 50:
-                    hashValue = md5(absBody).hexdigest()
+                    #hashValue = md5(absBody).hexdigest()
+                    hashValue = md5(absBody.encode('utf-8')).hexdigest()
 
                     try:
                         projDic[funcLen].append(hashValue)
@@ -608,9 +624,9 @@ def generate_cli(targetPath, isAbstraction):
                 else:
                     numFunc -= 1  # decrement numFunc by 1 if funclen is under threshold
 
-        print ""
-        print "[+] Hash index successfully generated."
-        print "[+] Saving hash index to file...",
+        print("")
+        print("[+] Hash index successfully generated.")
+        print("[+] Saving hash index to file..."),
 
         packageInfo = str(localVersion) + ' ' + str(proj) + ' ' + str(numFile) + ' ' + str(numFunc) + ' ' + str(
             numLine) + '\n'
@@ -633,21 +649,21 @@ def generate_cli(targetPath, isAbstraction):
 
         timeOut = time.time()
 
-        print "(Done)"
-        print ""
-        print "[+] Elapsed time: %.02f sec." % (timeOut - timeIn)
-        print "Program statistics:"
-        print " - " + str(numFile) + ' files;'
-        print " - " + str(numFunc) + ' functions;'
-        print " - " + str(numLine) + ' lines of code.'
-        print ""
-        print "[+] Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hidx/hashmark_" + str(
-            absLevel) + "_" + proj + ".hidx"
+        print("(Done)")
+        print("")
+        print("[+] Elapsed time: %.02f sec." % (timeOut - timeIn))
+        print("Program statistics:")
+        print(" - " + str(numFile) + ' files;')
+        print(" - " + str(numFunc) + ' functions;')
+        print(" - " + str(numLine) + ' lines of code.')
+        print("")
+        print("[+] Hash index saved to: " + os.getcwd().replace("\\", "/") + "/hidx/hashmark_" + str(
+            absLevel) + "_" + proj + ".hidx")
 
 
 def run_cli(targetPath, isAbstraction):
     generate_cli(targetPath, isAbstraction)
-    print "Farewell!"
+    print("Farewell!")
 
 
 def main():
@@ -702,11 +718,11 @@ def main():
         versionString = "hmark" + localVersion + " for " + osName
         if osName == "linux" or osName == "win":
             versionString = versionString + " (x" + bits + ")"
-        print versionString
+        print(versionString)
         sys.exit()
 
     if args.no_update_check:
-        print "Bypassed the update checker."
+        print("Bypassed the update checker.")
     else:
         check_update()
 
@@ -714,33 +730,33 @@ def main():
         try:
             msg = subprocess.check_output("java -version", stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
-            print "Java error:", e
-            print "Please try again after installing JDK."
+            print("Java error:", e)
+            print("Please try again after installing JDK.")
             sys.exit()
 
     if args.cli_mode:
         if os.path.isdir(args.cli_mode[0]) is False:
-            print "[-] Directory does not exist:", args.cli_mode[0]
-            print "    Please specify the right directory to your target."
+            print("[-] Directory does not exist:", args.cli_mode[0])
+            print("    Please specify the right directory to your target.")
             sys.exit()
 
         if args.cli_mode[1].isalpha():
             if args.cli_mode[1].lower() == "on" or args.cli_mode[1].lower() == "off":
-                print "Running in CLI mode"
-                print "TARGET: " + args.cli_mode[0]
-                print "ABSTRACTION: " + args.cli_mode[1]
+                print("Running in CLI mode")
+                print("TARGET: " + args.cli_mode[0])
+                print("ABSTRACTION: " + args.cli_mode[1])
                 run_cli(args.cli_mode[0], args.cli_mode[1])
             else:
-                print "[-] Bad parameter: " + args.cli_mode[1]
-                print "    Accepted values are ON or OFF."
+                print("[-] Bad parameter: " + args.cli_mode[1])
+                print("    Accepted values are ON or OFF.")
                 sys.exit()
         else:
-            print "[-] Bad parameter: " + args.cli_mode[1]
-            print "    Accepted values are ON or OFF."
+            print("[-] Bad parameter: " + args.cli_mode[1])
+            print("    Accepted values are ON or OFF.")
             sys.exit()
 
     else:
-        print "Running GUI"
+        print("Running GUI")
         run_gui()
 
 
