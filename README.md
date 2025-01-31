@@ -1,5 +1,3 @@
-# Vuddy 프로젝트를 기존에 Python 2와 3을 동시에 사용해야 했던 환경에서, 이제는 Python 3만으로 동작하도록 수정하였습니다.
-
 # VUDDY (a.k.a. `hmark`)
 VUDDY is an approach for **scalable** and **accurate** vulnerable code clone
 detection. This approach is specifically designed to accurately find
@@ -13,9 +11,9 @@ tool for "Vulnerable Code Clone Detection" testing provided by
 [IoTcube](https://iotcube.net), an automated vulnerability testing platform.
 Detailed instructions are available [here](https://iotcube.net/userguide/manual/hmark).
 
-This project is a part of the "international collaborative research", which
-was conducted by [CSSA](https://cssa.korea.ac.kr) (Center for Software
-Security and Assurrance).
+This project was funded by IITP (Development of Vulnerability Discovery Technologies
+for IoT Software Security), and was conducted at [CSSA](https://cssa.korea.ac.kr)
+(Center for Software Security and Assurrance) at Korea University.
 
 ## Getting Started with `hmark`
 
@@ -23,10 +21,9 @@ Security and Assurrance).
 - **Linux or OS X** - *hmark* is designed to work on any of the operating
   systems. Tested OS distributions include Ubuntu 14.04, 16.04, and 18.04,
   Fedora 25, and OS X. Let me know if your OS is not supported.
-  - Confirmed in May 2024: VUDDY works seamlessly on Ubuntu 22.04, but you need
-    to install Python 2
-- **Python 2**, version 2.7.10 or newer - earlier versions may work, but not
-  tested.
+  - Confirmed in May 2024: VUDDY works seamlessly on Ubuntu 22.04
+  - Confirmed in Jan 2025: VUDDY works also on Windows 10
+- **Python 3** - VUDDY is now fully compatible with Python 3 (Jan 2025 onwards)
 - **python-tk** package - (only required if you want GUI) install from your
   package manager
 - **Java Runtime Environment (JRE)** - We recommend openjdk-8-jre.
